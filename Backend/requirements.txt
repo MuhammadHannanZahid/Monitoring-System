@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+motor
+pymongo
+python-jose
+argon2-cffi
+python-multipart
+python-dotenv
+pydantic-settings
+pytest
+httpx
+black
+ruff
+pydantic-settings
