@@ -11,4 +11,3 @@ pytest
 httpx
 black
 ruff
-pydantic-settings
