@@ -4,7 +4,7 @@
 .Trash-*
 .nfs*
 
-../.idea/
+/.idea/
 *.iml
 out/
 gen/
