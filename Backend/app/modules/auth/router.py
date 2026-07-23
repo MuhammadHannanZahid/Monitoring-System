@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends
+from app.modules.auth.schemas import (LoginRequest, TokenResponse, CurrentUserResponse)
+from app.modules.auth.service import AuthService
+from app.shared.constants import Messages
+from app.shared.responses import SuccessResponse, success_response
+from app.modules.auth.dependencies import (get_auth_service, get_current_user)
+from app.modules.auth.models import UserModel
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
+
+@router.post("/login", response_model=SuccessResponse[TokenResponse])
+async def login(request: LoginRequest, service: AuthService = Depends(get_auth_service),):
+
+    tokens = await service.login(
+        username=request.username,
+        password=request.password,
+    )
+
+    return success_response(
+        message=Messages.LOGIN_SUCCESS,
+        data=TokenResponse(
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
+        ),
+    )
+
+@router.get("/me", response_model=SuccessResponse[CurrentUserResponse])
+async def me(current_user: UserModel = Depends(get_current_user),):
+    return success_response(
+        message=Messages.CURRENT_USER_FETCHED,
+        data=CurrentUserResponse(
+            id=current_user.id,
+            username=current_user.username,
+            role=current_user.role,
+        ),
+    )
+
+@router.post("/logout", response_model=SuccessResponse[None],)
+async def logout(current_user: UserModel = Depends(get_current_user), service: AuthService = Depends(get_auth_service)):
+    await service.logout(current_user.id)
+
+    return success_response(
+        message=Messages.LOGOUT_SUCCESS,
+        data=None,
+    )
