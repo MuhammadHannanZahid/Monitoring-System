@@ -21,6 +21,9 @@ class ErrorResponse(BaseModel):
     errors: list[str] = Field(default_factory=list)
     metadata: Metadata | None = None
 
+class EmptyData(BaseModel):
+    pass
+
 def success_response(message: str, data: Any = None, metadata: Metadata | None = None,) -> SuccessResponse:
     return SuccessResponse(
         message=message,

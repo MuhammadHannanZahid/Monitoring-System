@@ -12,7 +12,7 @@ class JWTService:
         payload = {
             "sub": user_id,
             "username": username,
-            "role": role,
+            "role": role.value,
             "type": TokenType.ACCESS.value,
             "exp": expire,
         }

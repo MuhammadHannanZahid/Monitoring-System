@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logger import get_logger
 from app.core.database import db_manager
+from app.core.exception_handlers import (register_exception_handlers)
+from app.api.api import api_router
 
 logger = get_logger(__name__)
 
@@ -21,3 +23,6 @@ app = FastAPI(
     version=settings.app_version,
     lifespan=lifespan,
 )
+
+register_exception_handlers(app)
+app.include_router(api_router)

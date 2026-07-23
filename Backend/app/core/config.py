@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     smtp_user: str = Field("", alias="SMTP_USER")
     smtp_password: str = Field("", alias="SMTP_PASSWORD")
 
+    default_admin_username: str
+    default_admin_password: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,

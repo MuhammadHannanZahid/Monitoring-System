@@ -10,3 +10,9 @@ class Messages:
     WEBSITE_DELETED = "Website monitor deleted successfully."
 
     INCIDENT_CREATED = "Incident created successfully."
+
+    USER_NOT_FOUND = "User not found."
+
+    CURRENT_USER_FETCHED = "Current user retrieved successfully."
+
+    CURRENT_USER_RETRIEVED = "Current user retrieved successfully."
