@@ -1,0 +1,25 @@
+from collections.abc import Callable
+from fastapi import Depends
+from app.modules.auth.dependencies import get_current_user
+from app.modules.auth.models import UserModel
+from app.shared.enums import UserRole
+from app.shared.exceptions import AuthorizationError
+
+def require_roles(*allowed_roles: UserRole) -> Callable:
+
+    async def dependency(current_user: UserModel = Depends(get_current_user)) -> UserModel:
+        if current_user.role not in allowed_roles:
+            raise AuthorizationError()
+
+        return current_user
+    return dependency
+
+def require_admin():
+    return require_roles(UserRole.ADMIN)
+
+
+def require_viewer():
+    return require_roles(
+        UserRole.ADMIN,
+        UserRole.VIEWER,
+    )
