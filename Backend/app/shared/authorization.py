@@ -14,11 +14,11 @@ def require_roles(*allowed_roles: UserRole) -> Callable:
         return current_user
     return dependency
 
-def require_admin():
+def require_admin() -> Callable:
     return require_roles(UserRole.ADMIN)
 
 
-def require_viewer():
+def require_viewer() -> Callable:
     return require_roles(
         UserRole.ADMIN,
         UserRole.VIEWER,

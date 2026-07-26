@@ -13,7 +13,6 @@ class Messages:
 
     USER_NOT_FOUND = "User not found."
 
-    CURRENT_USER_FETCHED = "Current user fetched successfully."
     CURRENT_USER_RETRIEVED = "Current user retrieved successfully."
 
     USER_INACTIVE = "This account is inactive."
