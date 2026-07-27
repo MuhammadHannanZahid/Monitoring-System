@@ -13,6 +13,7 @@ class Messages:
 
     USER_NOT_FOUND = "User not found."
 
-    CURRENT_USER_FETCHED = "Current user retrieved successfully."
-
     CURRENT_USER_RETRIEVED = "Current user retrieved successfully."
+
+    USER_INACTIVE = "This account is inactive."
+    ACCESS_DENIED = "You do not have permission to perform this action."

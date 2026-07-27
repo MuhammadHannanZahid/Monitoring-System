@@ -1,4 +1,5 @@
 from fastapi import status
+from app.shared.constants import Messages
 
 class AppException(Exception):
     def __init__(self, message: str, status_code: int,):
@@ -14,7 +15,7 @@ class AuthenticationError(AppException):
         )
 
 class AuthorizationError(AppException):
-    def __init__(self, message: str):
+    def __init__(self, message: str = Messages.ACCESS_DENIED):
         super().__init__(
             message=message,
             status_code=status.HTTP_403_FORBIDDEN,
