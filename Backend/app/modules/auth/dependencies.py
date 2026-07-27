@@ -5,7 +5,7 @@ from app.modules.auth.repository import (AuthRepository, get_auth_repository,)
 from app.modules.auth.service import AuthService
 from jose import JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from app.shared.exceptions import AuthenticationError
 from app.shared.constants import Messages
 

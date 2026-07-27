@@ -4,7 +4,7 @@ from app.modules.auth.service import AuthService
 from app.shared.constants import Messages
 from app.shared.responses import SuccessResponse, success_response
 from app.modules.auth.dependencies import get_auth_service
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from app.shared.authorization import require_admin, require_viewer
 
 router = APIRouter(
@@ -31,7 +31,7 @@ async def login(request: LoginRequest, service: AuthService = Depends(get_auth_s
 @router.get("/me", response_model=SuccessResponse[CurrentUserResponse])
 async def me(current_user: UserModel = Depends(require_viewer())):
     return success_response(
-        message=Messages.CURRENT_USER_FETCHED,
+        message=Messages.CURRENT_USER_RETRIEVED,
         data=CurrentUserResponse(
             id=current_user.id,
             username=current_user.username,

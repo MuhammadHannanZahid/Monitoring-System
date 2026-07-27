@@ -3,7 +3,7 @@ from app.core.security import PasswordService
 from app.modules.users.repository import UserRepository
 from app.shared.constants import Messages
 from app.shared.enums import UserRole
-from app.shared.exceptions import ConflictError, NotFoundError
+from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
 from app.shared.models.user import UserModel
 
 class UserService:
@@ -19,6 +19,9 @@ class UserService:
 
         if username_exists:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
+
+        if role == UserRole.ADMIN:
+            raise AuthorizationError(Messages.ADMIN_CREATION_NOT_ALLOWED)
 
         now = datetime.now(timezone.utc)
 
@@ -61,12 +64,21 @@ class UserService:
                 if exists:
                     raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
 
+                if role == UserRole.ADMIN:
+                    raise AuthorizationError(Messages.ADMIN_PROMOTION_NOT_ALLOWED)
                 update_data["username"] = username
 
         if password is not None:
             update_data["password_hash"] = self._hash_password(password)
 
         if role is not None:
+            existing_user = await self.repository.get_by_id(user_id)
+            if existing_user is None:
+                raise NotFoundError(Messages.USER_NOT_FOUND)
+
+            if existing_user.role == UserRole.ADMIN and role != UserRole.ADMIN:
+                raise AuthorizationError(Messages.ADMIN_ROLE_CHANGE_NOT_ALLOWED)
+
             update_data["role"] = role
 
         if is_active is not None:
@@ -79,6 +91,9 @@ class UserService:
         return updated_user
 
     async def delete_user(self, user_id: str) -> None:
+        user = await self.repository.get_by_id(user_id)
+        if user.role == UserRole.ADMIN:
+            raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
         await self.get_user(user_id)
         await self.repository.delete_user(user_id)
 
@@ -88,6 +103,10 @@ class UserService:
         return await self.get_user(user_id)
 
     async def deactivate_user(self, user_id: str) -> UserModel:
+        user = await self.repository.get_by_id(user_id)
+        if user.role == UserRole.ADMIN:
+            raise AuthorizationError(Messages.ADMIN_DEACTIVATION_NOT_ALLOWED)
+
         await self.get_user(user_id)
         await self.repository.set_active(user_id,False)
         return await self.get_user(user_id)

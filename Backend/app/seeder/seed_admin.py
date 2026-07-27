@@ -5,7 +5,7 @@ from app.core.database import db_manager
 from app.core.logger import get_logger
 from app.core.security import password_service
 
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from app.shared.database_constants import Collections
 from app.shared.enums import UserRole
 
@@ -24,7 +24,8 @@ class AdminSeeder(BaseSeeder):
         )
 
         if existing_admin:
-            logger.info("Default admin already exists. Skipping seeder.")
+            await repository.update_seed_admin()
+            logger.info("Default admin already exists. Role and status verified.")
             return
 
         now = datetime.now(timezone.utc)

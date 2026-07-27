@@ -1,7 +1,7 @@
 from app.core.jwt import JWTService
 from app.core.security import PasswordService, RefreshTokenService
 from app.modules.auth.dto import AuthTokens
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from app.modules.auth.repository import AuthRepository
 from app.shared.exceptions import AuthenticationError, NotFoundError
 from app.shared.constants import Messages

@@ -4,7 +4,7 @@ from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from fastapi import Depends
 
 

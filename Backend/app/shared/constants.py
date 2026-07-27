@@ -26,3 +26,12 @@ class Messages:
     USER_DEACTIVATED = "User deactivated successfully."
 
     USERNAME_ALREADY_EXISTS = "Username already exists."
+
+    USER_FETCHED = "User retrieved successfully."
+    USERS_FETCHED = "Users retrieved successfully."
+
+    ADMIN_CREATION_NOT_ALLOWED = "Administrator accounts cannot be created."
+    ADMIN_PROMOTION_NOT_ALLOWED = "Users cannot be promoted to administrator."
+    ADMIN_ROLE_CHANGE_NOT_ALLOWED = "Administrator role cannot be changed."
+    ADMIN_DEACTIVATION_NOT_ALLOWED = "Administrator account cannot be deactivated."
+    ADMIN_DELETION_NOT_ALLOWED = "Administrator account cannot be deleted."
