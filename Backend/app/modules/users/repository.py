@@ -6,10 +6,24 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
 from app.shared.models.user import UserModel
-class UserRepository:
+from app.shared.enums import UserRole
+from app.core.config import settings
 
+class UserRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
         self.collection = database[Collections.USERS]
+
+    async def update_seed_admin(self) -> None:
+        await self.collection.update_one(
+            {"username": settings.admin_username},
+            {
+                "$set": {
+                    "role": UserRole.ADMIN,
+                    "is_active": True,
+                    "updated_at": datetime.now(timezone.utc),
+                }
+            },
+        )
 
     async def create_user(self, user: UserModel) -> str:
         document = user.model_dump()
