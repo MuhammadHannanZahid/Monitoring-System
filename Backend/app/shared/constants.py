@@ -17,3 +17,12 @@ class Messages:
 
     USER_INACTIVE = "This account is inactive."
     ACCESS_DENIED = "You do not have permission to perform this action."
+
+    USER_CREATED = "User created successfully."
+    USER_UPDATED = "User updated successfully."
+    USER_DELETED = "User deleted successfully."
+
+    USER_ACTIVATED = "User activated successfully."
+    USER_DEACTIVATED = "User deactivated successfully."
+
+    USERNAME_ALREADY_EXISTS = "Username already exists."
