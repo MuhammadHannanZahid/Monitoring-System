@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from fastapi import Depends
 from app.modules.auth.dependencies import get_current_user
-from app.modules.auth.models import UserModel
+from app.shared.models.user import UserModel
 from app.shared.enums import UserRole
 from app.shared.exceptions import AuthorizationError
 

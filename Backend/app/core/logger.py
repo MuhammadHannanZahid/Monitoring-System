@@ -17,18 +17,26 @@ LOG_FORMAT = (
     "%(name)s | %(message)s"
 )
 
+class MaxLevelFilter(logging.Filter):
+    def __init__(self, level: int):
+        super().__init__()
+        self.level = level
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno <= self.level
+
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT,)
 
-logger = logging.getLogger()
+root_logger = logging.getLogger()
 
-logger.setLevel(settings.log_level.upper())
+root_logger.setLevel(settings.log_level.upper())
 
-logger.propagate = False
+root_logger.propagate = False
 
-if logger.handlers:
-    logger.handlers.clear()
+if root_logger.handlers:
+    root_logger.handlers.clear()
 
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(formatter)
@@ -43,6 +51,7 @@ app_handler = RotatingFileHandler(
 
 app_handler.setFormatter(formatter)
 app_handler.setLevel(settings.log_level.upper())
+app_handler.addFilter(MaxLevelFilter(logging.WARNING))
 
 error_handler = RotatingFileHandler(
     ERROR_LOG_FILE,
@@ -54,9 +63,9 @@ error_handler = RotatingFileHandler(
 error_handler.setFormatter(formatter)
 error_handler.setLevel(logging.ERROR)
 
-logger.addHandler(console_handler)
-logger.addHandler(app_handler)
-logger.addHandler(error_handler)
+root_logger.addHandler(console_handler)
+root_logger.addHandler(app_handler)
+root_logger.addHandler(error_handler)
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
