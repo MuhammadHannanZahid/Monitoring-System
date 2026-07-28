@@ -4,7 +4,7 @@ from app.modules.users.repository import UserRepository
 from app.shared.constants import Messages
 from app.shared.enums import UserRole
 from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
-from app.shared.models.user import UserModel
+from app.shared.models.auth_user import UserModel
 
 class UserService:
     def __init__(self, repository: UserRepository, password_service: PasswordService):

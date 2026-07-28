@@ -35,3 +35,10 @@ class Messages:
     ADMIN_ROLE_CHANGE_NOT_ALLOWED = "Administrator role cannot be changed."
     ADMIN_DEACTIVATION_NOT_ALLOWED = "Administrator account cannot be deactivated."
     ADMIN_DELETION_NOT_ALLOWED = "Administrator account cannot be deleted."
+
+    WEBSITE_ALREADY_EXISTS = "Website already exists."
+    WEBSITE_NOT_FOUND = "Website not found."
+    WEBSITE_FETCHED = "Website fetched successfully."
+    WEBSITES_FETCHED = "Websites fetched successfully."
+    WEBSITE_ACTIVATED = "Website activated successfully."
+    WEBSITE_DEACTIVATED = "Website deactivated successfully."

@@ -5,7 +5,7 @@ from app.core.database import db_manager
 from app.core.logger import get_logger
 from app.core.security import password_service
 
-from app.shared.models.user import UserModel
+from app.shared.models.auth_user import UserModel
 from app.shared.database_constants import Collections
 from app.shared.enums import UserRole
 

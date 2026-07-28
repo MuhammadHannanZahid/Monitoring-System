@@ -4,7 +4,7 @@ from app.modules.auth.service import AuthService
 from app.shared.constants import Messages
 from app.shared.responses import SuccessResponse, success_response
 from app.modules.auth.dependencies import get_auth_service
-from app.shared.models.user import UserModel
+from app.shared.models.auth_user import UserModel
 from app.shared.authorization import require_admin, require_viewer
 
 router = APIRouter(

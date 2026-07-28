@@ -1,4 +1,4 @@
-from app.shared.models.user import UserModel
+from app.shared.models.auth_user import UserModel
 from app.modules.users.schemas import UserResponse
 
 class UserMapper:

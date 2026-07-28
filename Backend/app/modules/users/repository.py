@@ -5,7 +5,7 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
-from app.shared.models.user import UserModel
+from app.shared.models.auth_user import UserModel
 from app.shared.enums import UserRole
 from app.core.config import settings
 

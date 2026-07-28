@@ -31,7 +31,7 @@ async def list_users(service: UserService = Depends(get_user_service)):
         data=UserMapper.to_response_list(users)
     )
 
-@router.get("/{user_id}", response_model=SuccessResponse[UserResponse])
+@router.get("{user_id}", response_model=SuccessResponse[UserResponse])
 async def get_user(user_id: str, service: UserService = Depends(get_user_service)):
     user = await service.get_user(user_id)
 
