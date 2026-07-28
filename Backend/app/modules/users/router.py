@@ -9,7 +9,7 @@ from app.shared.mappers.user_mapper import UserMapper
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(require_admin())])
 
-@router.post("",response_model=SuccessResponse[UserResponse])
+@router.post("/create",response_model=SuccessResponse[UserResponse])
 async def create_user(request: CreateUserRequest, service: UserService = Depends(get_user_service)):
     user = await service.create_user(
         username=request.username,
@@ -22,7 +22,7 @@ async def create_user(request: CreateUserRequest, service: UserService = Depends
         data=UserMapper.to_response(user)
     )
 
-@router.get("", response_model=SuccessResponse[list[UserResponse]])
+@router.get("/list", response_model=SuccessResponse[list[UserResponse]])
 async def list_users(service: UserService = Depends(get_user_service)):
     users = await service.list_users()
 
@@ -31,7 +31,7 @@ async def list_users(service: UserService = Depends(get_user_service)):
         data=UserMapper.to_response_list(users)
     )
 
-@router.get("{user_id}", response_model=SuccessResponse[UserResponse])
+@router.get("{user_id}/get_one", response_model=SuccessResponse[UserResponse])
 async def get_user(user_id: str, service: UserService = Depends(get_user_service)):
     user = await service.get_user(user_id)
 
@@ -40,7 +40,7 @@ async def get_user(user_id: str, service: UserService = Depends(get_user_service
         data=UserMapper.to_response(user),
     )
 
-@router.put("/{user_id}", response_model=SuccessResponse[UserResponse])
+@router.put("/{user_id}/update", response_model=SuccessResponse[UserResponse])
 async def update_user(user_id: str, request: UpdateUserRequest, service: UserService = Depends(get_user_service)):
     user = await service.update_user(
         user_id=user_id,
@@ -55,7 +55,7 @@ async def update_user(user_id: str, request: UpdateUserRequest, service: UserSer
         data=UserMapper.to_response(user),
     )
 
-@router.delete("/{user_id}", response_model=SuccessResponse[None])
+@router.delete("/{user_id}/delete", response_model=SuccessResponse[None])
 async def delete_user(user_id: str, service: UserService = Depends(get_user_service)):
     await service.delete_user(user_id)
 

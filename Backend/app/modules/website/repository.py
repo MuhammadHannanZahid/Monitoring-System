@@ -81,3 +81,6 @@ class WebsiteRepository:
 
     async def count_similar_names(self, base_name: str) -> int:
         return await self.collection.count_documents({"name": {"$regex": f"^{base_name}( \\d+)?$"}})
+
+def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
+    return WebsiteRepository(database)
