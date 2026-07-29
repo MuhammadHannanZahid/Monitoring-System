@@ -50,13 +50,23 @@ class MonitorService:
         )
 
     async def check_and_update(self, website: WebsiteModel) -> HealthCheckResponse:
+        previous_status = website.status
         result = await self.check_website(website)
-        await self.repository.update_monitoring_result(
-            website_id=website.id,
-            status=result.status,
-            status_code=result.status_code,
-            response_time_ms=result.response_time_ms,
-            checked_at=datetime.now(timezone.utc),
+        await self.website_repository.update_status(
+            website.id,
+            result.status,
+            result.response_time_ms,
+            result.status_code,
         )
+
+        logger.info("Website '%s' checked. Status=%s Response=%sms HTTP=%s", website.name, result.status.value, result.response_time_ms, result.status_code)
+
+        if (previous_status != WebsiteStatus.DOWN and result.status == WebsiteStatus.DOWN):
+            await self.incident_service.open_incident(website.id, reason=f"HTTP {result.status_code}")
+            logger.warning("Website '%s' became DOWN.", website.name)
+
+        elif (previous_status == WebsiteStatus.DOWN and result.status == WebsiteStatus.UP):
+            await self.incident_service.resolve_incident(website.id)
+            logger.info("Website '%s' recovered.", website.name)
 
         return result
