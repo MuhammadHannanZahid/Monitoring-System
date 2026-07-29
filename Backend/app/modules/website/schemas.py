@@ -29,3 +29,6 @@ class WebsiteResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     last_checked_at: datetime | None
+    last_status_code: int | None
+    last_response_time_ms: int | None
+    status: Websitestatus

@@ -15,6 +15,9 @@ class WebsiteMapper:
             created_at=website.created_at,
             updated_at=website.updated_at,
             last_checked_at=website.last_checked_at,
+            last_status_code=website.last_status_code,
+            last_response_time_ms=website.last_response_time_ms,
+            status=website.status
         )
 
     @staticmethod
