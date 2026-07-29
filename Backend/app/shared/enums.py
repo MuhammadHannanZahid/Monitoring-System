@@ -7,3 +7,8 @@ class UserRole(str, Enum):
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
+
+class WebsiteStatus(str, Enum):
+    UNKNOWN = "unknown"
+    UP = "up"
+    DOWN = "down"
