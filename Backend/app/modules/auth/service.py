@@ -5,7 +5,9 @@ from app.shared.models.auth_user import UserModel
 from app.modules.auth.repository import AuthRepository
 from app.shared.exceptions import AuthenticationError, NotFoundError
 from app.shared.constants import Messages
+from app.core.logger import get_logger
 
+logger = get_logger(__name__)
 
 class AuthService:
     def __init__(self, repository: AuthRepository, password_service: PasswordService, jwt_service: JWTService, refresh_token_service: RefreshTokenService,) -> None:
@@ -18,6 +20,7 @@ class AuthService:
         user = await self.repository.get_by_username(username)
 
         if user is None or user.id is None:
+            logger.warning("Failed login attempt for username '%s'. User does not exist.", username)
             raise AuthenticationError(Messages.INVALID_CREDENTIALS)
 
         valid_password = self.password_service.verify_password(
@@ -26,6 +29,7 @@ class AuthService:
         )
 
         if not valid_password:
+            logger.warning("Failed login attempt for username '%s'. Invalid password.", username)
             raise AuthenticationError(Messages.INVALID_CREDENTIALS)
 
         refresh_token = self.refresh_token_service.generate_token()
@@ -41,6 +45,8 @@ class AuthService:
 
         access_token = self.jwt_service.create_access_token(user_id=user.id, username=user.username, role=user.role,)
 
+        logger.info("User '%s' logged in successfully.", user.username)
+
         return AuthTokens(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -50,6 +56,7 @@ class AuthService:
         user = await self.repository.get_by_id(user_id)
 
         if user is None:
+            logger.warning("Requested current user '%s' was not found.", user_id)
             raise NotFoundError("User not found.")
 
         return user
@@ -58,4 +65,9 @@ class AuthService:
         updated = await self.repository.clear_refresh_token(user_id)
 
         if not updated:
+            logger.warning("Logout failed. User '%s' not found.", user_id)
             raise NotFoundError(Messages.USER_NOT_FOUND)
+
+        user = await self.repository.get_by_id(user_id)
+        if user:
+            logger.info("User '%s' logged out.", user.username)

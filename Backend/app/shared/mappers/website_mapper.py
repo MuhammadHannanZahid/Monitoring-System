@@ -11,7 +11,6 @@ class WebsiteMapper:
             check_interval=website.check_interval,
             timeout=website.timeout,
             expected_status_code=website.expected_status_code,
-            status=website.status,
             is_active=website.is_active,
             created_at=website.created_at,
             updated_at=website.updated_at,
