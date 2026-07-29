@@ -14,7 +14,7 @@ class WebsiteModel(BaseModel):
     expected_status_code: int
     timeout: int
     is_active: bool = True
-    created_by: str
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
     last_checked_at: datetime | None = None

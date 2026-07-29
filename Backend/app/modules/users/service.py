@@ -5,6 +5,9 @@ from app.shared.constants import Messages
 from app.shared.enums import UserRole
 from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
 from app.shared.models.auth_user import UserModel
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 class UserService:
     def __init__(self, repository: UserRepository, password_service: PasswordService):
@@ -21,6 +24,7 @@ class UserService:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
 
         if role == UserRole.ADMIN:
+            logger.warning("Attempted creation of another admin account.")
             raise AuthorizationError(Messages.ADMIN_CREATION_NOT_ALLOWED)
 
         now = datetime.now(timezone.utc)
@@ -42,11 +46,13 @@ class UserService:
         if created_user is None:
             raise RuntimeError("Failed to retrieve newly created user.")
 
+        logger.info("User '%s' created with role '%s'.", created_user.username, created_user.role.value)
         return created_user
 
     async def get_user(self, user_id: str) -> UserModel:
         user = await self.repository.get_by_id(user_id)
         if user is None:
+            logger.warning("Requested user '%s' was not found.", user_id)
             raise NotFoundError(Messages.USER_NOT_FOUND)
         return user
 
@@ -77,6 +83,7 @@ class UserService:
                 raise NotFoundError(Messages.USER_NOT_FOUND)
 
             if existing_user.role == UserRole.ADMIN and role != UserRole.ADMIN:
+                logger.warning("Attempted role change for admin account '%s'.", existing_user.username)
                 raise AuthorizationError(Messages.ADMIN_ROLE_CHANGE_NOT_ALLOWED)
 
             update_data["role"] = role
@@ -88,25 +95,31 @@ class UserService:
             await self.repository.update_user(user_id, update_data)
 
         updated_user = await self.get_user(user_id)
+        logger.info("User '%s' updated. Fields changed: %s", updated_user.username, ", ".join(update_data.keys()))
         return updated_user
 
     async def delete_user(self, user_id: str) -> None:
         user = await self.repository.get_by_id(user_id)
         if user.role == UserRole.ADMIN:
+            logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
-        await self.get_user(user_id)
+        user = await self.get_user(user_id)
         await self.repository.delete_user(user_id)
+        logger.info("User '%s' deleted.", user.username)
 
     async def activate_user(self, user_id: str) -> UserModel:
-        await self.get_user(user_id)
+        user = await self.get_user(user_id)
         await self.repository.set_active(user_id,True)
+        logger.info("User '%s' activated.", user.username)
         return await self.get_user(user_id)
 
     async def deactivate_user(self, user_id: str) -> UserModel:
         user = await self.repository.get_by_id(user_id)
         if user.role == UserRole.ADMIN:
+            logger.warning("Attempted deactivation of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DEACTIVATION_NOT_ALLOWED)
 
-        await self.get_user(user_id)
+        user = await self.get_user(user_id)
         await self.repository.set_active(user_id,False)
+        logger.info("User '%s' deactivated.", user.username)
         return await self.get_user(user_id)
