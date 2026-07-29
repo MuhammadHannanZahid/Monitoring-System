@@ -5,3 +5,4 @@ class Collections:
     STATUS_HISTORY = "status_history"
     WEBSITES = "websites"
     INCIDENTS = "incidents"
+    MONITOR_RESULTS = "monitor_results"

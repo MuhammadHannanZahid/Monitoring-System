@@ -7,7 +7,15 @@ from app.shared.enums import WebsiteStatus
 logger = get_logger(__name__)
 
 class MonitorService:
-    def __init__(self, repository: WebsiteRepository):
+    def __init__(
+        self,
+        website_repository: WebsiteRepository,
+        incident_service: IncidentService,
+        monitor_result_service: MonitorResultService,
+    ):
+        self.website_repository = website_repository
+        self.incident_service = incident_service
+        self.monitor_result_service = monitor_result_service
         self.repository = repository
 
     async def check_website(website: WebsiteModel) -> HealthCheckResponse:
@@ -52,6 +60,14 @@ class MonitorService:
     async def check_and_update(self, website: WebsiteModel) -> HealthCheckResponse:
         previous_status = website.status
         result = await self.check_website(website)
+
+        await self.monitor_result_service.record_result(
+            website_id=website.id,
+            status=result.status,
+            status_code=result.status_code,
+            response_time_ms=result.response_time_ms,
+        )
+
         await self.website_repository.update_status(
             website.id,
             result.status,
