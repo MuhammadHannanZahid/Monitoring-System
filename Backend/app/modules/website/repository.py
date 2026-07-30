@@ -103,5 +103,18 @@ class WebsiteRepository:
         )
         return result.modified_count > 0
 
+    async def count_all(self) -> int:
+        return await self.collection.count_documents({})
+
+    async def count_active(self) -> int:
+        return await self.collection.count_documents({"is_active": True})
+
+    async def count_inactive(self) -> int:
+        return await self.collection.count_documents({"is_active": False})
+
+    async def count_by_status(self, status: WebsiteStatus) -> int:
+        return await self.collection.count_documents({"status": status})
+
+
 def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
     return WebsiteRepository(database)

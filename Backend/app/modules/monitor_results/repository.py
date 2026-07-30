@@ -65,5 +65,24 @@ class MonitorResultRepository:
             }
         )
 
+    async def average_response_time(self) -> float:
+        pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "avg": {
+                        "$avg": "$response_time_ms"
+                    },
+                }
+            }
+        ]
+
+        result = await self.collection.aggregate(pipeline).to_list(1)
+
+        if not result:
+            return 0.0
+
+        return round(result[0]["avg"], 2)
+
 def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
     return MonitorResultRepository(database)

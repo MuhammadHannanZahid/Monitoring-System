@@ -81,5 +81,8 @@ class IncidentRepository:
             incidents.append(IncidentModel(**document))
         return incidents
 
+    async def count_open(self) -> int:
+        return await self.collection.count_documents({"resolved_at": None})
+
 def get_incident_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> IncidentRepository:
     return IncidentRepository(database)
