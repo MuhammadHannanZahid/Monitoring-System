@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from app.shared.enums import WebsiteStatus
-
 from datetime import datetime
 
 class DashboardSummaryResponse(BaseModel):
@@ -36,3 +35,37 @@ class DashboardActivityResponse(BaseModel):
     status_code: int | None
     response_time_ms: int | None
     checked_at: datetime
+
+class ResponseHistoryPoint(BaseModel):
+    checked_at: datetime
+    response_time_ms: int
+
+class ResponseHistoryResponse(BaseModel):
+    website_id: str
+    points: list[ResponseHistoryPoint]
+
+class UptimeResponse(BaseModel):
+    website_id: str
+    uptime_percentage: float
+    total_checks: int
+    successful_checks: int
+    failed_checks: int
+
+class StatusHistoryPoint(BaseModel):
+    checked_at: datetime
+    status: WebsiteStatus
+
+class StatusHistoryResponse(BaseModel):
+    website_id: str
+    history: list[StatusHistoryPoint]
+
+class DashboardOverviewResponse(BaseModel):
+    total_websites: int
+    active_websites: int
+    inactive_websites: int
+    up_websites: int
+    down_websites: int
+    unknown_websites: int
+    active_incidents: int
+    checks_today: int
+    average_response_time: float

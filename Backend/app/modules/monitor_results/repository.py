@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
@@ -84,6 +84,64 @@ class MonitorResultRepository:
 
     async def get_recent(self, limit: int = 20) -> list[MonitorResultModel]:
         cursor = (self.collection.find().sort("checked_at", -1).limit(limit))
+
+    async def get_response_history(self, website_id: str, days: int = 7) -> list[MonitorResultModel]:
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
+        cursor = (
+            self.collection.find(
+                {
+                    "website_id": website_id,
+                    "checked_at": {"$gte": start_date},
+                }
+            )
+            .sort("checked_at", 1)
+        )
+
+        results = []
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            results.append(MonitorResultModel(**document))
+
+        return results
+
+    async def get_status_history(self, website_id: str, days: int = 7) -> list[MonitorResultModel]:
+        return await self.get_response_history(website_id=website_id, days=days)
+
+    async def get_statistics(self, website_id: str, days: int = 7) -> dict:
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
+        pipeline = [
+            {
+                "$match": {
+                    "website_id": website_id,
+                    "checked_at": {
+                        "$gte": start_date,
+                    },
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "total": {"$sum": 1},
+                    "successful": {
+                        "$sum": {
+                            "$cond": ["$success", 1, 0]
+                        }
+                    },
+                }
+            },
+        ]
+
+        result = await self.collection.aggregate(pipeline).to_list(1)
+        if not result:
+            return {
+                "total": 0,
+                "successful": 0,
+            }
+
+        return {
+            "total": result[0]["total"],
+            "successful": result[0]["successful"],
+        }
 
 def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
     return MonitorResultRepository(database)
