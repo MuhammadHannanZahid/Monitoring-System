@@ -1,11 +1,11 @@
 from app.shared.enums import WebsiteStatus
 from app.modules.dashboard.schemas import (DashboardSummaryResponse, DashboardWebsiteResponse, DashboardIncidentResponse,
     DashboardActivityResponse, ResponseHistoryResponse, ResponseHistoryPoint, UptimeResponse, StatusHistoryResponse,
-    StatusHistoryPoint, DashboardOverviewResponse)
+    StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError
 from app.shared.constants import Messages
 from app.modules.website.repository import WebsiteRepository
-from app.modules.monitor_result.repository import MonitorResultRepository
+from app.modules.monitor_results.repository import MonitorResultRepository
 from app.modules.incident.repository import IncidentRepository
 
 class DashboardService:
@@ -37,25 +37,56 @@ class DashboardService:
 
     async def get_websites(self) -> list[DashboardWebsiteResponse]:
         websites = await self.website_repository.list_websites()
-        return [
-            DashboardWebsiteResponse(
-                id=website.id,
-                name=website.name,
-                url=website.url,
-                status=website.status,
-                response_time_ms=website.last_response_time_ms,
-                last_checked_at=website.last_checked_at,
-                is_active=website.is_active,
+
+        responses = []
+
+        for website in websites:
+            stats = await self.monitor_result_repository.get_statistics(
+                website_id=website.id,
+                days=30,
             )
-            for website in websites
-        ]
+
+            total = stats["total"]
+            successful = stats["successful"]
+
+            uptime = (
+                round(successful / total * 100, 2)
+                if total > 0
+                else 0.0
+            )
+
+            incidents = len(
+                await self.incident_repository.list_by_website(website.id)
+            )
+
+            responses.append(
+                DashboardWebsiteResponse(
+                    id=website.id,
+                    name=website.name,
+                    url=website.url,
+                    status=website.status,
+                    response_time_ms=website.last_response_time_ms,
+                    status_code=website.last_status_code,
+                    uptime_percentage=uptime,
+                    incidents=incidents,
+                    last_checked_at=website.last_checked_at,
+                    is_active=website.is_active,
+                )
+            )
+
+        return responses
 
     async def get_recent_incidents(self) -> list[DashboardIncidentResponse]:
         incidents = await self.incident_repository.get_recent()
+        websites = await self.website_repository.list_websites()
+        website_map = {
+            website.id: website
+            for website in websites
+        }
 
         results = []
         for incident in incidents:
-            website = await self.website_repository.get_by_id(incident.website_id)
+            website = website_map.get(incident.website_id)
 
             results.append(
                 DashboardIncidentResponse(
@@ -67,14 +98,21 @@ class DashboardService:
                     duration_seconds=incident.duration_seconds,
                 )
             )
+
         return results
 
     async def get_recent_activity(self) -> list[DashboardActivityResponse]:
         results = await self.monitor_result_repository.get_recent()
+        websites = await self.website_repository.list_websites()
+
+        website_map = {
+            website.id: website
+            for website in websites
+        }
 
         activities = []
         for result in results:
-            website = await self.website_repository.get_by_id(result.website_id)
+            website = website_map.get(result.website_id)
 
             activities.append(
                 DashboardActivityResponse(
@@ -85,6 +123,7 @@ class DashboardService:
                     checked_at=result.checked_at,
                 )
             )
+
         return activities
 
     async def get_response_history(self, website_id: str, days: int) -> ResponseHistoryResponse:
@@ -142,27 +181,5 @@ class DashboardService:
                     status=result.status,
                 )
                 for result in history
-            ],
-        )
-
-    async def get_dashboard_overview(self) -> DashboardOverviewResponse:
-        website_counts = (await self.website_repository.get_dashboard_counts())
-        today_stats = (await self.monitor_result_repository.get_today_statistics())
-        active_incidents = (await self.incident_repository.get_active_incidents_count())
-
-        return DashboardOverviewResponse(
-            total_websites=website_counts["total"],
-            active_websites=website_counts["active"],
-            inactive_websites=website_counts["inactive"],
-
-            up_websites=website_counts["up"],
-            down_websites=website_counts["down"],
-            unknown_websites=website_counts["unknown"],
-
-            active_incidents=active_incidents,
-
-            checks_today=today_stats["checks"],
-            average_response_time=today_stats[
-                "average_response_time"
             ],
         )

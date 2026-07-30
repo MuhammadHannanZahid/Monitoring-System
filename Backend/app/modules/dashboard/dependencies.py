@@ -1,6 +1,5 @@
 from fastapi import Depends
 from app.modules.dashboard.service import DashboardService
-from app.modules.website.dependencies import get_website_repository
 from app.modules.monitor_results.dependencies import get_monitor_result_repository
 from app.modules.incident.dependencies import get_incident_repository
 from app.modules.website.repository import WebsiteRepository, get_website_repository

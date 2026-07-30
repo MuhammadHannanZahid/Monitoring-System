@@ -16,8 +16,11 @@ class DashboardWebsiteResponse(BaseModel):
     id: str
     name: str
     url: str
-    status: WebsiteStatus
+    status: WebsiteStatus | None = None
     response_time_ms: int | None
+    status_code: int | None
+    uptime_percentage: float | None = None
+    incidents: int | None = None
     last_checked_at: datetime | None
     is_active: bool
 
@@ -58,14 +61,3 @@ class StatusHistoryPoint(BaseModel):
 class StatusHistoryResponse(BaseModel):
     website_id: str
     history: list[StatusHistoryPoint]
-
-class DashboardOverviewResponse(BaseModel):
-    total_websites: int
-    active_websites: int
-    inactive_websites: int
-    up_websites: int
-    down_websites: int
-    unknown_websites: int
-    active_incidents: int
-    checks_today: int
-    average_response_time: float

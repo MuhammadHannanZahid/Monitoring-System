@@ -11,4 +11,4 @@ class IncidentResponse(BaseModel):
 
 
 class IncidentListResponse(BaseModel):
-    incidents: list[IncidentResponse]
+    list[IncidentResponse]

@@ -12,10 +12,7 @@ LOG_DIR.mkdir(exist_ok=True)
 APP_LOG_FILE = LOG_DIR / "app.log"
 ERROR_LOG_FILE = LOG_DIR / "error.log"
 
-LOG_FORMAT = (
-    "%(asctime)s | %(levelname)-8s | "
-    "%(name)s | %(message)s"
-)
+LOG_FORMAT = ("%(asctime)s | %(levelname)-8s | %(name)s | %(message)s")
 
 class MaxLevelFilter(logging.Filter):
     def __init__(self, level: int):
@@ -66,6 +63,14 @@ error_handler.setLevel(logging.ERROR)
 root_logger.addHandler(console_handler)
 root_logger.addHandler(app_handler)
 root_logger.addHandler(error_handler)
+
+httpx_logger = logging.getLogger("httpx")
+httpx_logger.setLevel(logging.WARNING)
+httpx_logger.propagate = False
+
+httpcore_logger = logging.getLogger("httpcore")
+httpcore_logger.setLevel(logging.WARNING)
+httpcore_logger.propagate = False
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)

@@ -33,7 +33,7 @@ class MonitorResultRepository:
             results.append(MonitorResultModel(**document))
         return results
 
-    async def average_response_time(self, website_id: str) -> float:
+    async def average_response_time_by_website(self, website_id: str) -> float:
         pipeline = [
             {
                 "$match": {
@@ -68,11 +68,20 @@ class MonitorResultRepository:
     async def average_response_time(self) -> float:
         pipeline = [
             {
+                {
+                    "$match": {
+                        "response_time_ms": {
+                            "$ne": None
+                        }
+                    }
+                },
+                {
                 "$group": {
                     "_id": None,
                     "avg": {
                         "$avg": "$response_time_ms"
-                    },
+                        },
+                    }
                 }
             }
         ]
@@ -84,6 +93,13 @@ class MonitorResultRepository:
 
     async def get_recent(self, limit: int = 20) -> list[MonitorResultModel]:
         cursor = (self.collection.find().sort("checked_at", -1).limit(limit))
+        results = []
+
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            results.append(MonitorResultModel(**document))
+
+        return results
 
     async def get_response_history(self, website_id: str, days: int = 7) -> list[MonitorResultModel]:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)

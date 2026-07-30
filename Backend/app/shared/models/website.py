@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
+from app.shared.enums import WebsiteStatus
 
 class WebsiteModel(BaseModel):
     model_config = ConfigDict(

@@ -27,7 +27,7 @@ class IncidentService:
         )
 
         incident.id = await self.repository.create_incident(incident)
-        logger.info("Incident opened for website %s.", website_id)
+        logger.info("Incident opened for website %s. Reason %s", website_id, reason)
 
     async def resolve_incident(self, website_id: str) -> None:
         incident = await self.repository.get_active_incident(website_id)
@@ -38,17 +38,17 @@ class IncidentService:
         await self.repository.resolve_incident(incident.id)
         logger.info("Incident resolved for website %s.", website_id)
 
-
-    async def list_incidents(self):
+    async def list_incidents(self) -> list[IncidentModel]:
         return await self.repository.list_incidents()
 
-    async def list_by_website(self, website_id: str):
+    async def list_by_website(self, website_id: str) -> list[IncidentModel]:
         return await self.repository.list_by_website(website_id)
 
-    async def get_incident(self, incident_id: str):
+    async def get_incident(self, incident_id: str) -> IncidentModel | None:
         return await self.repository.get_by_id(incident_id)
 
-class MonitorService:
-    def __init__(self, website_repository: WebsiteRepository, incident_service: IncidentService):
-        self.website_repository = website_repository
-        self.incident_service = incident_service
+    async def get_active_incident(self, website_id: str) -> IncidentModel | None:
+        return await self.repository.get_active_incident(website_id)
+
+    async def recent(self, limit: int = 10) -> list[IncidentModel]:
+        return await self.repository.get_recent(limit)
