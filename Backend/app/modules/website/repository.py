@@ -82,5 +82,26 @@ class WebsiteRepository:
     async def count_similar_names(self, base_name: str) -> int:
         return await self.collection.count_documents({"name": {"$regex": f"^{base_name}( \\d+)?$"}})
 
+    async def update_monitoring_result(self, website_id: str, status: WebsiteStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+        try:
+            object_id = ObjectId(website_id)
+
+        except InvalidId:
+            return False
+
+        result = await self.collection.update_one(
+            {"_id": object_id},
+            {
+                "$set": {
+                    "status": status,
+                    "last_status_code": status_code,
+                    "last_response_time_ms": response_time_ms,
+                    "last_checked_at": checked_at,
+                    "updated_at": checked_at,
+                }
+            },
+        )
+        return result.modified_count > 0
+
 def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
     return WebsiteRepository(database)
