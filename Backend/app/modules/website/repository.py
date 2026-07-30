@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
 from app.shared.models.website import WebsiteModel
+from app.shared.enums import WebsiteStatus
 
 class WebsiteRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
@@ -115,6 +116,22 @@ class WebsiteRepository:
     async def count_by_status(self, status: WebsiteStatus) -> int:
         return await self.collection.count_documents({"status": status})
 
+    async def get_dashboard_counts(self) -> dict[str, int]:
+        total = await self.collection.count_documents({})
+        active = await self.collection.count_documents({"is_active": True})
+        inactive = await self.collection.count_documents({"is_active": False})
+        up = await self.collection.count_documents({"status": WebsiteStatus.UP})
+        down = await self.collection.count_documents({"status": WebsiteStatus.DOWN})
+        unknown = await self.collection.count_documents({"status": WebsiteStatus.UNKNOWN})
+
+        return {
+            "total": total,
+            "active": active,
+            "inactive": inactive,
+            "up": up,
+            "down": down,
+            "unknown": unknown,
+        }
 
 def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
     return WebsiteRepository(database)

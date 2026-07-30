@@ -143,5 +143,43 @@ class MonitorResultRepository:
             "successful": result[0]["successful"],
         }
 
+    async def get_today_statistics(self) -> dict[str, float]:
+        now = datetime.now(timezone.utc)
+        start = datetime(year=now.year, month=now.month, day=now.day, tzinfo=timezone.utc)
+        pipeline = [
+            {
+                "$match": {
+                    "checked_at": {
+                        "$gte": start,
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "checks": {"$sum": 1},
+                    "average_response_time": {
+                        "$avg": "$response_time_ms"
+                    },
+                }
+            },
+        ]
+
+        result = await self.collection.aggregate(pipeline).to_list(1)
+        if not result:
+            return {
+                "checks": 0,
+                "average_response_time": 0,
+            }
+
+        stats = result[0]
+        return {
+            "checks": stats["checks"],
+            "average_response_time": round(
+                stats["average_response_time"] or 0,
+                2,
+            ),
+        }
+
 def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
     return MonitorResultRepository(database)

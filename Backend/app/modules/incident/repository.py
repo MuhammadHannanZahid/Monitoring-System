@@ -87,5 +87,11 @@ class IncidentRepository:
     async def get_recent(self, limit: int = 10) -> list[IncidentModel]:
         cursor = (self.collection.find().sort("started_at", -1).limit(limit))
 
+    async def get_active_incidents_count(self) -> int:
+        return await self.collection.count_documents({"resolved": False})
+
+    def get_incident_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> IncidentRepository:
+        return IncidentRepository(database)
+
 def get_incident_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> IncidentRepository:
     return IncidentRepository(database)

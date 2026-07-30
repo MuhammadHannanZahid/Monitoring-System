@@ -1,12 +1,15 @@
 from app.shared.enums import WebsiteStatus
 from app.modules.dashboard.schemas import (DashboardSummaryResponse, DashboardWebsiteResponse, DashboardIncidentResponse,
     DashboardActivityResponse, ResponseHistoryResponse, ResponseHistoryPoint, UptimeResponse, StatusHistoryResponse,
-    StatusHistoryPoint)
+    StatusHistoryPoint, DashboardOverviewResponse)
 from app.shared.exceptions import NotFoundError
 from app.shared.constants import Messages
+from app.modules.website.repository import WebsiteRepository
+from app.modules.monitor_result.repository import MonitorResultRepository
+from app.modules.incident.repository import IncidentRepository
 
 class DashboardService:
-    def __init__(self, website_repository, monitor_result_repository, incident_repository):
+    def __init__(self, website_repository: WebsiteRepository, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
         self.website_repository = website_repository
         self.monitor_result_repository = monitor_result_repository
         self.incident_repository = incident_repository
@@ -139,5 +142,27 @@ class DashboardService:
                     status=result.status,
                 )
                 for result in history
+            ],
+        )
+
+    async def get_dashboard_overview(self) -> DashboardOverviewResponse:
+        website_counts = (await self.website_repository.get_dashboard_counts())
+        today_stats = (await self.monitor_result_repository.get_today_statistics())
+        active_incidents = (await self.incident_repository.get_active_incidents_count())
+
+        return DashboardOverviewResponse(
+            total_websites=website_counts["total"],
+            active_websites=website_counts["active"],
+            inactive_websites=website_counts["inactive"],
+
+            up_websites=website_counts["up"],
+            down_websites=website_counts["down"],
+            unknown_websites=website_counts["unknown"],
+
+            active_incidents=active_incidents,
+
+            checks_today=today_stats["checks"],
+            average_response_time=today_stats[
+                "average_response_time"
             ],
         )

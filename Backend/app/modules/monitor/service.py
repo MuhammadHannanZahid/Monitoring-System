@@ -75,14 +75,23 @@ class MonitorService:
             result.status_code,
         )
 
-        logger.info("Website '%s' checked. Status=%s Response=%sms HTTP=%s", website.name, result.status.value, result.response_time_ms, result.status_code)
+        logger.info("Health Check | Website='%s' | Status=%s | HTTP=%s | Response=%sms", website.name, result.status.value, result.status_code, result.response_time_ms)
 
-        if (previous_status != WebsiteStatus.DOWN and result.status == WebsiteStatus.DOWN):
-            await self.incident_service.open_incident(website.id, reason=f"HTTP {result.status_code}")
-            logger.warning("Website '%s' became DOWN.", website.name)
+        if previous_status != WebsiteStatus.DOWN and result.status == WebsiteStatus.DOWN:
+            active = await self.incident_service.get_active_incident(website.id)
 
-        elif (previous_status == WebsiteStatus.DOWN and result.status == WebsiteStatus.UP):
+            if active is None:
+                reason = (
+                    f"HTTP {result.status_code}"
+                    if result.status_code is not None
+                    else "Timeout / Network Error")
+
+                await self.incident_service.open_incident(website_id=website.id, reason=reason)
+                logger.warning("Incident opened for website '%s'.", website.name)
+
+
+        elif previous_status == WebsiteStatus.DOWN and result.status == WebsiteStatus.UP:
             await self.incident_service.resolve_incident(website.id)
-            logger.info("Website '%s' recovered.", website.name)
+            logger.info("Incident resolved for website '%s'.", website.name)
 
         return result
