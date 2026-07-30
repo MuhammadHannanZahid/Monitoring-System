@@ -78,11 +78,12 @@ class MonitorResultRepository:
         ]
 
         result = await self.collection.aggregate(pipeline).to_list(1)
-
         if not result:
             return 0.0
-
         return round(result[0]["avg"], 2)
+
+    async def get_recent(self, limit: int = 20) -> list[MonitorResultModel]:
+        cursor = (self.collection.find().sort("checked_at", -1).limit(limit))
 
 def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
     return MonitorResultRepository(database)
