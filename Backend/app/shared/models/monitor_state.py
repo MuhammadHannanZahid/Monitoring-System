@@ -1,10 +1,10 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 
 class MonitorStateModel(BaseModel):
-    website_id: str
-    status: WebsiteStatus = WebsiteStatus.UNKNOWN
+    HTTP_monitor_id: str
+    status: HTTP_monitorStatus = HTTP_monitorStatus.UNKNOWN
     consecutive_failures: int = 0
     consecutive_successes: int = 0
     last_checked_at: datetime | None = None

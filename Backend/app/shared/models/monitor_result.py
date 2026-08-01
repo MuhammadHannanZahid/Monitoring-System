@@ -1,11 +1,11 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 
 class MonitorResultModel(BaseModel):
     id: str | None = None
-    website_id: str
-    status: WebsiteStatus
+    HTTP_monitor_id: str
+    status: HTTP_monitorStatus
     status_code: int | None
     response_time_ms: int | None
     success: bool

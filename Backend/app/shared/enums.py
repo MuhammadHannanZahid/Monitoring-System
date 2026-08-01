@@ -8,7 +8,7 @@ class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
 
-class WebsiteStatus(str, Enum):
+class HTTP_monitorStatus(str, Enum):
     UNKNOWN = "unknown"
     UP = "up"
     DOWN = "down"
