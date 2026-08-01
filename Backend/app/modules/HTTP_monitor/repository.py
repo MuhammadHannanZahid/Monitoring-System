@@ -5,14 +5,14 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
-from app.shared.models.website import WebsiteModel
+from app.shared.models.HTTP_monitor import WebsiteModel
 from app.shared.enums import WebsiteStatus
 
-class WebsiteRepository:
+class HTTP_monitorRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.WEBSITES]
+        self.collection = database[Collections.HTTP_MONITORS]
 
-    async def create_website(self, website: WebsiteModel) -> str:
+    async def create_HTTP_monitor(self, website: WebsiteModel) -> str:
         document = website.model_dump()
         document.pop("id", None)
         result = await self.collection.insert_one(document)
@@ -156,5 +156,5 @@ class WebsiteRepository:
 
         return result.modified_count > 0
 
-def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
-    return WebsiteRepository(database)
+def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> HTTP_monitorRepository:
+    return HTTP_monitorRepository(database)

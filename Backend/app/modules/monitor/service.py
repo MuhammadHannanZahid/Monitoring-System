@@ -3,10 +3,10 @@ import httpx
 from app.core.logger import get_logger
 from app.shared.enums import WebsiteStatus
 from app.modules.monitor.schemas import HealthCheckResponse
-from app.modules.website.repository import WebsiteRepository
+from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.monitor_results.service import MonitorResultService
 from app.modules.incident.service import IncidentService
-from app.shared.models.website import WebsiteModel
+from app.shared.models.HTTP_monitor import WebsiteModel
 from datetime import datetime, timezone
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
@@ -14,7 +14,7 @@ from app.modules.monitor_state.service import MonitorStateService
 logger = get_logger(__name__)
 
 class MonitorService:
-    def __init__(self, website_repository: WebsiteRepository, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService):
+    def __init__(self, website_repository: HTTP_monitorRepository, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService):
         self.website_repository = website_repository
         self.incident_service = incident_service
         self.monitor_result_service = monitor_result_service

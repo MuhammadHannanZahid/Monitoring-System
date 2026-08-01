@@ -8,8 +8,8 @@ from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
 from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
-from app.modules.website.repository import WebsiteRepository
-from app.modules.website.service import WebsiteService
+from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
+from app.modules.HTTP_monitor.service import HTTP_monitorService
 from app.modules.incident.repository import IncidentRepository
 from app.modules.incident.service import IncidentService
 from app.modules.monitor_results.repository import MonitorResultRepository
@@ -27,11 +27,11 @@ async def lifespan(app: FastAPI):
 
     database = db_manager.database
 
-    website_repository = WebsiteRepository(database)
+    HTTP_monitor_repository = HTTP_monitorRepository(database)
     incident_repository = IncidentRepository(database)
     monitor_result_repository = MonitorResultRepository(database)
 
-    website_service = WebsiteService(website_repository)
+    HTTP_monitor_service = HTTP_monitorService(HTTP_monitor_repository)
     incident_service = IncidentService(incident_repository)
     monitor_result_service = MonitorResultService(monitor_result_repository)
 
@@ -39,13 +39,13 @@ async def lifespan(app: FastAPI):
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
     monitor_service = MonitorService(
-        website_repository=website_repository,
+        HTTP_monitor_repository=HTTP_monitor_repository,
         incident_service=incident_service,
         monitor_result_service=monitor_result_service,
         monitor_state_service=monitor_state_service,
     )
 
-    scheduler = MonitorScheduler(monitor_service=monitor_service, website_service=website_service)
+    scheduler = MonitorScheduler(monitor_service=monitor_service, HTTP_monitor_service=HTTP_monitor_service)
     scheduler_task = asyncio.create_task(scheduler.start())
 
     try:

@@ -1,12 +1,12 @@
 import asyncio
 from app.core.logger import get_logger
 from app.modules.monitor.service import MonitorService
-from app.modules.website.service import WebsiteService
+from app.modules.HTTP_monitor.service import HTTP_monitorService
 
 logger = get_logger(__name__)
 
 class MonitorScheduler:
-    def __init__(self, monitor_service: MonitorService, website_service: WebsiteService):
+    def __init__(self, monitor_service: MonitorService, website_service: HTTP_monitorService):
         self.monitor_service = monitor_service
         self.website_service = website_service
         self._running = False

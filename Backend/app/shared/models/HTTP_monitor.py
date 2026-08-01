@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 
-class WebsiteModel(BaseModel):
+class HTTP_monitorModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -21,7 +21,7 @@ class WebsiteModel(BaseModel):
     last_checked_at: datetime | None = None
     last_status_code: int | None = None
     last_response_time_ms: int | None = None
-    status: WebsiteStatus = WebsiteStatus.UNKNOWN
+    status: HTTP_monitorStatus = HTTP_monitorStatus.UNKNOWN
     failure_count: int = 0
     success_count: int = 0
 

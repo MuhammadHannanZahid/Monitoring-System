@@ -4,12 +4,12 @@ from app.modules.dashboard.schemas import (DashboardSummaryResponse, DashboardWe
     StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError
 from app.shared.constants import Messages
-from app.modules.website.repository import WebsiteRepository
+from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.monitor_results.repository import MonitorResultRepository
 from app.modules.incident.repository import IncidentRepository
 
 class DashboardService:
-    def __init__(self, website_repository: WebsiteRepository, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
+    def __init__(self, website_repository: HTTP_monitorRepository, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
         self.website_repository = website_repository
         self.monitor_result_repository = monitor_result_repository
         self.incident_repository = incident_repository

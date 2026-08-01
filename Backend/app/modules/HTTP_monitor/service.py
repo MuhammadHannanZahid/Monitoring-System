@@ -1,18 +1,18 @@
 from datetime import datetime, timezone
-from app.modules.website.repository import WebsiteRepository
+from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.shared.constants import Messages
 from app.shared.enums import WebsiteStatus
 from app.shared.exceptions import ConflictError, NotFoundError
-from app.shared.models.website import WebsiteModel
+from app.shared.models.HTTP_monitor import WebsiteModel
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
-class WebsiteService:
-    def __init__(self, repository: WebsiteRepository):
+class HTTP_monitorService:
+    def __init__(self, repository: HTTP_monitorRepository):
         self.repository = repository
 
-    async def create_website(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int) -> WebsiteModel:
+    async def create_HTTP_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int) -> WebsiteModel:
         existing_url = await self.repository.get_by_url(url)
         if existing_url is not None:
             logger.warning("Attempted to create website with existing URL '%s'.", url)
@@ -40,7 +40,7 @@ class WebsiteService:
             last_checked_at=None,
         )
 
-        website.id = await self.repository.create_website(website)
+        website.id = await self.repository.create_HTTP_monitor(website)
         logger.info("Website '%s' created. URL: %s", website.name, website.url)
         return website
 

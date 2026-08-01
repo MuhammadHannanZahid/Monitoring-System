@@ -2,7 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from app.shared.enums import WebsiteStatus
 
-class CreateWebsiteRequest(BaseModel):
+class CreateHTTP_monitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     url: str = Field(max_length=500)
 

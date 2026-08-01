@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
-from app.modules.website.dependencies import get_website_service
-from app.modules.website.schemas import CreateWebsiteRequest, UpdateWebsiteRequest, WebsiteResponse
-from app.modules.website.service import WebsiteService
+from app.modules.HTTP_monitor.dependencies import get_website_service
+from app.modules.HTTP_monitor.schemas import CreateHTTP_monitorRequest, UpdateWebsiteRequest, WebsiteResponse
+from app.modules.HTTP_monitor.service import HTTP_monitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.mappers.website_mapper import WebsiteMapper
@@ -10,8 +10,8 @@ from app.shared.responses import SuccessResponse, success_response
 router = APIRouter(prefix="/websites", tags=["Websites"], dependencies=[Depends(require_admin())])
 
 @router.post("/create", response_model=SuccessResponse[WebsiteResponse])
-async def create_website(request: CreateWebsiteRequest, service: WebsiteService = Depends(get_website_service)):
-    website = await service.create_website(
+async def create_HTTP_monitor(request: CreateHTTP_monitorRequest, service: HTTP_monitorService = Depends(get_website_service)):
+    website = await service.create_HTTP_monitor(
         name=request.name,
         url=request.url,
         check_interval=request.check_interval,
@@ -25,7 +25,7 @@ async def create_website(request: CreateWebsiteRequest, service: WebsiteService 
     )
 
 @router.get("/list_all", response_model=SuccessResponse[list[WebsiteResponse]])
-async def list_websites(service: WebsiteService = Depends(get_website_service)):
+async def list_websites(service: HTTP_monitorService = Depends(get_website_service)):
     websites = await service.list_websites()
 
     return success_response(
@@ -34,7 +34,7 @@ async def list_websites(service: WebsiteService = Depends(get_website_service)):
     )
 
 @router.get("/{website_id}/get_one", response_model=SuccessResponse[WebsiteResponse])
-async def get_website(website_id: str, service: WebsiteService = Depends(get_website_service)):
+async def get_website(website_id: str, service: HTTP_monitorService = Depends(get_website_service)):
     website = await service.get_website(website_id)
 
     return success_response(
@@ -43,7 +43,7 @@ async def get_website(website_id: str, service: WebsiteService = Depends(get_web
     )
 
 @router.put("/{website_id}/update", response_model=SuccessResponse[WebsiteResponse])
-async def update_website(website_id: str, request: UpdateWebsiteRequest, service: WebsiteService = Depends(get_website_service)):
+async def update_website(website_id: str, request: UpdateWebsiteRequest, service: HTTP_monitorService = Depends(get_website_service)):
     website = await service.update_website(
         website_id=website_id,
         name=request.name,
@@ -59,7 +59,7 @@ async def update_website(website_id: str, request: UpdateWebsiteRequest, service
     )
 
 @router.delete("/{website_id}/delete", response_model=SuccessResponse[None])
-async def delete_website(website_id: str, service: WebsiteService = Depends(get_website_service)):
+async def delete_website(website_id: str, service: HTTP_monitorService = Depends(get_website_service)):
     await service.delete_website(website_id)
 
     return success_response(
@@ -68,7 +68,7 @@ async def delete_website(website_id: str, service: WebsiteService = Depends(get_
     )
 
 @router.patch("/{website_id}/activate", response_model=SuccessResponse[WebsiteResponse])
-async def activate_website(website_id: str, service: WebsiteService = Depends(get_website_service)):
+async def activate_website(website_id: str, service: HTTP_monitorService = Depends(get_website_service)):
     website = await service.activate_website(website_id)
 
     return success_response(
@@ -77,7 +77,7 @@ async def activate_website(website_id: str, service: WebsiteService = Depends(ge
     )
 
 @router.patch("/{website_id}/deactivate", response_model=SuccessResponse[WebsiteResponse])
-async def deactivate_website(website_id: str, service: WebsiteService = Depends(get_website_service)):
+async def deactivate_website(website_id: str, service: HTTP_monitorService = Depends(get_website_service)):
     website = await service.deactivate_website(website_id)
 
     return success_response(
