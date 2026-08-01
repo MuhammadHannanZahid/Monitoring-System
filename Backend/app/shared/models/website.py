@@ -1,5 +1,6 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from datetime import datetime, timezone
+from pydantic import BaseModel, ConfigDict, Field
+from app.shared.enums import WebsiteStatus
 
 class WebsiteModel(BaseModel):
     model_config = ConfigDict(
@@ -21,3 +22,8 @@ class WebsiteModel(BaseModel):
     last_status_code: int | None = None
     last_response_time_ms: int | None = None
     status: WebsiteStatus = WebsiteStatus.UNKNOWN
+    failure_count: int = 0
+    success_count: int = 0
+
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
 from app.shared.models.website import WebsiteModel
+from app.shared.enums import WebsiteStatus
 
 class WebsiteRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
@@ -101,6 +102,58 @@ class WebsiteRepository:
                 }
             },
         )
+        return result.modified_count > 0
+
+    async def count_all(self) -> int:
+        return await self.collection.count_documents({})
+
+    async def count_active(self) -> int:
+        return await self.collection.count_documents({"is_active": True})
+
+    async def count_inactive(self) -> int:
+        return await self.collection.count_documents({"is_active": False})
+
+    async def count_by_status(self, status: WebsiteStatus) -> int:
+        return await self.collection.count_documents({"status": status})
+
+    async def get_dashboard_counts(self) -> dict[str, int]:
+        total = await self.collection.count_documents({})
+        active = await self.collection.count_documents({"is_active": True})
+        inactive = await self.collection.count_documents({"is_active": False})
+        up = await self.collection.count_documents({"status": WebsiteStatus.UP})
+        down = await self.collection.count_documents({"status": WebsiteStatus.DOWN})
+        unknown = await self.collection.count_documents({"status": WebsiteStatus.UNKNOWN})
+
+        return {
+            "total": total,
+            "active": active,
+            "inactive": inactive,
+            "up": up,
+            "down": down,
+            "unknown": unknown,
+        }
+
+    async def update_monitor_state(self, website_id: str, *, status: WebsiteStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+        try:
+            object_id = ObjectId(website_id)
+        except InvalidId:
+            return False
+
+        result = await self.collection.update_one(
+            {"_id": object_id},
+            {
+                "$set": {
+                    "status": status,
+                    "last_status_code": status_code,
+                    "last_response_time_ms": response_time_ms,
+                    "last_checked_at": checked_at,
+                    "updated_at": checked_at,
+                    "consecutive_failures": consecutive_failures,
+                    "consecutive_successes": consecutive_successes,
+                }
+            },
+        )
+
         return result.modified_count > 0
 
 def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:

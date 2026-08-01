@@ -34,3 +34,5 @@ class Messages:
     WEBSITE_UPDATED = "Website updated successfully."
     WEBSITE_DELETED = "Website deleted successfully."
     WEBSITE_URL_EXISTS = "Website URL already exists."
+
+    DASHBOARD_FETCHED = "Dashboard summary retrieved successfully."
