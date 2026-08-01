@@ -68,20 +68,14 @@ class MonitorResultRepository:
     async def average_response_time(self) -> float:
         pipeline = [
             {
-                {
-                    "$match": {
-                        "response_time_ms": {
-                            "$ne": None
-                        }
-                    }
-                },
-                {
-                "$group": {
-                    "_id": None,
-                    "avg": {
-                        "$avg": "$response_time_ms"
-                        },
-                    }
+                "$match": {
+                    "response_time_ms": {"$ne": None}
+                }
+            },
+            {
+            "$group": {
+                "_id": None,
+                "avg": {"$avg": "$response_time_ms"},
                 }
             }
         ]

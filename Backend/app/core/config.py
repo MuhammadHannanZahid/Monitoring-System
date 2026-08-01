@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     default_admin_username: str
     default_admin_password: str
 
+    monitor_failure_threshold: int = 3
+    monitor_recovery_threshold: int = 2
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,

@@ -133,5 +133,28 @@ class WebsiteRepository:
             "unknown": unknown,
         }
 
+    async def update_monitor_state(self, website_id: str, *, status: WebsiteStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+        try:
+            object_id = ObjectId(website_id)
+        except InvalidId:
+            return False
+
+        result = await self.collection.update_one(
+            {"_id": object_id},
+            {
+                "$set": {
+                    "status": status,
+                    "last_status_code": status_code,
+                    "last_response_time_ms": response_time_ms,
+                    "last_checked_at": checked_at,
+                    "updated_at": checked_at,
+                    "consecutive_failures": consecutive_failures,
+                    "consecutive_successes": consecutive_successes,
+                }
+            },
+        )
+
+        return result.modified_count > 0
+
 def get_website_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> WebsiteRepository:
     return WebsiteRepository(database)
