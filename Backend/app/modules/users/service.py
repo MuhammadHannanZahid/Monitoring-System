@@ -31,7 +31,7 @@ class UserService:
 
         user = UserModel(
             username=username,
-            password_hash=self.password_service.hash_password(password),
+            password_hash=self._hash_password(password),
             role=role,
             is_active=True,
             refresh_token_hash=None,
@@ -99,7 +99,7 @@ class UserService:
         return updated_user
 
     async def delete_user(self, user_id: str) -> None:
-        user = await self.repository.get_by_id(user_id)
+        user = await self.get_user(user_id)
         if user.role == UserRole.ADMIN:
             logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
@@ -114,7 +114,7 @@ class UserService:
         return await self.get_user(user_id)
 
     async def deactivate_user(self, user_id: str) -> UserModel:
-        user = await self.repository.get_by_id(user_id)
+        user = await self.get_user(user_id)
         if user.role == UserRole.ADMIN:
             logger.warning("Attempted deactivation of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DEACTIVATION_NOT_ALLOWED)

@@ -17,10 +17,10 @@ class IncidentRepository:
         result = await self.collection.insert_one(document)
         return str(result.inserted_id)
 
-    async def get_active_incident(self, website_id: str) -> IncidentModel | None:
+    async def get_active_incident(self, monitor_id: str) -> IncidentModel | None:
         document = await self.collection.find_one(
             {
-                "website_id": website_id,
+                "monitor_id": monitor_id,
                 "is_resolved": False,
             }
         )
@@ -72,8 +72,8 @@ class IncidentRepository:
         return incidents
 
 
-    async def list_by_website(self, website_id: str) -> list[IncidentModel]:
-        cursor = self.collection.find({"website_id": website_id}).sort("started_at", -1)
+    async def list_by_monitor(self, monitor_id: str) -> list[IncidentModel]:
+        cursor = self.collection.find({"monitor_id": monitor_id}).sort("started_at", -1)
         incidents = []
 
         async for document in cursor:

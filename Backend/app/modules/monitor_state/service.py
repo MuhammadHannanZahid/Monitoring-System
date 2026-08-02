@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.core.config import settings
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 from app.shared.models.monitor_state import MonitorStateModel
 from app.modules.monitor_state.schemas import MonitorStateResult
 from app.modules.monitor_state.repository import MonitorStateRepository
@@ -10,23 +10,23 @@ class MonitorStateService:
     def __init__(self, repository: MonitorStateRepository):
         self.repository = repository
 
-    async def get_or_create(self, website_id: str) -> MonitorStateModel:
-        state = await self.repository.get_by_website_id(website_id)
+    async def get_or_create(self, monitor_id: str) -> MonitorStateModel:
+        state = await self.repository.get_by_monitor_id(monitor_id)
         if state is None:
-            await self.repository.create(website_id)
-            state = await self.repository.get_by_website_id(website_id)
+            await self.repository.create(monitor_id)
+            state = await self.repository.get_by_monitor_id(monitor_id)
         return state
 
     async def process_result(
             self,
-            website_id: str,
+            monitor_id: str,
             success: bool,
             status_code: int | None,
             response_time_ms: int | None,
             checked_at: datetime,
     ) -> MonitorStateResult:
 
-        state = await self.get_or_create(website_id)
+        state = await self.get_or_create(monitor_id)
 
         previous_status = state.status
 
@@ -35,20 +35,20 @@ class MonitorStateService:
             state.consecutive_failures = 0
 
             if (
-                    previous_status != WebsiteStatus.UP
+                    previous_status != HTTP_monitorStatus.UP
                     and state.consecutive_successes >= settings.monitor_recovery_threshold
             ):
-                state.status = WebsiteStatus.UP
+                state.status = HTTP_monitorStatus.UP
 
         else:
             state.consecutive_failures += 1
             state.consecutive_successes = 0
 
             if (
-                    previous_status != WebsiteStatus.DOWN
+                    previous_status != HTTP_monitorStatus.DOWN
                     and state.consecutive_failures >= settings.monitor_failure_threshold
             ):
-                state.status = WebsiteStatus.DOWN
+                state.status = HTTP_monitorStatus.DOWN
 
         state.last_checked_at = checked_at
         state.last_status_code = status_code
@@ -60,10 +60,10 @@ class MonitorStateService:
 
         if previous_status != state.status:
 
-            if state.status == WebsiteStatus.DOWN:
+            if state.status == HTTP_monitorStatus.DOWN:
                 transition = MonitorTransition.DOWN
 
-            elif state.status == WebsiteStatus.UP:
+            elif state.status == HTTP_monitorStatus.UP:
                 transition = MonitorTransition.UP
 
         return MonitorStateResult(
@@ -75,7 +75,7 @@ class MonitorStateService:
 
     async def save(self, state: MonitorStateModel):
         await self.repository.update_state(
-            website_id=state.website_id,
+            monitor_id=state.monitor_id,
             status=state.status,
             failures=state.consecutive_failures,
             successes=state.consecutive_successes,

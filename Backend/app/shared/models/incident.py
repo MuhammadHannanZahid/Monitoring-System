@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict
 
 class IncidentModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     id: str | None = None
-    HTTP_monitor_id: str
+    monitor_id: str
+    monitor_type: str = "HTTP"
     started_at: datetime
     resolved_at: datetime | None = None
     reason: str

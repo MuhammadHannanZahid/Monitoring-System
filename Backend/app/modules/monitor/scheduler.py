@@ -6,9 +6,9 @@ from app.modules.HTTP_monitor.service import HTTP_monitorService
 logger = get_logger(__name__)
 
 class MonitorScheduler:
-    def __init__(self, monitor_service: MonitorService, website_service: HTTP_monitorService):
+    def __init__(self, monitor_service: MonitorService, HTTP_monitor_service: HTTP_monitorService):
         self.monitor_service = monitor_service
-        self.website_service = website_service
+        self.HTTP_monitor_service = HTTP_monitor_service
         self._running = False
 
     async def start(self):
@@ -27,13 +27,12 @@ class MonitorScheduler:
         logger.info("Monitor scheduler stopped.")
 
     async def run_cycle(self):
-        websites = await self.website_service.list_websites()
-        for website in websites:
-            if not website.is_active:
+        monitors = await self.HTTP_monitor_service.list_monitors()
+
+        for monitor in monitors:
+            if not monitor.is_active:
                 continue
-
             try:
-                await self.monitor_service.check_and_update(website)
-
+                await self.monitor_service.check_and_update(monitor)
             except Exception:
-                logger.exception("Unexpected monitoring error for '%s'.", website.name)
+                logger.exception("Unexpected monitoring error for '%s'.", monitor.name)

@@ -4,7 +4,7 @@ from app.shared.enums import HTTP_monitorStatus
 
 class MonitorResultModel(BaseModel):
     id: str | None = None
-    HTTP_monitor_id: str
+    monitor_id: str
     status: HTTP_monitorStatus
     status_code: int | None
     response_time_ms: int | None

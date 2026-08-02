@@ -35,24 +35,24 @@ async def get_dashboard_activity(service: DashboardService = Depends(get_dashboa
         data=await service.get_recent_activity(),
     )
 
-@router.get("/response-history/{website_id}", response_model=SuccessResponse[ResponseHistoryResponse])
-async def get_response_history(website_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
+@router.get("/response-history/{monitor_id}", response_model=SuccessResponse[ResponseHistoryResponse])
+async def get_response_history(monitor_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
     return success_response(
         message=Messages.DASHBOARD_FETCHED,
-        data=await service.get_response_history(website_id, days)
+        data=await service.get_response_history(monitor_id, days)
     )
 
-@router.get("/uptime/{website_id}", response_model=SuccessResponse[UptimeResponse])
-async def get_uptime(website_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
+@router.get("/uptime/{monitor_id}", response_model=SuccessResponse[UptimeResponse])
+async def get_uptime(monitor_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
     return success_response(
         message=Messages.DASHBOARD_FETCHED,
-        data=await service.get_uptime(website_id, days)
+        data=await service.get_uptime(monitor_id, days)
     )
 
-@router.get("/status-history/{website_id}", response_model=SuccessResponse[StatusHistoryResponse])
-async def get_status_history(website_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
+@router.get("/status-history/{monitor_id}", response_model=SuccessResponse[StatusHistoryResponse])
+async def get_status_history(monitor_id: str, days: int = Query(7, ge=1, le=365), service: DashboardService = Depends(get_dashboard_service)):
     return success_response(
         message=Messages.DASHBOARD_FETCHED,
-        data=await service.get_status_history(website_id, days)
+        data=await service.get_status_history(monitor_id, days)
     )
 

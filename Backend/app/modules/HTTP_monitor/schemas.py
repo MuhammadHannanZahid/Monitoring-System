@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 
 class CreateHTTP_monitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -10,7 +10,7 @@ class CreateHTTP_monitorRequest(BaseModel):
     expected_status_code: int = Field(ge=100, le=599)
     timeout: int = Field(ge=1, le=60)
 
-class UpdateWebsiteRequest(BaseModel):
+class UpdateHTTP_monitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     url: str | None = Field(default=None, max_length=500)
     check_interval: int | None = Field(default=None, ge=10, le=86400)
@@ -18,7 +18,7 @@ class UpdateWebsiteRequest(BaseModel):
     timeout: int | None = Field(default=None, ge=1, le=60)
     is_active: bool | None = None
 
-class WebsiteResponse(BaseModel):
+class HTTP_monitorResponse(BaseModel):
     id: str
     name: str
     url: str
@@ -32,4 +32,4 @@ class WebsiteResponse(BaseModel):
     last_checked_at: datetime | None
     last_status_code: int | None
     last_response_time_ms: int | None
-    status: WebsiteStatus
+    status: HTTP_monitorStatus

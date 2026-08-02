@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 
 class CreateApiMonitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -43,4 +43,4 @@ class ApiMonitorResponse(BaseModel):
     last_checked_at: datetime | None
     last_status_code: int | None
     last_response_time_ms: int | None
-    status: WebsiteStatus
+    status: MonitorStatus

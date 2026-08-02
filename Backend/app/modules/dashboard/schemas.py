@@ -1,22 +1,22 @@
 from pydantic import BaseModel
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import HTTP_monitorStatus
 from datetime import datetime
 
 class DashboardSummaryResponse(BaseModel):
-    total_websites: int
-    active_websites: int
-    inactive_websites: int
-    websites_up: int
-    websites_down: int
-    websites_unknown: int
+    total_monitors: int
+    active_monitors: int
+    inactive_monitors: int
+    monitors_up: int
+    monitors_down: int
+    monitors_unknown: int
     open_incidents: int
     average_response_time_ms: float
 
-class DashboardWebsiteResponse(BaseModel):
+class DashboardMonitorResponse(BaseModel):
     id: str
     name: str
     url: str
-    status: WebsiteStatus | None = None
+    status: HTTP_monitorStatus | None = None
     response_time_ms: int | None
     status_code: int | None
     uptime_percentage: float | None = None
@@ -26,15 +26,15 @@ class DashboardWebsiteResponse(BaseModel):
 
 class DashboardIncidentResponse(BaseModel):
     id: str
-    website_id: str
-    website_name: str
+    monitor_id: str
+    monitor_name: str
     started_at: datetime
     resolved_at: datetime | None
     duration_seconds: int | None
 
 class DashboardActivityResponse(BaseModel):
-    website_name: str
-    status: WebsiteStatus
+    monitor_name: str
+    status: HTTP_monitorStatus
     status_code: int | None
     response_time_ms: int | None
     checked_at: datetime
@@ -44,11 +44,11 @@ class ResponseHistoryPoint(BaseModel):
     response_time_ms: int
 
 class ResponseHistoryResponse(BaseModel):
-    website_id: str
+    monitor_id: str
     points: list[ResponseHistoryPoint]
 
 class UptimeResponse(BaseModel):
-    website_id: str
+    monitor_id: str
     uptime_percentage: float
     total_checks: int
     successful_checks: int
@@ -56,8 +56,8 @@ class UptimeResponse(BaseModel):
 
 class StatusHistoryPoint(BaseModel):
     checked_at: datetime
-    status: WebsiteStatus
+    status: HTTP_monitorStatus
 
 class StatusHistoryResponse(BaseModel):
-    website_id: str
+    monitor_id: str
     history: list[StatusHistoryPoint]

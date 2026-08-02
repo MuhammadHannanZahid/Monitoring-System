@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class IncidentResponse(BaseModel):
     id: str
-    website_id: str
+    HTTP_monitor_id: str
     started_at: datetime
     resolved_at: datetime | None
     is_resolved: bool
