@@ -46,7 +46,7 @@ class API_monitorService:
     async def list_monitors(self) -> list[APIMonitorModel]:
         return await self.repository.list_monitors()
 
-    async def update_monitor(self, monitor_id: str, request: UpdateApiMonitorRequest) -> APIMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, request: UpdateApiMonitorRequest, expected_response_time_ms: int) -> APIMonitorModel | None:
         monitor = await self.repository.get_by_id(monitor_id)
         if monitor is None:
             return None

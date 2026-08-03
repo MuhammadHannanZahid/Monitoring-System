@@ -14,3 +14,4 @@ class HTTPMonitorModel(BaseMonitorModel):
     created_by: str | None = None
     failure_count: int = 0
     success_count: int = 0
+    expected_response_time_ms: int | None = None

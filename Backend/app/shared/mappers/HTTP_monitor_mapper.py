@@ -17,7 +17,8 @@ class HTTP_monitorMapper:
             last_checked_at=http_monitor.last_checked_at,
             last_status_code=http_monitor.last_status_code,
             last_response_time_ms=http_monitor.last_response_time_ms,
-            status=http_monitor.status
+            status=http_monitor.status,
+            expected_response_time_ms = http_monitor.expected_response_time_ms,
         )
 
     @staticmethod

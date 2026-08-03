@@ -23,6 +23,7 @@ class API_monitorMapper:
             last_status_code=API_monitor.last_status_code,
             last_response_time_ms=API_monitor.last_response_time_ms,
             status=API_monitor.status,
+            expected_response_time_ms=http_monitor.expected_response_time_ms,
         )
 
     @staticmethod

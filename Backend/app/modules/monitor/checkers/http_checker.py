@@ -27,14 +27,42 @@ class HTTPChecker(BaseChecker):
             elapsed = int((time.perf_counter() - start) * 1000)
             status_code = response.status_code
             response_time_ms = elapsed
-            success = response.status_code == HTTP_monitor.expected_status_code
+            status_ok = (
+                    response.status_code
+                    == HTTP_monitor.expected_status_code
+            )
+
+            response_time_ok = (
+                    monitor.expected_response_time_ms is None
+                    or elapsed <= HTTP_monitor.expected_response_time_ms
+            )
+
+            success = status_ok and response_time_ok
             status = HTTP_monitorStatus.UP if success else HTTP_monitorStatus.DOWN
 
             if success:
-                logger.info("Monitor '%s' is UP (%d ms, HTTP %d).", HTTP_monitor.name, elapsed, response.status_code)
+                logger.info(
+                    "Monitor '%s' is UP (%d ms, HTTP %d).",
+                    HTTP_monitor.name,
+                    elapsed,
+                    response.status_code,
+                )
+
+            elif not status_ok:
+                logger.warning(
+                    "Monitor '%s' is DOWN (expected HTTP %d, got %d).",
+                    HTTP_monitor.name,
+                    HTTP_monitor.expected_status_code,
+                    response.status_code,
+                )
+
             else:
-                logger.warning("Monitor '%s' is DOWN (expected %d, got %d).", HTTP_monitor.name,
-                               HTTP_monitor.expected_status_code, response.status_code)
+                logger.warning(
+                    "Monitor '%s' is DOWN (response time %d ms exceeded limit %d ms).",
+                    HTTP_monitor.name,
+                    elapsed,
+                    HTTP_monitor.expected_response_time_ms,
+                )
 
         except httpx.TimeoutException:
             response_time_ms = int((time.perf_counter() - start) * 1000)

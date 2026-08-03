@@ -13,3 +13,4 @@ class APIMonitorModel(BaseMonitorModel):
     expected_status_code: int
     expected_json: dict | None = None
     created_by: str | None = None
+    expected_response_time_ms: int | None = None

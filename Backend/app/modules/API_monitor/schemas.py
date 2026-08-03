@@ -5,6 +5,7 @@ from app.shared.enums import HTTP_monitorStatus
 class CreateApiMonitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     url: str = Field(max_length=500)
+    expected_response_time_ms: int | None = None
     method: str = Field(default="GET", max_length=10)
     headers: dict[str, str] = Field(default_factory=dict)
     request_body: dict | None = None
@@ -16,6 +17,7 @@ class CreateApiMonitorRequest(BaseModel):
 class UpdateApiMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     url: str | None = Field(default=None, max_length=500)
+    expected_response_time_ms: int | None = None
     method: str | None = Field(default=None, max_length=10)
     headers: dict[str, str] | None = None
     request_body: dict | None = None
@@ -44,3 +46,4 @@ class ApiMonitorResponse(BaseModel):
     last_status_code: int | None
     last_response_time_ms: int | None
     status: HTTP_monitorStatus
+    expected_response_time_ms: int | None

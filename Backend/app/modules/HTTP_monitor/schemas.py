@@ -5,7 +5,7 @@ from app.shared.enums import HTTP_monitorStatus
 class CreateHTTP_monitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     url: str = Field(max_length=500)
-
+    expected_response_time_ms: int | None = None
     check_interval: int = Field(ge=10, le=86400)
     expected_status_code: int = Field(ge=100, le=599)
     timeout: int = Field(ge=1, le=60)
@@ -13,6 +13,7 @@ class CreateHTTP_monitorRequest(BaseModel):
 class UpdateHTTP_monitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     url: str | None = Field(default=None, max_length=500)
+    expected_response_time_ms: int | None = None
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     expected_status_code: int | None = Field(default=None, ge=100, le=599)
     timeout: int | None = Field(default=None, ge=1, le=60)
@@ -33,3 +34,4 @@ class HTTP_monitorResponse(BaseModel):
     last_status_code: int | None
     last_response_time_ms: int | None
     status: HTTP_monitorStatus
+    expected_response_time_ms: int | None

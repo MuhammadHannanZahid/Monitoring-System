@@ -12,7 +12,7 @@ class HTTP_monitorService:
     def __init__(self, repository: HTTP_monitorRepository):
         self.repository = repository
 
-    async def create_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int) -> HTTPMonitorModel:
+    async def create_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int, expected_response_time_ms:int) -> HTTPMonitorModel:
         existing_url = await self.repository.get_by_url(url)
         if existing_url is not None:
             logger.warning("Attempted to create HTTP_monitor with existing URL '%s'.", url)
@@ -38,6 +38,7 @@ class HTTP_monitorService:
             created_at=now,
             updated_at=now,
             last_checked_at=None,
+            expected_response_time_ms=expected_response_time_ms,
         )
 
         HTTP_monitor.id = await self.repository.create(HTTP_monitor)
@@ -54,7 +55,7 @@ class HTTP_monitorService:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
         return HTTP_monitor
 
-    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None) -> HTTPMonitorModel:
+    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None, expected_response_time_ms:int) -> HTTPMonitorModel:
         HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
         update_data = {}
         if name is not None and name != HTTP_monitor.name:

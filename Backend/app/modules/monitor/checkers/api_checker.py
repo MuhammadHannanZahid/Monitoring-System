@@ -64,7 +64,16 @@ class ApiChecker:
             else:
                 json_ok = True
 
-            success = status_ok and json_ok
+            response_time_ok = (
+                    monitor.expected_response_time_ms is None
+                    or elapsed <= monitor.expected_response_time_ms
+            )
+
+            success = (
+                    status_ok
+                    and json_ok
+                    and response_time_ok
+            )
 
             status = (
                 HTTP_monitorStatus.UP
