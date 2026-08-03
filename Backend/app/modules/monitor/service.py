@@ -10,64 +10,25 @@ from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from datetime import datetime, timezone
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
+from app.modules.monitor.checkers.checker_factory import CheckerFactory
 
 logger = get_logger(__name__)
 
 class MonitorService:
-    def __init__(self, HTTP_monitor_repository: HTTP_monitorRepository, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService):
+    def __init__(self, HTTP_monitor_repository: HTTP_monitorRepository, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService, checker_factory: CheckerFactory):
         self.monitor_repository = HTTP_monitor_repository
         self.incident_service = incident_service
         self.monitor_result_service = monitor_result_service
         self.monitor_state_service = monitor_state_service
-
-        self.client = httpx.AsyncClient(follow_redirects=True)
-
-    async def check_monitor(self, HTTP_monitor: HTTPMonitorModel) -> HealthCheckResponse:
-        start = time.perf_counter()
-
-        status = HTTP_monitorStatus.DOWN
-        success = False
-        status_code = None
-        response_time_ms = None
-        try:
-            response = await self.client.get(HTTP_monitor.url, timeout=HTTP_monitor.timeout)
-
-            elapsed = int((time.perf_counter() - start) * 1000)
-            status_code = response.status_code
-            response_time_ms = elapsed
-            success = response.status_code == HTTP_monitor.expected_status_code
-            status = HTTP_monitorStatus.UP if success else HTTP_monitorStatus.DOWN
-
-            if success:
-                logger.info("Monitor '%s' is UP (%d ms, HTTP %d).", HTTP_monitor.name, elapsed, response.status_code)
-            else:
-                logger.warning("Monitor '%s' is DOWN (expected %d, got %d).", HTTP_monitor.name, HTTP_monitor.expected_status_code, response.status_code)
-
-        except httpx.TimeoutException:
-            response_time_ms = int((time.perf_counter() - start) * 1000)
-            logger.warning("Health check timed out for '%s'.", HTTP_monitor.name)
-
-        except httpx.HTTPError as exc:
-            response_time_ms = int((time.perf_counter() - start) * 1000)
-            logger.warning("Health check failed for '%s' : %s", HTTP_monitor.name, exc)
-
-        except Exception:
-            logger.exception("Unexpected error while checking '%s'.", HTTP_monitor.name)
-
-        return HealthCheckResponse(
-            url=HTTP_monitor.url,
-            status=status,
-            status_code=status_code,
-            response_time_ms=response_time_ms,
-            success=success,
-        )
-
-    async def close(self):
-        await self.client.aclose()
+        self.checker_factory = checker_factory
 
     async def check_and_update(self, monitor: HTTPMonitorModel) -> None:
 
-        result = await self.check_monitor(monitor)
+        checker = self.checker_factory.get_checker(
+            monitor.monitor_type
+        )
+
+        result = await checker.check(monitor)
         checked_at = datetime.now(timezone.utc)
 
         await self.monitor_result_service.record_result(

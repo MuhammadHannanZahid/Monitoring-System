@@ -18,6 +18,7 @@ from app.modules.monitor_results.repository import MonitorResultRepository
 from app.modules.monitor_results.service import MonitorResultService
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_state.repository import MonitorStateRepository
+from app.modules.monitor.checkers.checker_factory import CheckerFactory
 
 logger = get_logger(__name__)
 
@@ -42,11 +43,14 @@ async def lifespan(app: FastAPI):
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
+    checker_factory = CheckerFactory()
+
     monitor_service = MonitorService(
         HTTP_monitor_repository=HTTP_monitor_repository,
         incident_service=incident_service,
         monitor_result_service=monitor_result_service,
         monitor_state_service=monitor_state_service,
+        checker_factory=checker_factory,
     )
 
     scheduler = MonitorScheduler(
@@ -67,7 +71,7 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
 
-        await monitor_service.close()
+        await checker_factory.close()
         await db_manager.disconnect()
         logger.info("Application stopped.")
 

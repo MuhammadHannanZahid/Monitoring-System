@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
 from app.shared.models.incident import IncidentModel
+from app.shared.enums import MonitorType
 
 class IncidentRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
@@ -17,13 +18,12 @@ class IncidentRepository:
         result = await self.collection.insert_one(document)
         return str(result.inserted_id)
 
-    async def get_active_incident(self, monitor_id: str) -> IncidentModel | None:
-        document = await self.collection.find_one(
-            {
-                "monitor_id": monitor_id,
-                "is_resolved": False,
-            }
-        )
+    async def get_active_incident(self, monitor_id: str, monitor_type: MonitorType) -> IncidentModel | None:
+        await self.collection.find_one({
+            "monitor_id": monitor_id,
+            "monitor_type": monitor_type,
+            "resolved_at": None,
+        })
         if document is None:
             return None
 
@@ -31,14 +31,18 @@ class IncidentRepository:
         return IncidentModel(**document)
 
 
-    async def resolve_incident(self, incident_id: str) -> bool:
+    async def resolve_incident(self, incident_id: str, monitor_type: MonitorType,) -> bool:
         try:
             object_id = ObjectId(incident_id)
         except InvalidId:
             return False
 
         result = await self.collection.update_one(
-            {"_id": object_id},
+            {
+                "monitor_id": monitor_id,
+                "monitor_type": monitor_type,
+                "resolved_at": None,
+            },
             {
                 "$set": {
                     "is_resolved": True,

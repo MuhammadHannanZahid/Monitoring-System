@@ -13,6 +13,7 @@ def get_monitor_service(HTTP_monitor_repository: HTTP_monitorRepository = Depend
         HTTP_monitor_repository=HTTP_monitor_repository,
         incident_service=incident_service,
         monitor_result_service=monitor_result_service,
+        CheckerFactory()
     )
 
 def get_monitor_scheduler(
