@@ -7,15 +7,20 @@ from app.shared.constants import Messages
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.monitor_results.repository import MonitorResultRepository
 from app.modules.incident.repository import IncidentRepository
+from app.modules.API_monitor.repository import API_monitorRepository
 
 class DashboardService:
-    def __init__(self, HTTP_monitor_repository: HTTP_monitorRepository, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
+    def __init__(self, HTTP_monitor_repository: HTTP_monitorRepository, API_monitor_repository: API_monitorRepository, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
         self.monitor_repository = HTTP_monitor_repository
+        self.API_monitor_repository = API_monitor_repository
         self.monitor_result_repository = monitor_result_repository
         self.incident_repository = incident_repository
 
     async def get_summary(self) -> DashboardSummaryResponse:
-        total_monitors = await self.monitor_repository.count_all()
+        http_count = await self.monitor_repository.count_all()
+        api_count = await self.API_monitor_repository.count_all()
+
+        total_monitors = http_count + api_count
         active_monitors = await self.monitor_repository.count_active()
         inactive_monitors = await self.monitor_repository.count_inactive()
         monitors_up = await self.monitor_repository.count_by_status(HTTP_monitorStatus.UP)
@@ -40,7 +45,7 @@ class DashboardService:
 
         responses = []
 
-        for monitor in monitors:
+        for monitor in HTTP_monitors:
             stats = await self.monitor_result_repository.get_statistics(
                 monitor_id=monitor.id,
                 days=30,
@@ -56,21 +61,21 @@ class DashboardService:
             )
 
             incidents = len(
-                await self.incident_repository.list_by_monitor(HTTP_monitor.id)
+                await self.incident_repository.list_by_monitor(monitor.id)
             )
 
             responses.append(
-                DashboardHTTP_monitorResponse(
-                    id=HTTP_monitor.id,
-                    name=HTTP_monitor.name,
-                    url=HTTP_monitor.url,
-                    status=HTTP_monitor.status,
-                    response_time_ms=HTTP_monitor.last_response_time_ms,
-                    status_code=HTTP_monitor.last_status_code,
+                DashboardMonitorResponse(
+                    id=monitor.id,
+                    name=monitor.name,
+                    url=monitor.url,
+                    status=monitor.status,
+                    response_time_ms=monitor.last_response_time_ms,
+                    status_code=monitor.last_status_code,
                     uptime_percentage=uptime,
                     incidents=incidents,
-                    last_checked_at=HTTP_monitor.last_checked_at,
-                    is_active=HTTP_monitor.is_active,
+                    last_checked_at=monitor.last_checked_at,
+                    is_active=monitor.is_active,
                 )
             )
 
@@ -130,7 +135,7 @@ class DashboardService:
         HTTP_monitor = await self.monitor_repository.get_by_id(monitor_id)
 
         if HTTP_monitor is None:
-            raise NotFoundError(Messages.HTTP_monitor_NOT_FOUND)
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
 
         history = await self.monitor_result_repository.get_response_history(monitor_id=monitor_id, days=days)
 
@@ -149,7 +154,7 @@ class DashboardService:
         HTTP_monitor = await self.monitor_repository.get_by_id(monitor_id)
 
         if HTTP_monitor is None:
-            raise NotFoundError(Messages.HTTP_monitor_NOT_FOUND)
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
 
         stats = await self.monitor_result_repository.get_statistics(monitor_id=monitor_id, days=days)
         total = stats["total"]
@@ -169,7 +174,7 @@ class DashboardService:
         HTTP_monitor = await self.monitor_repository.get_by_id(monitor_id)
 
         if HTTP_monitor is None:
-            raise NotFoundError(Messages.HTTP_monitor_NOT_FOUND)
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
 
         history = await self.monitor_result_repository.get_status_history(monitor_id=monitor_id, days=days)
 

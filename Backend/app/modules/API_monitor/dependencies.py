@@ -1,8 +1,6 @@
 from fastapi import Depends
-from app.core.database import get_database
-from app.modules.api_monitor.repository import ApiMonitorRepository
-from app.modules.api_monitor.service import ApiMonitorService
+from app.modules.API_monitor.repository import API_monitorRepository, get_API_monitor_repository
+from app.modules.API_monitor.service import API_monitorService
 
-def get_api_monitor_service(database: AsyncIOMotorDatabase = Depends(get_database)):
-    repository = ApiMonitorRepository(database)
-    return ApiMonitorService(repository)
+def get_API_monitor_service(repository: API_monitorRepository = Depends(get_API_monitor_repository)) -> API_monitorService:
+    return API_monitorService(repository)

@@ -1,6 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.errors import PyMongoError
-
+from bson.codec_options import CodecOptions
+from datetime import timezone
 from app.core.config import settings
 from app.core.logger import get_logger
 
@@ -27,7 +28,10 @@ class DatabaseManager:
         try:
             logger.info("Connecting to MongoDB...")
             self._client = AsyncIOMotorClient(settings.mongo_uri)
-            self._database = self._client[settings.database_name]
+            self._database = self._client.get_database(
+                settings.database_name,
+                codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc)
+            )
             await self._client.admin.command("ping")
             logger.info("MongoDB connected successfully.")
 

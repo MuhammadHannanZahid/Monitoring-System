@@ -6,7 +6,7 @@ from app.modules.monitor.schemas import HealthCheckResponse
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.monitor_results.service import MonitorResultService
 from app.modules.incident.service import IncidentService
-from app.shared.models.HTTP_monitor import HTTP_monitorModel
+from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from datetime import datetime, timezone
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
@@ -22,7 +22,7 @@ class MonitorService:
 
         self.client = httpx.AsyncClient(follow_redirects=True)
 
-    async def check_monitor(self, HTTP_monitor: HTTP_monitorModel) -> HealthCheckResponse:
+    async def check_monitor(self, HTTP_monitor: HTTPMonitorModel) -> HealthCheckResponse:
         start = time.perf_counter()
 
         status = HTTP_monitorStatus.DOWN
@@ -65,13 +65,14 @@ class MonitorService:
     async def close(self):
         await self.client.aclose()
 
-    async def check_and_update(self, monitor: HTTP_monitorModel) -> None:
+    async def check_and_update(self, monitor: HTTPMonitorModel) -> None:
 
         result = await self.check_monitor(monitor)
         checked_at = datetime.now(timezone.utc)
 
         await self.monitor_result_service.record_result(
             monitor_id=monitor.id,
+            monitor_type=monitor.monitor_type,
             status=result.status,
             status_code=result.status_code,
             response_time_ms=result.response_time_ms,
@@ -80,6 +81,7 @@ class MonitorService:
 
         state_result = await self.monitor_state_service.process_result(
             monitor_id=monitor.id,
+            monitor_type=monitor.monitor_type,
             success=result.success,
             status_code=result.status_code,
             response_time_ms=result.response_time_ms,
@@ -106,7 +108,8 @@ class MonitorService:
         if state_result.transition == MonitorTransition.DOWN:
 
             active = await self.incident_service.get_active_incident(
-                monitor.id
+                monitor.id,
+                monitor.monitor_type,
             )
 
             if active is None:
@@ -118,6 +121,7 @@ class MonitorService:
 
                 await self.incident_service.open_incident(
                     monitor.id,
+                    monitor.monitor_type,
                     reason,
                 )
 
@@ -130,6 +134,7 @@ class MonitorService:
 
             await self.incident_service.resolve_incident(
                 monitor.id,
+                monitor.monitor_type,
             )
 
             logger.info(

@@ -7,9 +7,10 @@ class MonitorResultService:
     def __init__(self, repository: MonitorResultRepository):
         self.repository = repository
 
-    async def record_result(self, monitor_id: str, status: HTTP_monitorStatus, status_code: int | None, response_time_ms: int | None, success: bool) -> MonitorResultModel:
+    async def record_result(self, monitor_id: str, monitor_type: str, status: HTTP_monitorStatus, status_code: int | None, response_time_ms: int | None, success: bool) -> MonitorResultModel:
         result = MonitorResultModel(
             monitor_id=monitor_id,
+            monitor_type=monitor_type,
             status=status,
             status_code=status_code,
             response_time_ms=response_time_ms,

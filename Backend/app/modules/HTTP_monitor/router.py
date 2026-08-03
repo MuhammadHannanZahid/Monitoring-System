@@ -11,7 +11,7 @@ router = APIRouter(prefix="/HTTP_monitors", tags=["HTTP_monitors"], dependencies
 
 @router.post("/create", response_model=SuccessResponse[HTTP_monitorResponse])
 async def create_HTTP_monitor(request: CreateHTTP_monitorRequest, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    HTTP_monitor = await service.create_HTTP_monitor(
+    HTTP_monitor = await service.create_monitor(
         name=request.name,
         url=request.url,
         check_interval=request.check_interval,
@@ -35,7 +35,7 @@ async def list_monitors(service: HTTP_monitorService = Depends(get_HTTP_monitor_
 
 @router.get("/{HTTP_monitor_id}/get_one", response_model=SuccessResponse[HTTP_monitorResponse])
 async def get_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    HTTP_monitor = await service.get_HTTP_monitor(HTTP_monitor_id)
+    HTTP_monitor = await service.get_monitor(HTTP_monitor_id)
 
     return success_response(
         message=Messages.monitor_FETCHED,
@@ -44,7 +44,7 @@ async def get_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = 
 
 @router.put("/{HTTP_monitor_id}/update", response_model=SuccessResponse[HTTP_monitorResponse])
 async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorRequest, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    HTTP_monitor = await service.update_HTTP_monitor(
+    HTTP_monitor = await service.update_monitor(
         HTTP_monitor_id=HTTP_monitor_id,
         name=request.name,
         url=request.url,
@@ -60,7 +60,7 @@ async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorR
 
 @router.delete("/{HTTP_monitor_id}/delete", response_model=SuccessResponse[None])
 async def delete_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    await service.delete_HTTP_monitor(HTTP_monitor_id)
+    await service.delete_monitor(HTTP_monitor_id)
 
     return success_response(
         message=Messages.monitor_DELETED,
@@ -69,7 +69,7 @@ async def delete_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService
 
 @router.patch("/{HTTP_monitor_id}/activate", response_model=SuccessResponse[HTTP_monitorResponse])
 async def activate_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    HTTP_monitor = await service.activate_HTTP_monitor(HTTP_monitor_id)
+    HTTP_monitor = await service.activate_monitor(HTTP_monitor_id)
 
     return success_response(
         message=Messages.monitor_ACTIVATED,
@@ -78,7 +78,7 @@ async def activate_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorServi
 
 @router.patch("/{HTTP_monitor_id}/deactivate", response_model=SuccessResponse[HTTP_monitorResponse])
 async def deactivate_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
-    HTTP_monitor = await service.deactivate_HTTP_monitor(HTTP_monitor_id)
+    HTTP_monitor = await service.deactivate_monitor(HTTP_monitor_id)
 
     return success_response(
         message=Messages.monitor_DEACTIVATED,

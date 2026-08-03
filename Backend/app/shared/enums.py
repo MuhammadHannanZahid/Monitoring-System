@@ -12,3 +12,7 @@ class HTTP_monitorStatus(str, Enum):
     UNKNOWN = "unknown"
     UP = "up"
     DOWN = "down"
+
+class MonitorType(str, Enum):
+    HTTP = "HTTP"
+    API = "API"

@@ -10,6 +10,8 @@ from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.HTTP_monitor.service import HTTP_monitorService
+from app.modules.API_monitor.service import API_monitorService
+from app.modules.API_monitor.repository import API_monitorRepository
 from app.modules.incident.repository import IncidentRepository
 from app.modules.incident.service import IncidentService
 from app.modules.monitor_results.repository import MonitorResultRepository
@@ -28,10 +30,12 @@ async def lifespan(app: FastAPI):
     database = db_manager.database
 
     HTTP_monitor_repository = HTTP_monitorRepository(database)
+    API_monitor_repository = API_monitorRepository(database)
     incident_repository = IncidentRepository(database)
     monitor_result_repository = MonitorResultRepository(database)
 
     HTTP_monitor_service = HTTP_monitorService(HTTP_monitor_repository)
+    API_monitor_service = API_monitorService(API_monitor_repository)
     incident_service = IncidentService(incident_repository)
     monitor_result_service = MonitorResultService(monitor_result_repository)
 
@@ -45,7 +49,11 @@ async def lifespan(app: FastAPI):
         monitor_state_service=monitor_state_service,
     )
 
-    scheduler = MonitorScheduler(monitor_service=monitor_service, HTTP_monitor_service=HTTP_monitor_service)
+    scheduler = MonitorScheduler(
+        http_monitor_service=HTTP_monitor_service,
+        api_monitor_service=API_monitor_service,
+        monitor_service=monitor_service,
+    )
     scheduler_task = asyncio.create_task(scheduler.start())
 
     try:

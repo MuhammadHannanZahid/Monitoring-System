@@ -1,9 +1,9 @@
 from app.modules.HTTP_monitor.schemas import HTTP_monitorResponse
-from app.shared.models.HTTP_monitor import HTTP_monitorModel
+from app.shared.models.HTTP_monitor import HTTPMonitorModel
 
 class HTTP_monitorMapper:
     @staticmethod
-    def to_response(http_monitor: HTTP_monitorModel) -> HTTP_monitorResponse:
+    def to_response(http_monitor: HTTPMonitorModel) -> HTTP_monitorResponse:
         return HTTP_monitorResponse(
             id=http_monitor.id,
             name=http_monitor.name,
@@ -21,7 +21,7 @@ class HTTP_monitorMapper:
         )
 
     @staticmethod
-    def to_response_list(http_monitors: list[HTTP_monitorModel]) -> list[HTTP_monitorResponse]:
+    def to_response_list(http_monitors: list[HTTPMonitorModel]) -> list[HTTP_monitorResponse]:
         return [
             HTTP_monitorMapper.to_response(http_monitor)
             for http_monitor in http_monitors

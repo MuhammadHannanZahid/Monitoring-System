@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict
+from app.shared.enums import MonitorType
 
 class IncidentModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     id: str | None = None
     monitor_id: str
-    monitor_type: str = "HTTP"
+    monitor_type: MonitorType
     started_at: datetime
     resolved_at: datetime | None = None
     reason: str

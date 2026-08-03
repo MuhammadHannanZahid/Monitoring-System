@@ -2,21 +2,23 @@ from datetime import datetime
 from app.shared.database_constants import Collections
 from app.shared.enums import HTTP_monitorStatus
 from app.shared.models.monitor_state import MonitorStateModel
+from app.shared.enums import MonitorType
 
 class MonitorStateRepository:
     def __init__(self,database):
         self.collection = database[Collections.MONITOR_STATES]
 
-    async def create(self, monitor_id: str):
-        state = MonitorStateModel(monitor_id=monitor_id)
+    async def create(self, monitor_id: str, monitor_type: MonitorType):
+        state = MonitorStateModel(monitor_id=monitor_id, monitor_type=monitor_type)
         await self.collection.insert_one(state.model_dump())
 
         return state
 
-    async def update_state(self, monitor_id: str, status: HTTP_monitorStatus, failures: int, successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime):
+    async def update_state(self, monitor_id: str, monitor_type: MonitorType, status: HTTP_monitorStatus, failures: int, successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime):
         await self.collection.update_one(
             {
-                "monitor_id": monitor_id
+                "monitor_id": monitor_id,
+                "monitor_type": monitor_type,
             },
             {
                 "$set": {
@@ -30,8 +32,13 @@ class MonitorStateRepository:
             }
         )
 
-    async def get_by_monitor_id(self, monitor_id: str) -> MonitorStateModel | None:
-        document = await self.collection.find_one({"monitor_id": monitor_id})
+    async def get_by_monitor_id(self, monitor_id: str, monitor_type: MonitorType) -> MonitorStateModel | None:
+        document = await self.collection.find_one(
+            {
+                "monitor_id": monitor_id,
+                "monitor_type": monitor_type,
+            }
+        )
 
         if document is None:
             return None

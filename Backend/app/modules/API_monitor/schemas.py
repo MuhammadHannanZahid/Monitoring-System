@@ -43,4 +43,4 @@ class ApiMonitorResponse(BaseModel):
     last_checked_at: datetime | None
     last_status_code: int | None
     last_response_time_ms: int | None
-    status: MonitorStatus
+    status: HTTP_monitorStatus

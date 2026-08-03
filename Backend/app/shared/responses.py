@@ -1,5 +1,6 @@
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 from pydantic import BaseModel, Field
+from pydantic.generics import GenericModel
 
 T = TypeVar("T")
 
@@ -24,7 +25,7 @@ class ErrorResponse(BaseModel):
 class EmptyData(BaseModel):
     pass
 
-def success_response(message: str, data: Any = None, metadata: Metadata | None = None,) -> SuccessResponse:
+def success_response(message: str, data: any = None, metadata: Metadata | None = None,) -> SuccessResponse:
     return SuccessResponse(
         message=message,
         data=data,
@@ -36,3 +37,8 @@ def error_response(message: str, errors: list[str] | None = None,) -> ErrorRespo
         message=message,
         errors=errors or [],
     )
+
+class ApiResponse(GenericModel, Generic[T]):
+    success: bool
+    message: str
+    data: T | None = None

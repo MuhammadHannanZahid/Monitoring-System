@@ -5,20 +5,18 @@ from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
-from app.shared.models.HTTP_monitor import HTTP_monitorModel
+from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from app.shared.enums import HTTP_monitorStatus
+from app.shared.repositories.base_repository import BaseRepository
 
-class HTTP_monitorRepository:
+class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
     def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.HTTP_MONITORS]
+        super().__init__(
+            database[Collections.HTTP_MONITORS],
+            HTTPMonitorModel,
+        )
 
-    async def create_HTTP_monitor(self, HTTP_monitor: HTTP_monitorModel) -> str:
-        document = HTTP_monitor.model_dump()
-        document.pop("id", None)
-        result = await self.collection.insert_one(document)
-        return str(result.inserted_id)
-
-    async def get_by_id(self, HTTP_monitor_id: str) -> HTTP_monitorModel | None:
+    async def get_by_id(self, HTTP_monitor_id: str) -> HTTPMonitorModel | None:
         try:
             object_id = ObjectId(HTTP_monitor_id)
         except InvalidId:
@@ -29,28 +27,28 @@ class HTTP_monitorRepository:
             return None
 
         document["id"] = str(document.pop("_id"))
-        return HTTP_monitorModel(**document)
+        return HTTPMonitorModel(**document)
 
-    async def get_by_name(self, name: str) -> HTTP_monitorModel | None:
+    async def get_by_name(self, name: str) -> HTTPMonitorModel | None:
         document = await self.collection.find_one({"name": name})
 
         if document is None:
             return None
 
         document["id"] = str(document.pop("_id"))
-        return HTTP_monitorModel(**document)
+        return HTTPMonitorModel(**document)
 
-    async def list_monitors(self) -> list[HTTP_monitorModel]:
+    async def list_monitors(self) -> list[HTTPMonitorModel]:
         cursor = self.collection.find().sort("created_at", -1)
 
         monitors = []
 
         async for document in cursor:
             document["id"] = str(document.pop("_id"))
-            monitors.append(HTTP_monitorModel(**document))
+            monitors.append(HTTPMonitorModel(**document))
         return monitors
 
-    async def update_HTTP_monitor(self, HTTP_monitor_id: str, update_data: dict) -> bool:
+    async def update_monitor(self, HTTP_monitor_id: str, update_data: dict) -> bool:
         try:
             object_id = ObjectId(HTTP_monitor_id)
         except InvalidId:
@@ -60,7 +58,7 @@ class HTTP_monitorRepository:
         result = await self.collection.update_one({"_id": object_id}, {"$set": update_data})
         return result.modified_count > 0
 
-    async def delete_HTTP_monitor(self, HTTP_monitor_id: str) -> bool:
+    async def delete_monitor(self, HTTP_monitor_id: str) -> bool:
         try:
             object_id = ObjectId(HTTP_monitor_id)
         except InvalidId:
@@ -70,15 +68,15 @@ class HTTP_monitorRepository:
         return result.deleted_count > 0
 
     async def set_active(self, HTTP_monitor_id: str, is_active: bool) -> bool:
-        return await self.update_HTTP_monitor(HTTP_monitor_id, {"is_active": is_active})
+        return await self.update_monitor(HTTP_monitor_id, {"is_active": is_active})
 
-    async def get_by_url(self, url: str) -> HTTP_monitorModel | None:
+    async def get_by_url(self, url: str) -> HTTPMonitorModel | None:
         document = await self.collection.find_one({"url": url})
         if document is None:
             return None
 
         document["id"] = str(document.pop("_id"))
-        return HTTP_monitorModel(**document)
+        return HTTPMonitorModel(**document)
 
     async def count_similar_names(self, base_name: str) -> int:
         return await self.collection.count_documents({"name": {"$regex": f"^{base_name}( \\d+)?$"}})

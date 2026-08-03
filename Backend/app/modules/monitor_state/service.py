@@ -5,28 +5,30 @@ from app.shared.models.monitor_state import MonitorStateModel
 from app.modules.monitor_state.schemas import MonitorStateResult
 from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor_state.enums import MonitorTransition
+from app.shared.enums import MonitorType
 
 class MonitorStateService:
     def __init__(self, repository: MonitorStateRepository):
         self.repository = repository
 
-    async def get_or_create(self, monitor_id: str) -> MonitorStateModel:
-        state = await self.repository.get_by_monitor_id(monitor_id)
+    async def get_or_create(self, monitor_id: str, monitor_type: MonitorType) -> MonitorStateModel:
+        state = await self.repository.get_by_monitor_id(monitor_id, monitor_type)
         if state is None:
-            await self.repository.create(monitor_id)
-            state = await self.repository.get_by_monitor_id(monitor_id)
+            await self.repository.create(monitor_id, monitor_type)
+            state = await self.repository.get_by_monitor_id(monitor_id, monitor_type)
         return state
 
     async def process_result(
             self,
             monitor_id: str,
+            monitor_type: MonitorType,
             success: bool,
             status_code: int | None,
             response_time_ms: int | None,
             checked_at: datetime,
     ) -> MonitorStateResult:
 
-        state = await self.get_or_create(monitor_id)
+        state = await self.get_or_create(monitor_id, monitor_type)
 
         previous_status = state.status
 
@@ -76,6 +78,7 @@ class MonitorStateService:
     async def save(self, state: MonitorStateModel):
         await self.repository.update_state(
             monitor_id=state.monitor_id,
+            monitor_type=state.monitor_type,
             status=state.status,
             failures=state.consecutive_failures,
             successes=state.consecutive_successes,

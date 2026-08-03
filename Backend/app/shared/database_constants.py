@@ -8,4 +8,4 @@ class Collections:
     MONITOR_RESULTS = "monitor_results"
     MONITOR_STATES = "monitor_states"
     HTTP_MONITORS = "http_monitors"
-    # API_MONITORS = "api_monitors"
+    API_MONITORS = "api_monitors"

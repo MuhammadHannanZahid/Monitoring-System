@@ -3,7 +3,7 @@ from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.shared.constants import Messages
 from app.shared.enums import HTTP_monitorStatus
 from app.shared.exceptions import ConflictError, NotFoundError
-from app.shared.models.HTTP_monitor import HTTP_monitorModel
+from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -12,7 +12,7 @@ class HTTP_monitorService:
     def __init__(self, repository: HTTP_monitorRepository):
         self.repository = repository
 
-    async def create_HTTP_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int) -> HTTP_monitorModel:
+    async def create_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int) -> HTTPMonitorModel:
         existing_url = await self.repository.get_by_url(url)
         if existing_url is not None:
             logger.warning("Attempted to create HTTP_monitor with existing URL '%s'.", url)
@@ -27,7 +27,7 @@ class HTTP_monitorService:
 
         now = datetime.now(timezone.utc)
 
-        HTTP_monitor = HTTP_monitorModel(
+        HTTP_monitor = HTTPMonitorModel(
             name=final_name,
             url=url,
             check_interval=check_interval,
@@ -40,22 +40,22 @@ class HTTP_monitorService:
             last_checked_at=None,
         )
 
-        HTTP_monitor.id = await self.repository.create_HTTP_monitor(HTTP_monitor)
+        HTTP_monitor.id = await self.repository.create(HTTP_monitor)
         logger.info("HTTP_monitor '%s' created. URL: %s", HTTP_monitor.name, HTTP_monitor.url)
         return HTTP_monitor
 
-    async def list_monitors(self) -> list[HTTP_monitorModel]:
+    async def list_monitors(self) -> list[HTTPMonitorModel]:
         return await self.repository.list_monitors()
 
-    async def get_HTTP_monitor(self, HTTP_monitor_id: str) -> HTTP_monitorModel:
+    async def get_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
         HTTP_monitor = await self.repository.get_by_id(HTTP_monitor_id)
         if HTTP_monitor is None:
             logger.warning("Requested HTTP_monitor '%s' was not found.", HTTP_monitor_id)
-            raise NotFoundError(Messages.HTTP_monitor_NOT_FOUND)
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         return HTTP_monitor
 
-    async def update_HTTP_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None) -> HTTP_monitorModel:
-        HTTP_monitor = await self.get_HTTP_monitor(HTTP_monitor_id)
+    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None) -> HTTPMonitorModel:
+        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
         update_data = {}
         if name is not None and name != HTTP_monitor.name:
             count = await self.repository.count_similar_names(name)
@@ -83,26 +83,26 @@ class HTTP_monitorService:
             update_data["expected_status_code"] = expected_status_code
 
         if update_data:
-            await self.repository.update_HTTP_monitor(HTTP_monitor_id, update_data)
-            updated_HTTP_monitor = await self.get_HTTP_monitor(HTTP_monitor_id)
+            await self.repository.update_monitor(HTTP_monitor_id, update_data)
+            updated_HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
             logger.info("HTTP_monitor '%s' updated. Fields changed: %s", updated_HTTP_monitor.name, ", ".join(update_data.keys()))
             return updated_HTTP_monitor
 
         return HTTP_monitor
 
-    async def delete_HTTP_monitor(self, HTTP_monitor_id: str) -> None:
-        HTTP_monitor = await self.get_HTTP_monitor(HTTP_monitor_id)
-        await self.repository.delete_HTTP_monitor(HTTP_monitor.id)
+    async def delete_monitor(self, HTTP_monitor_id: str) -> None:
+        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
+        await self.repository.delete_monitor(HTTP_monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", HTTP_monitor.name)
 
-    async def activate_HTTP_monitor(self, HTTP_monitor_id: str) -> HTTP_monitorModel:
-        HTTP_monitor = await self.get_HTTP_monitor(HTTP_monitor_id)
+    async def activate_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
+        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
         await self.repository.set_active(HTTP_monitor.id, True)
         logger.info("HTTP_monitor '%s' activated.", HTTP_monitor.name)
-        return await self.get_HTTP_monitor(HTTP_monitor_id)
+        return await self.get_monitor(HTTP_monitor_id)
 
-    async def deactivate_HTTP_monitor(self, HTTP_monitor_id: str) -> HTTP_monitorModel:
-        HTTP_monitor = await self.get_HTTP_monitor(HTTP_monitor_id)
+    async def deactivate_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
+        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
         await self.repository.set_active(HTTP_monitor.id, False)
         logger.info("HTTP_monitor '%s' deactivated.", HTTP_monitor.name)
-        return await self.get_HTTP_monitor(HTTP_monitor_id)
+        return await self.get_monitor(HTTP_monitor_id)
