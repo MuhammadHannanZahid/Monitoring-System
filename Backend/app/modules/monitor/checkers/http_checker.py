@@ -33,7 +33,7 @@ class HTTPChecker(BaseChecker):
             )
 
             response_time_ok = (
-                    monitor.expected_response_time_ms is None
+                    HTTP_monitor.expected_response_time_ms is None
                     or elapsed <= HTTP_monitor.expected_response_time_ms
             )
 
@@ -56,7 +56,7 @@ class HTTPChecker(BaseChecker):
                     response.status_code,
                 )
 
-            else:
+            elif not response_time_ok:
                 logger.warning(
                     "Monitor '%s' is DOWN (response time %d ms exceeded limit %d ms).",
                     HTTP_monitor.name,

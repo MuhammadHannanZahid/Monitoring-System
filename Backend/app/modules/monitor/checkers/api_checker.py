@@ -64,6 +64,31 @@ class ApiChecker:
             else:
                 json_ok = True
 
+            headers_ok = True
+
+            if monitor.expected_headers:
+
+                for key, expected in monitor.expected_headers.items():
+
+                    actual = response.headers.get(key)
+
+                    if actual != expected:
+                        headers_ok = False
+                        break
+
+            content_type_ok = True
+
+            if monitor.expected_content_type:
+                actual = response.headers.get(
+                    "Content-Type",
+                    "",
+                )
+
+                content_type_ok = (
+                        monitor.expected_content_type.lower()
+                        in actual.lower()
+                )
+
             response_time_ok = (
                     monitor.expected_response_time_ms is None
                     or elapsed <= monitor.expected_response_time_ms
@@ -72,6 +97,8 @@ class ApiChecker:
             success = (
                     status_ok
                     and json_ok
+                    and headers_ok
+                    and content_type_ok
                     and response_time_ok
             )
 
@@ -85,7 +112,7 @@ class ApiChecker:
 
                 logger.info(
                     "[%s] '%s' is UP (%d ms, HTTP %d)",
-                    monitor.method.value,
+                    monitor.method,
                     monitor.name,
                     elapsed,
                     response.status_code,
@@ -107,6 +134,27 @@ class ApiChecker:
 
                     logger.warning(
                         "API Monitor '%s' failed JSON validation.",
+                        monitor.name,
+                    )
+
+                elif not headers_ok:
+
+                    logger.warning(
+                        "API Monitor '%s' failed response header validation.",
+                        monitor.name,
+                    )
+
+                elif not content_type_ok:
+
+                    logger.warning(
+                        "API Monitor '%s' returned wrong Content-Type.",
+                        monitor.name,
+                    )
+
+                elif not response_time_ok:
+
+                    logger.warning(
+                        "API Monitor '%s' exceeded expected response time.",
                         monitor.name,
                     )
 

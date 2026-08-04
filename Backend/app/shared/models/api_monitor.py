@@ -14,3 +14,5 @@ class APIMonitorModel(BaseMonitorModel):
     expected_json: dict | None = None
     created_by: str | None = None
     expected_response_time_ms: int | None = None
+    expected_headers: dict[str, str] | None = None
+    expected_content_type: str | None = None

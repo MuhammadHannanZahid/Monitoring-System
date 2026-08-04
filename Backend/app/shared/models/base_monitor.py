@@ -1,12 +1,12 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.shared.enums import HTTP_monitorStatus, MonitorType
+from app.shared.enums import MonitorStatus, MonitorType
 
 class BaseMonitorModel(BaseModel):
     id: str | None = None
     name: str
     monitor_type: MonitorType
-    status: HTTP_monitorStatus = HTTP_monitorStatus.UNKNOWN
+    status: MonitorStatus = MonitorStatus.UNKNOWN
     check_interval: int
     timeout: int
     is_active: bool = True

@@ -83,6 +83,9 @@ class HTTP_monitorService:
         if expected_status_code is not None and expected_status_code != HTTP_monitor.expected_status_code:
             update_data["expected_status_code"] = expected_status_code
 
+        if expected_response_time_ms is not None and expected_response_time_ms != HTTP_monitor.expected_response_time_ms:
+            update_data["expected_response_time_ms"] = expected_response_time_ms
+
         if update_data:
             await self.repository.update_monitor(HTTP_monitor_id, update_data)
             updated_HTTP_monitor = await self.get_monitor(HTTP_monitor_id)

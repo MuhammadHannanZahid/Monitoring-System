@@ -11,7 +11,10 @@ router = APIRouter(prefix="/API_monitors", tags=["API Monitors"])
 @router.post("/create", response_model=ApiResponse[ApiMonitorResponse], status_code=status.HTTP_201_CREATED)
 async def create_monitor(request: CreateApiMonitorRequest, service: API_monitorService = Depends(get_API_monitor_service)):
     try:
-        monitor = await service.create_monitor(request)
+        monitor = await service.create_monitor(
+            request=request,
+            expected_response_time_ms=request.expected_response_time_ms,
+        )
 
         return ApiResponse(
             success=True,
@@ -54,7 +57,11 @@ async def get_monitor(monitor_id: str, service: API_monitorService = Depends(get
 @router.put("/{monitor_id}", response_model=ApiResponse[ApiMonitorResponse])
 async def update_monitor(monitor_id: str, request: UpdateApiMonitorRequest, service: API_monitorService = Depends(get_API_monitor_service)):
     try:
-        monitor = await service.update_monitor(monitor_id, request)
+        await service.update_monitor(
+            monitor_id,
+            request,
+            request.expected_response_time_ms,
+        )
 
         if monitor is None:
             raise HTTPException(

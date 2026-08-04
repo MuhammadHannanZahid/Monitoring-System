@@ -7,7 +7,7 @@ class API_monitorService:
     def __init__(self, repository: API_monitorRepository):
         self.repository = repository
 
-    async def create_monitor(self, request: CreateApiMonitorRequest, created_by: str | None = None) -> APIMonitorModel:
+    async def create_monitor(self, request: CreateApiMonitorRequest, expected_response_time_ms: int | None = None, created_by: str | None = None) -> APIMonitorModel:
 
         existing = await self.repository.get_by_name(request.name)
         if existing:
@@ -36,6 +36,8 @@ class API_monitorService:
             last_checked_at=None,
             last_status_code=None,
             last_response_time_ms=None,
+            expected_headers=request.expected_headers,
+            expected_content_type=request.expected_content_type,
         )
         monitor.id = await self.repository.create(monitor)
         return monitor

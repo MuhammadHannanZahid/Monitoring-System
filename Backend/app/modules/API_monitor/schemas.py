@@ -13,6 +13,8 @@ class CreateApiMonitorRequest(BaseModel):
     expected_json: dict | None = None
     check_interval: int = Field(ge=10, le=86400)
     timeout: int = Field(ge=1, le=60)
+    expected_headers: dict[str, str] | None = None
+    expected_content_type: str | None = None
 
 class UpdateApiMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -26,6 +28,8 @@ class UpdateApiMonitorRequest(BaseModel):
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     timeout: int | None = Field(default=None, ge=1, le=60)
     is_active: bool | None = None
+    expected_headers: dict[str, str] | None = None
+    expected_content_type: str | None = None
 
 class ApiMonitorResponse(BaseModel):
     id: str
@@ -47,3 +51,5 @@ class ApiMonitorResponse(BaseModel):
     last_response_time_ms: int | None
     status: HTTP_monitorStatus
     expected_response_time_ms: int | None
+    expected_headers: dict[str, str] | None
+    expected_content_type: str | None
