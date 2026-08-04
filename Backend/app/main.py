@@ -45,8 +45,13 @@ async def lifespan(app: FastAPI):
 
     checker_factory = CheckerFactory()
 
+    repository_factory = MonitorRepositoryFactory(
+        http_repository,
+        api_repository,
+    )
+
     monitor_service = MonitorService(
-        HTTP_monitor_repository=HTTP_monitor_repository,
+        repository_factory=repository_factory,
         incident_service=incident_service,
         monitor_result_service=monitor_result_service,
         monitor_state_service=monitor_state_service,

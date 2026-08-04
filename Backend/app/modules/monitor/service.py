@@ -3,26 +3,25 @@ import httpx
 from app.core.logger import get_logger
 from app.shared.enums import HTTP_monitorStatus
 from app.modules.monitor.schemas import HealthCheckResponse
-from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.monitor_results.service import MonitorResultService
 from app.modules.incident.service import IncidentService
-from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from datetime import datetime, timezone
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
+from app.shared.models.base_monitor import BaseMonitorModel
 
 logger = get_logger(__name__)
 
 class MonitorService:
-    def __init__(self, HTTP_monitor_repository: HTTP_monitorRepository, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService, checker_factory: CheckerFactory):
-        self.monitor_repository = HTTP_monitor_repository
+    def __init__(self, repository_factory: MonitorRepositoryFactory, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService, checker_factory: CheckerFactory):
+        self.repository_factory = repository_factory
         self.incident_service = incident_service
         self.monitor_result_service = monitor_result_service
         self.monitor_state_service = monitor_state_service
         self.checker_factory = checker_factory
 
-    async def check_and_update(self, monitor: HTTPMonitorModel) -> None:
+    async def check_and_update(self, monitor: BaseMonitorModel) -> None:
 
         checker = self.checker_factory.get_checker(
             monitor.monitor_type
@@ -49,7 +48,8 @@ class MonitorService:
             checked_at=checked_at,
         )
 
-        await self.monitor_repository.update_monitoring_result(
+        repository = self.repository_factory.get_repository(monitor.monitor_type)
+        await repository.update_monitoring_result(
             monitor_id=monitor.id,
             status=state_result.current_status,
             status_code=result.status_code,
