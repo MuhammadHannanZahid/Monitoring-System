@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.shared.database_constants import Collections
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.shared.models.monitor_state import MonitorStateModel
 from app.shared.enums import MonitorType
 
@@ -14,7 +14,7 @@ class MonitorStateRepository:
 
         return state
 
-    async def update_state(self, monitor_id: str, monitor_type: MonitorType, status: HTTP_monitorStatus, failures: int, successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime):
+    async def update_state(self, monitor_id: str, monitor_type: MonitorType, status: MonitorStatus, failures: int, successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime):
         await self.collection.update_one(
             {
                 "monitor_id": monitor_id,

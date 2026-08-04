@@ -9,8 +9,6 @@ from app.core.logger import get_logger
 from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
-from app.modules.HTTP_monitor.service import HTTP_monitorService
-from app.modules.API_monitor.service import API_monitorService
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.modules.incident.repository import IncidentRepository
 from app.modules.incident.service import IncidentService
@@ -19,6 +17,7 @@ from app.modules.monitor_results.service import MonitorResultService
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
+from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 
 logger = get_logger(__name__)
 
@@ -30,13 +29,13 @@ async def lifespan(app: FastAPI):
 
     database = db_manager.database
 
-    HTTP_monitor_repository = HTTP_monitorRepository(database)
-    API_monitor_repository = API_monitorRepository(database)
+    http_repository = HTTP_monitorRepository(database)
+    api_repository = API_monitorRepository(database)
     incident_repository = IncidentRepository(database)
     monitor_result_repository = MonitorResultRepository(database)
 
-    HTTP_monitor_service = HTTP_monitorService(HTTP_monitor_repository)
-    API_monitor_service = API_monitorService(API_monitor_repository)
+    http_repository = HTTP_monitorRepository(database)
+    api_repository = API_monitorRepository(database)
     incident_service = IncidentService(incident_repository)
     monitor_result_service = MonitorResultService(monitor_result_repository)
 
@@ -58,11 +57,7 @@ async def lifespan(app: FastAPI):
         checker_factory=checker_factory,
     )
 
-    scheduler = MonitorScheduler(
-        http_monitor_service=HTTP_monitor_service,
-        api_monitor_service=API_monitor_service,
-        monitor_service=monitor_service,
-    )
+    scheduler = MonitorScheduler(monitor_service=monitor_service)
     scheduler_task = asyncio.create_task(scheduler.start())
 
     try:

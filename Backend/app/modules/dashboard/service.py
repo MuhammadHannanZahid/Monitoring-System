@@ -1,4 +1,4 @@
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.modules.dashboard.schemas import (DashboardSummaryResponse, DashboardMonitorResponse, DashboardIncidentResponse,
     DashboardActivityResponse, ResponseHistoryResponse, ResponseHistoryPoint, UptimeResponse, StatusHistoryResponse,
     StatusHistoryPoint)
@@ -23,9 +23,9 @@ class DashboardService:
         total_monitors = http_count + api_count
         active_monitors = await self.monitor_repository.count_active()
         inactive_monitors = await self.monitor_repository.count_inactive()
-        monitors_up = await self.monitor_repository.count_by_status(HTTP_monitorStatus.UP)
-        monitors_down = await self.monitor_repository.count_by_status(HTTP_monitorStatus.DOWN)
-        monitors_unknown = await self.monitor_repository.count_by_status(HTTP_monitorStatus.UNKNOWN)
+        monitors_up = await self.monitor_repository.count_by_status(MonitorStatus.UP)
+        monitors_down = await self.monitor_repository.count_by_status(MonitorStatus.DOWN)
+        monitors_unknown = await self.monitor_repository.count_by_status(MonitorStatus.UNKNOWN)
         open_incidents = await self.incident_repository.count_open()
         average_response_time = (await self.monitor_result_repository.average_response_time())
 

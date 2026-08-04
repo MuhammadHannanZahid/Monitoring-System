@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.core.config import settings
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.shared.models.monitor_state import MonitorStateModel
 from app.modules.monitor_state.schemas import MonitorStateResult
 from app.modules.monitor_state.repository import MonitorStateRepository
@@ -37,20 +37,20 @@ class MonitorStateService:
             state.consecutive_failures = 0
 
             if (
-                    previous_status != HTTP_monitorStatus.UP
+                    previous_status != MonitorStatus.UP
                     and state.consecutive_successes >= settings.monitor_recovery_threshold
             ):
-                state.status = HTTP_monitorStatus.UP
+                state.status = MonitorStatus.UP
 
         else:
             state.consecutive_failures += 1
             state.consecutive_successes = 0
 
             if (
-                    previous_status != HTTP_monitorStatus.DOWN
+                    previous_status != MonitorStatus.DOWN
                     and state.consecutive_failures >= settings.monitor_failure_threshold
             ):
-                state.status = HTTP_monitorStatus.DOWN
+                state.status = MonitorStatus.DOWN
 
         state.last_checked_at = checked_at
         state.last_status_code = status_code
@@ -62,10 +62,10 @@ class MonitorStateService:
 
         if previous_status != state.status:
 
-            if state.status == HTTP_monitorStatus.DOWN:
+            if state.status == MonitorStatus.DOWN:
                 transition = MonitorTransition.DOWN
 
-            elif state.status == HTTP_monitorStatus.UP:
+            elif state.status == MonitorStatus.UP:
                 transition = MonitorTransition.UP
 
         return MonitorStateResult(

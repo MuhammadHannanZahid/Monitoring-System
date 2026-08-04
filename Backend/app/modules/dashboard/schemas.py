@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from datetime import datetime
 
 class DashboardSummaryResponse(BaseModel):
@@ -16,7 +16,7 @@ class DashboardMonitorResponse(BaseModel):
     id: str
     name: str
     url: str
-    status: HTTP_monitorStatus | None = None
+    status: MonitorStatus | None = None
     response_time_ms: int | None
     status_code: int | None
     uptime_percentage: float | None = None
@@ -34,7 +34,7 @@ class DashboardIncidentResponse(BaseModel):
 
 class DashboardActivityResponse(BaseModel):
     monitor_name: str
-    status: HTTP_monitorStatus
+    status: MonitorStatus
     status_code: int | None
     response_time_ms: int | None
     checked_at: datetime
@@ -56,7 +56,7 @@ class UptimeResponse(BaseModel):
 
 class StatusHistoryPoint(BaseModel):
     checked_at: datetime
-    status: HTTP_monitorStatus
+    status: MonitorStatus
 
 class StatusHistoryResponse(BaseModel):
     monitor_id: str

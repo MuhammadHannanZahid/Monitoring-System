@@ -2,7 +2,7 @@ import httpx
 import time
 from app.core.logger import get_logger
 from app.modules.monitor.schemas import HealthCheckResponse
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from .base_checker import BaseChecker
 
@@ -17,7 +17,7 @@ class HTTPChecker(BaseChecker):
     async def check(self, HTTP_monitor: HTTPMonitorModel) -> HealthCheckResponse:
         start = time.perf_counter()
 
-        status = HTTP_monitorStatus.DOWN
+        status = MonitorStatus.DOWN
         success = False
         status_code = None
         response_time_ms = None
@@ -38,7 +38,7 @@ class HTTPChecker(BaseChecker):
             )
 
             success = status_ok and response_time_ok
-            status = HTTP_monitorStatus.UP if success else HTTP_monitorStatus.DOWN
+            status = MonitorStatus.UP if success else MonitorStatus.DOWN
 
             if success:
                 logger.info(

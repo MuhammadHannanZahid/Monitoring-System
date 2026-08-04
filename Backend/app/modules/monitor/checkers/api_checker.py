@@ -4,7 +4,7 @@ import httpx
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
 from app.modules.monitor.schemas import HealthCheckResponse
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 
 logger = get_logger(__name__)
 
@@ -18,7 +18,7 @@ class ApiChecker:
 
         start = time.perf_counter()
 
-        status = HTTP_monitorStatus.DOWN
+        status = MonitorStatus.DOWN
         success = False
         status_code = None
         response_time_ms = None
@@ -103,9 +103,9 @@ class ApiChecker:
             )
 
             status = (
-                HTTP_monitorStatus.UP
+                MonitorStatus.UP
                 if success
-                else HTTP_monitorStatus.DOWN
+                else MonitorStatus.DOWN
             )
 
             if success:

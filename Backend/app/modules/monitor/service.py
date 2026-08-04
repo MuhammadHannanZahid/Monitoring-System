@@ -1,14 +1,11 @@
-import time
-import httpx
-from app.core.logger import get_logger
-from app.shared.enums import HTTP_monitorStatus
-from app.modules.monitor.schemas import HealthCheckResponse
-from app.modules.monitor_results.service import MonitorResultService
-from app.modules.incident.service import IncidentService
 from datetime import datetime, timezone
+from app.core.logger import get_logger
+from app.modules.incident.service import IncidentService
+from app.modules.monitor.checkers.checker_factory import CheckerFactory
+from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
-from app.modules.monitor.checkers.checker_factory import CheckerFactory
+from app.modules.monitor_results.service import MonitorResultService
 from app.shared.models.base_monitor import BaseMonitorModel
 
 logger = get_logger(__name__)
@@ -21,12 +18,11 @@ class MonitorService:
         self.monitor_state_service = monitor_state_service
         self.checker_factory = checker_factory
 
+    async def list_active_monitors(self):
+        return await self.repository_factory.list_active_monitors()
+
     async def check_and_update(self, monitor: BaseMonitorModel) -> None:
-
-        checker = self.checker_factory.get_checker(
-            monitor.monitor_type
-        )
-
+        checker = self.checker_factory.get_checker(monitor.monitor_type)
         result = await checker.check(monitor)
         checked_at = datetime.now(timezone.utc)
 
@@ -48,8 +44,8 @@ class MonitorService:
             checked_at=checked_at,
         )
 
-        repository = self.repository_factory.get_repository(monitor.monitor_type)
-        await repository.update_monitoring_result(
+        await self.repository_factory.update_monitoring_result(
+            monitor_type=monitor.monitor_type,
             monitor_id=monitor.id,
             status=state_result.current_status,
             status_code=result.status_code,
@@ -66,39 +62,23 @@ class MonitorService:
             state_result.state.consecutive_successes,
             state_result.state.consecutive_failures,
         )
+
+        await self._handle_incident_transition(monitor, result, state_result)
+        self._log_result(monitor, result, state_result)
+
+    async def _handle_incident_transition(self, monitor: BaseMonitorModel, result, state_result) -> None:
         if state_result.transition == MonitorTransition.DOWN:
-
-            active = await self.incident_service.get_active_incident(
-                monitor.id,
-                monitor.monitor_type,
-            )
-
+            active = await self.incident_service.get_active_incident(monitor.id, monitor.monitor_type)
             if active is None:
-                reason = (
-                    f"HTTP {result.status_code}"
-                    if result.status_code is not None
-                    else "Timeout / Network Error"
-                )
-
-                await self.incident_service.open_incident(
-                    monitor.id,
-                    monitor.monitor_type,
-                    reason,
-                )
-
-                logger.warning(
-                    "Incident opened for '%s'.",
-                    monitor.name,
-                )
+                reason = self._build_incident_reason(result)
+                await self.incident_service.open_incident(monitor.id, monitor.monitor_type, reason)
+                logger.warning("Incident opened for '%s'.", monitor.name)
 
         elif state_result.transition == MonitorTransition.UP:
+            await self.incident_service.resolve_incident(monitor.id, monitor.monitor_type)
+            logger.info("Incident resolved for '%s'.", monitor.name)
 
-            await self.incident_service.resolve_incident(
-                monitor.id,
-                monitor.monitor_type,
-            )
-
-            logger.info(
-                "Incident resolved for '%s'.",
-                monitor.name,
-            )
+    def _build_incident_reason(self, result) -> str:
+        if result.status_code is not None:
+            return f"HTTP {result.status_code}"
+        return "Timeout / Network Error"

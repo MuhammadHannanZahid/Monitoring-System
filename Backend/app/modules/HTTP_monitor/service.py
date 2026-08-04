@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.shared.constants import Messages
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.shared.exceptions import ConflictError, NotFoundError
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from app.core.logger import get_logger
@@ -33,7 +33,7 @@ class HTTP_monitorService:
             check_interval=check_interval,
             timeout=timeout,
             expected_status_code=expected_status_code,
-            status=HTTP_monitorStatus.UNKNOWN,
+            status=MonitorStatus.UNKNOWN,
             is_active=True,
             created_at=now,
             updated_at=now,

@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
 from app.shared.database_constants import Collections
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 from app.shared.repositories.base_repository import BaseRepository
 
 class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
@@ -81,7 +81,7 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
     async def count_similar_names(self, base_name: str) -> int:
         return await self.collection.count_documents({"name": {"$regex": f"^{base_name}( \\d+)?$"}})
 
-    async def update_monitoring_result(self, monitor_id: str, status: HTTP_monitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(monitor_id)
 
@@ -111,16 +111,16 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
     async def count_inactive(self) -> int:
         return await self.collection.count_documents({"is_active": False})
 
-    async def count_by_status(self, status: HTTP_monitorStatus) -> int:
+    async def count_by_status(self, status: MonitorStatus) -> int:
         return await self.collection.count_documents({"status": status})
 
     async def get_dashboard_counts(self) -> dict[str, int]:
         total = await self.collection.count_documents({})
         active = await self.collection.count_documents({"is_active": True})
         inactive = await self.collection.count_documents({"is_active": False})
-        up = await self.collection.count_documents({"status": HTTP_monitorStatus.UP})
-        down = await self.collection.count_documents({"status": HTTP_monitorStatus.DOWN})
-        unknown = await self.collection.count_documents({"status": HTTP_monitorStatus.UNKNOWN})
+        up = await self.collection.count_documents({"status": MonitorStatus.UP})
+        down = await self.collection.count_documents({"status": MonitorStatus.DOWN})
+        unknown = await self.collection.count_documents({"status": MonitorStatus.UNKNOWN})
 
         return {
             "total": total,
@@ -131,7 +131,7 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
             "unknown": unknown,
         }
 
-    async def update_monitor_state(self, HTTP_monitor_id: str, *, status: HTTP_monitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitor_state(self, HTTP_monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(HTTP_monitor_id)
         except InvalidId:

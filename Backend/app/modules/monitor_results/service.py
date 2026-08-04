@@ -1,13 +1,13 @@
 from datetime import datetime, timezone
 from app.modules.monitor_results.repository import MonitorResultRepository
 from app.shared.models.monitor_result import MonitorResultModel
-from app.shared.enums import HTTP_monitorStatus
+from app.shared.enums import MonitorStatus
 
 class MonitorResultService:
     def __init__(self, repository: MonitorResultRepository):
         self.repository = repository
 
-    async def record_result(self, monitor_id: str, monitor_type: str, status: HTTP_monitorStatus, status_code: int | None, response_time_ms: int | None, success: bool) -> MonitorResultModel:
+    async def record_result(self, monitor_id: str, monitor_type: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, success: bool) -> MonitorResultModel:
         result = MonitorResultModel(
             monitor_id=monitor_id,
             monitor_type=monitor_type,
