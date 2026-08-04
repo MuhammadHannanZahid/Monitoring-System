@@ -8,7 +8,6 @@ class CreateHTTP_monitorRequest(BaseModel):
     expected_response_time_ms: int | None = None
     check_interval: int = Field(ge=10, le=86400)
     expected_status_code: int = Field(ge=100, le=599)
-    timeout: int = Field(ge=1, le=60)
 
 class UpdateHTTP_monitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -16,7 +15,6 @@ class UpdateHTTP_monitorRequest(BaseModel):
     expected_response_time_ms: int | None = None
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     expected_status_code: int | None = Field(default=None, ge=100, le=599)
-    timeout: int | None = Field(default=None, ge=1, le=60)
     is_active: bool | None = None
 
 class HTTP_monitorResponse(BaseModel):

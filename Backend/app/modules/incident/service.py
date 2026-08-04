@@ -32,12 +32,12 @@ class IncidentService:
         logger.info("Incident opened for monitor %s. Reason %s", monitor_id, reason)
 
     async def resolve_incident(self, monitor_id: str, monitor_type: MonitorType) -> None:
-        incident = await self.repository.get_active_incident(monitor_id, MonitorType)
+        incident = await self.repository.get_active_incident(monitor_id, monitor_type)
 
         if incident is None:
             return
 
-        await self.repository.resolve_incident(incident.id)
+        await self.repository.resolve_incident(incident.id, monitor_type)
         logger.info("Incident resolved for monitor %s.", monitor_id)
 
     async def list_incidents(self) -> list[IncidentModel]:

@@ -16,9 +16,9 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
             APIMonitorModel,
         )
 
-    async def get_by_id(self, API_monitor_id: str) -> APIMonitorModel | None:
+    async def get_by_id(self, monitor_id: str) -> APIMonitorModel | None:
         try:
-            object_id = ObjectId(API_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return None
 
@@ -59,9 +59,9 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
 
         return monitors
 
-    async def update_monitor(self, API_monitor_id: str, update_data: dict) -> bool:
+    async def update_monitor(self, monitor_id: str, update_data: dict) -> bool:
         try:
-            object_id = ObjectId(API_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 
@@ -73,21 +73,21 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
         )
         return result.modified_count > 0
 
-    async def delete_monitor(self, API_monitor_id: str) -> bool:
+    async def delete_monitor(self, monitor_id: str) -> bool:
         try:
-            object_id = ObjectId(API_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
 
-    async def set_active(self, API_monitor_id: str, is_active: bool) -> bool:
-        return await self.update_monitor(API_monitor_id, {"is_active": is_active})
+    async def set_active(self, monitor_id: str, is_active: bool) -> bool:
+        return await self.update_monitor(monitor_id, {"is_active": is_active})
 
-    async def update_monitoring_result(self, API_monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
-            object_id = ObjectId(API_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 
@@ -105,9 +105,9 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
         )
         return result.modified_count > 0
 
-    async def update_monitor_state(self, API_monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitor_state(self, monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
-            object_id = ObjectId(API_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 

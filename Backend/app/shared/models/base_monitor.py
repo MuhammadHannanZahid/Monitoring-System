@@ -8,7 +8,6 @@ class BaseMonitorModel(BaseModel):
     monitor_type: MonitorType
     status: MonitorStatus = MonitorStatus.UNKNOWN
     check_interval: int
-    timeout: int
     is_active: bool = True
     created_at: datetime
     updated_at: datetime

@@ -16,9 +16,9 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
             HTTPMonitorModel,
         )
 
-    async def get_by_id(self, HTTP_monitor_id: str) -> HTTPMonitorModel | None:
+    async def get_by_id(self, monitor_id: str) -> HTTPMonitorModel | None:
         try:
-            object_id = ObjectId(HTTP_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return None
 
@@ -48,9 +48,9 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
             monitors.append(HTTPMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, HTTP_monitor_id: str, update_data: dict) -> bool:
+    async def update_monitor(self, monitor_id: str, update_data: dict) -> bool:
         try:
-            object_id = ObjectId(HTTP_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 
@@ -58,17 +58,17 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
         result = await self.collection.update_one({"_id": object_id}, {"$set": update_data})
         return result.modified_count > 0
 
-    async def delete_monitor(self, HTTP_monitor_id: str) -> bool:
+    async def delete_monitor(self, monitor_id: str) -> bool:
         try:
-            object_id = ObjectId(HTTP_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
 
-    async def set_active(self, HTTP_monitor_id: str, is_active: bool) -> bool:
-        return await self.update_monitor(HTTP_monitor_id, {"is_active": is_active})
+    async def set_active(self, monitor_id: str, is_active: bool) -> bool:
+        return await self.update_monitor(monitor_id, {"is_active": is_active})
 
     async def get_by_url(self, url: str) -> HTTPMonitorModel | None:
         document = await self.collection.find_one({"url": url})
@@ -131,9 +131,9 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
             "unknown": unknown,
         }
 
-    async def update_monitor_state(self, HTTP_monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitor_state(self, monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
-            object_id = ObjectId(HTTP_monitor_id)
+            object_id = ObjectId(monitor_id)
         except InvalidId:
             return False
 

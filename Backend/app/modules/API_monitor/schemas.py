@@ -12,7 +12,6 @@ class CreateApiMonitorRequest(BaseModel):
     expected_status_code: int = Field(ge=100, le=599)
     expected_json: dict | None = None
     check_interval: int = Field(ge=10, le=86400)
-    timeout: int = Field(ge=1, le=60)
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
 
@@ -26,7 +25,6 @@ class UpdateApiMonitorRequest(BaseModel):
     expected_status_code: int | None = Field(default=None, ge=100, le=599)
     expected_json: dict | None = None
     check_interval: int | None = Field(default=None, ge=10, le=86400)
-    timeout: int | None = Field(default=None, ge=1, le=60)
     is_active: bool | None = None
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None

@@ -27,8 +27,18 @@ class MonitorScheduler:
     async def run_cycle(self):
         monitors = await self.monitor_service.list_active_monitors()
 
-        for monitor in monitors:
-            try:
-                await self.monitor_service.check_and_update(monitor)
-            except Exception:
-                logger.exception("Unexpected monitoring error for '%s'.", monitor.name)
+        tasks = [asyncio.create_task(self._check_monitor(monitor))for monitor in monitors]
+
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _check_monitor(self, monitor):
+        try:
+            await self.monitor_service.check_and_update(
+                monitor
+            )
+
+        except Exception:
+            logger.exception(
+                "Unexpected monitoring error for '%s'.",
+                monitor.name,
+            )

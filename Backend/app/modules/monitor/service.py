@@ -62,9 +62,7 @@ class MonitorService:
             state_result.state.consecutive_successes,
             state_result.state.consecutive_failures,
         )
-
         await self._handle_incident_transition(monitor, result, state_result)
-        self._log_result(monitor, result, state_result)
 
     async def _handle_incident_transition(self, monitor: BaseMonitorModel, result, state_result) -> None:
         if state_result.transition == MonitorTransition.DOWN:

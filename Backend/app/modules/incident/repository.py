@@ -24,6 +24,15 @@ class IncidentRepository:
             "monitor_type": monitor_type,
             "resolved_at": None,
         })
+
+        document = await self.collection.find_one(
+            {
+                "monitor_id": monitor_id,
+                "monitor_type": monitor_type,
+                "resolved_at": None,
+            }
+        )
+
         if document is None:
             return None
 
@@ -39,8 +48,7 @@ class IncidentRepository:
 
         result = await self.collection.update_one(
             {
-                "monitor_id": monitor_id,
-                "monitor_type": monitor_type,
+                "_id": ObjectId(incident_id),
                 "resolved_at": None,
             },
             {

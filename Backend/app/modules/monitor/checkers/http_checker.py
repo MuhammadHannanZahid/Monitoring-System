@@ -5,6 +5,7 @@ from app.modules.monitor.schemas import HealthCheckResponse
 from app.shared.enums import MonitorStatus
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from .base_checker import BaseChecker
+from app.core.config import settings
 
 logger = get_logger(__name__)
 
@@ -22,7 +23,7 @@ class HTTPChecker(BaseChecker):
         status_code = None
         response_time_ms = None
         try:
-            response = await self.client.get(HTTP_monitor.url, timeout=HTTP_monitor.timeout)
+            response = await self.client.get(HTTP_monitor.url, timeout=settings.DEFAULT_TIMEOUT)
 
             elapsed = int((time.perf_counter() - start) * 1000)
             status_code = response.status_code

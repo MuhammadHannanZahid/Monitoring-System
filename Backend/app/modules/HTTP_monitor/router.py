@@ -17,6 +17,7 @@ async def create_HTTP_monitor(request: CreateHTTP_monitorRequest, service: HTTP_
         check_interval=request.check_interval,
         timeout=request.timeout,
         expected_status_code=request.expected_status_code,
+        expected_response_time_ms=request.expected_response_time_ms,
     )
 
     return success_response(
@@ -51,6 +52,7 @@ async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorR
         check_interval=request.check_interval,
         timeout=request.timeout,
         expected_status_code=request.expected_status_code,
+        expected_response_time_ms=request.expected_response_time_ms,
     )
 
     return success_response(

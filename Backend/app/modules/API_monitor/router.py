@@ -57,7 +57,7 @@ async def get_monitor(monitor_id: str, service: API_monitorService = Depends(get
 @router.put("/{monitor_id}", response_model=ApiResponse[ApiMonitorResponse])
 async def update_monitor(monitor_id: str, request: UpdateApiMonitorRequest, service: API_monitorService = Depends(get_API_monitor_service)):
     try:
-        await service.update_monitor(
+        monitor = await service.update_monitor(
             monitor_id,
             request,
             request.expected_response_time_ms,
@@ -111,6 +111,7 @@ async def activate_monitor(monitor_id: str, service: API_monitorService = Depend
     return ApiResponse(
         success=True,
         message="API monitor activated successfully.",
+        data=API_monitorMapper.to_response(monitor),
     )
 
 @router.patch("/{monitor_id}/deactivate", response_model=ApiResponse[ApiMonitorResponse])
@@ -126,4 +127,5 @@ async def deactivate_monitor(monitor_id: str, service: API_monitorService = Depe
     return ApiResponse(
         success=True,
         message="API monitor deactivated successfully.",
+        data=API_monitorMapper.to_response(monitor),
     )

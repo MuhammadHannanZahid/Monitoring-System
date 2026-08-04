@@ -1,5 +1,5 @@
 from datetime import datetime
-from app.shared.enums import MonitorType, HTTP_monitorStatus
+from app.shared.enums import MonitorType, MonitorStatus
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel
@@ -27,7 +27,7 @@ class MonitorRepositoryFactory:
             *(m for m in api_monitors if m.is_active),
         ]
 
-    async def update_monitoring_result(self, monitor_type: MonitorType, monitor_id: str, status: HTTP_monitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+    async def update_monitoring_result(self, monitor_type: MonitorType, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         repository = self.get_repository(monitor_type)
 
         return await repository.update_monitoring_result(

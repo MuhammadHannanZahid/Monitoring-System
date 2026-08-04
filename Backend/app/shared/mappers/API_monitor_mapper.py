@@ -14,7 +14,6 @@ class API_monitorMapper:
             expected_status_code=API_monitor.expected_status_code,
             expected_json=API_monitor.expected_json,
             check_interval=API_monitor.check_interval,
-            timeout=API_monitor.timeout,
             is_active=API_monitor.is_active,
             created_by=API_monitor.created_by,
             created_at=API_monitor.created_at,
@@ -23,9 +22,9 @@ class API_monitorMapper:
             last_status_code=API_monitor.last_status_code,
             last_response_time_ms=API_monitor.last_response_time_ms,
             status=API_monitor.status,
-            expected_response_time_ms=http_monitor.expected_response_time_ms,
-            expected_headers=monitor.expected_headers,
-            expected_content_type=monitor.expected_content_type,
+            expected_response_time_ms=API_monitor.expected_response_time_ms,
+            expected_headers=API_monitor.expected_headers,
+            expected_content_type=API_monitor.expected_content_type,
         )
 
     @staticmethod

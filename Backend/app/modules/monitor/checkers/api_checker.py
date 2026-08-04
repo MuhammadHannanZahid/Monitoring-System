@@ -1,6 +1,6 @@
 import time
 import httpx
-
+from app.core.config import settings
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
 from app.modules.monitor.schemas import HealthCheckResponse
@@ -27,9 +27,9 @@ class ApiChecker:
             response = await self.client.request(
                 method=monitor.method,
                 url=monitor.url,
+                timeout=settings.DEFAULT_TIMEOUT,
                 headers=monitor.headers or {},
                 json=monitor.request_body or None,
-                timeout=monitor.timeout,
             )
 
             elapsed = int((time.perf_counter() - start) * 1000)
