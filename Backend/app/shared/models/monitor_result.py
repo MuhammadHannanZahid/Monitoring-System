@@ -1,12 +1,14 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.shared.enums import WebsiteStatus
+from app.shared.enums import MonitorStatus, MonitorType
 
 class MonitorResultModel(BaseModel):
     id: str | None = None
-    website_id: str
-    status: WebsiteStatus
-    status_code: int | None
-    response_time_ms: int | None
+    monitor_id: str
+    monitor_type: MonitorType
+    status: MonitorStatus
+    status_code: int | None = None
+    response_time_ms: int | None = None
     success: bool
+    is_slow: bool = False
     checked_at: datetime

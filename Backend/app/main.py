@@ -8,14 +8,16 @@ from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
 from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
-from app.modules.website.repository import WebsiteRepository
-from app.modules.website.service import WebsiteService
+from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
+from app.modules.API_monitor.repository import API_monitorRepository
 from app.modules.incident.repository import IncidentRepository
 from app.modules.incident.service import IncidentService
 from app.modules.monitor_results.repository import MonitorResultRepository
 from app.modules.monitor_results.service import MonitorResultService
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_state.repository import MonitorStateRepository
+from app.modules.monitor.checkers.checker_factory import CheckerFactory
+from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 
 logger = get_logger(__name__)
 
@@ -27,25 +29,35 @@ async def lifespan(app: FastAPI):
 
     database = db_manager.database
 
-    website_repository = WebsiteRepository(database)
+    http_repository = HTTP_monitorRepository(database)
+    api_repository = API_monitorRepository(database)
     incident_repository = IncidentRepository(database)
     monitor_result_repository = MonitorResultRepository(database)
 
-    website_service = WebsiteService(website_repository)
+    http_repository = HTTP_monitorRepository(database)
+    api_repository = API_monitorRepository(database)
     incident_service = IncidentService(incident_repository)
     monitor_result_service = MonitorResultService(monitor_result_repository)
 
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
+    checker_factory = CheckerFactory()
+
+    repository_factory = MonitorRepositoryFactory(
+        http_repository,
+        api_repository,
+    )
+
     monitor_service = MonitorService(
-        website_repository=website_repository,
+        repository_factory=repository_factory,
         incident_service=incident_service,
         monitor_result_service=monitor_result_service,
         monitor_state_service=monitor_state_service,
+        checker_factory=checker_factory,
     )
 
-    scheduler = MonitorScheduler(monitor_service=monitor_service, website_service=website_service)
+    scheduler = MonitorScheduler(monitor_service=monitor_service)
     scheduler_task = asyncio.create_task(scheduler.start())
 
     try:
@@ -59,7 +71,7 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
 
-        await monitor_service.close()
+        await checker_factory.close()
         await db_manager.disconnect()
         logger.info("Application stopped.")
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.modules.users.dependencies import get_user_service
-from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, UserListResponse, UserResponse, UserStatusResponse
+from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.modules.users.service import UserService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
@@ -31,7 +31,7 @@ async def list_users(service: UserService = Depends(get_user_service)):
         data=UserMapper.to_response_list(users)
     )
 
-@router.get("{user_id}/get_one", response_model=SuccessResponse[UserResponse])
+@router.get("/{user_id}/get_one", response_model=SuccessResponse[UserResponse])
 async def get_user(user_id: str, service: UserService = Depends(get_user_service)):
     user = await service.get_user(user_id)
 

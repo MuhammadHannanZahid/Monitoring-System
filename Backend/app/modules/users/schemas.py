@@ -22,11 +22,3 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     last_login: datetime | None
-
-class UserListResponse(BaseModel):
-    users: list[UserResponse]
-
-class UserStatusResponse(BaseModel):
-    id: str
-    username: str
-    is_active: bool

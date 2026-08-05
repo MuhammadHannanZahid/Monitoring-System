@@ -15,8 +15,8 @@ class MonitorResultRepository:
         inserted = await self.collection.insert_one(document)
         return str(inserted.inserted_id)
 
-    async def latest_result(self, website_id: str) -> MonitorResultModel | None:
-        document = await self.collection.find_one({"website_id": website_id}, sort=[("checked_at", -1)])
+    async def latest_result(self, monitor_id: str) -> MonitorResultModel | None:
+        document = await self.collection.find_one({"monitor_id": monitor_id}, sort=[("checked_at", -1)])
 
         if document is None:
             return None
@@ -24,8 +24,8 @@ class MonitorResultRepository:
         document["id"] = str(document.pop("_id"))
         return MonitorResultModel(**document)
 
-    async def list_results(self, website_id: str, limit: int = 100) -> list[MonitorResultModel]:
-        cursor = (self.collection.find({"website_id": website_id}).sort("checked_at", -1).limit(limit))
+    async def list_results(self, monitor_id: str, limit: int = 100) -> list[MonitorResultModel]:
+        cursor = (self.collection.find({"monitor_id": monitor_id}).sort("checked_at", -1).limit(limit))
         results = []
 
         async for document in cursor:
@@ -33,34 +33,10 @@ class MonitorResultRepository:
             results.append(MonitorResultModel(**document))
         return results
 
-    async def average_response_time_by_website(self, website_id: str) -> float:
-        pipeline = [
-            {
-                "$match": {
-                    "website_id": website_id,
-                    "response_time_ms": {"$ne": None},
-                }
-            },
-            {
-                "$group": {
-                    "_id": None,
-                    "average": {
-                        "$avg": "$response_time_ms"
-                    },
-                }
-            },
-        ]
-
-        data = await self.collection.aggregate(pipeline).to_list(1)
-
-        if not data:
-            return 0.0
-        return float(data[0]["average"])
-
-    async def count_failures(self, website_id: str) -> int:
+    async def count_failures(self, monitor_id: str) -> int:
         return await self.collection.count_documents(
             {
-                "website_id": website_id,
+                "monitor_id": monitor_id,
                 "success": False,
             }
         )
@@ -95,12 +71,12 @@ class MonitorResultRepository:
 
         return results
 
-    async def get_response_history(self, website_id: str, days: int = 7) -> list[MonitorResultModel]:
+    async def get_response_history(self, monitor_id: str, days: int = 7) -> list[MonitorResultModel]:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
         cursor = (
             self.collection.find(
                 {
-                    "website_id": website_id,
+                    "monitor_id": monitor_id,
                     "checked_at": {"$gte": start_date},
                 }
             )
@@ -114,15 +90,15 @@ class MonitorResultRepository:
 
         return results
 
-    async def get_status_history(self, website_id: str, days: int = 7) -> list[MonitorResultModel]:
-        return await self.get_response_history(website_id=website_id, days=days)
+    async def get_status_history(self, monitor_id: str, days: int = 7) -> list[MonitorResultModel]:
+        return await self.get_response_history(monitor_id=monitor_id, days=days)
 
-    async def get_statistics(self, website_id: str, days: int = 7) -> dict:
+    async def get_statistics(self, monitor_id: str, days: int = 7) -> dict[str, int]:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
         pipeline = [
             {
                 "$match": {
-                    "website_id": website_id,
+                    "monitor_id": monitor_id,
                     "checked_at": {
                         "$gte": start_date,
                     },
@@ -190,6 +166,131 @@ class MonitorResultRepository:
                 2,
             ),
         }
+
+    async def count_slow_checks(self, monitor_id: str) -> int:
+        return await self.collection.count_documents(
+            {
+                "monitor_id": monitor_id,
+                "is_slow": True,
+            }
+        )
+
+    async def average_response_time_for_monitor(self, monitor_id: str) -> float:
+        pipeline = [
+            {
+                "$match": {
+                    "monitor_id": monitor_id,
+                    "response_time_ms": {"$ne": None},
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "average": {
+                        "$avg": "$response_time_ms"
+                    }
+                }
+            }
+        ]
+
+        result = await self.collection.aggregate(pipeline).to_list(1)
+
+        if not result:
+            return 0.0
+
+        return round(result[0]["average"], 2)
+
+    async def get_statistics_for_all_monitors(self, days: int = 30) -> dict[str, dict[str, int]]:
+
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
+
+        pipeline = [
+            {
+                "$match": {
+                    "checked_at": {
+                        "$gte": start_date
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$monitor_id",
+                    "total": {
+                        "$sum": 1
+                    },
+                    "successful": {
+                        "$sum": {
+                            "$cond": [
+                                "$success",
+                                1,
+                                0,
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+
+        result = await self.collection.aggregate(
+            pipeline
+        ).to_list(None)
+
+        return {
+            row["_id"]: {
+                "total": row["total"],
+                "successful": row["successful"],
+            }
+            for row in result
+        }
+
+    async def get_latest_result_for_all_monitors(
+            self,
+    ) -> dict[str, MonitorResultModel]:
+
+        pipeline = [
+
+            {
+                "$sort": {
+                    "checked_at": -1
+                }
+            },
+
+            {
+                "$group": {
+
+                    "_id": "$monitor_id",
+
+                    "document": {
+                        "$first": "$$ROOT"
+                    }
+
+                }
+            }
+
+        ]
+
+        aggregation = (
+            await self.collection
+            .aggregate(pipeline)
+            .to_list(None)
+        )
+
+        results = {}
+
+        for item in data:
+            document = item["document"]
+
+            document["id"] = str(
+                document.pop("_id")
+            )
+
+            results[item["_id"]] = (
+                MonitorResultModel(
+                    **document
+                )
+            )
+
+        return results
 
 def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
     return MonitorResultRepository(database)

@@ -15,7 +15,7 @@ class UserRepository:
 
     async def update_seed_admin(self) -> None:
         await self.collection.update_one(
-            {"username": settings.admin_username},
+            {"username": settings.default_admin_username},
             {
                 "$set": {
                     "role": UserRole.ADMIN,

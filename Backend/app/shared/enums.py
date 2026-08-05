@@ -8,7 +8,17 @@ class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
 
-class WebsiteStatus(str, Enum):
+class MonitorStatus(str, Enum):
     UNKNOWN = "unknown"
     UP = "up"
     DOWN = "down"
+
+class MonitorType(str, Enum):
+    HTTP = "HTTP"
+    API = "API"
+
+class PerformanceStatus(str, Enum):
+    UNKNOWN = "unknown"
+    FAST = "fast"
+    SLOW = "slow"
+    NOT_CHECKED = "not_checked"
