@@ -9,3 +9,4 @@ class Collections:
     MONITOR_STATES = "monitor_states"
     HTTP_MONITORS = "http_monitors"
     API_MONITORS = "api_monitors"
+    PING_MONITORS = "ping_monitors"

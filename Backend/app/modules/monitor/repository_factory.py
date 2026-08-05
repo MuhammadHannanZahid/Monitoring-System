@@ -3,13 +3,15 @@ from app.shared.enums import MonitorType, MonitorStatus
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel
+from app.modules.ping_monitor.repository import PingMonitorRepository
 
 class MonitorRepositoryFactory:
-    def __init__(self, http_repository: HTTP_monitorRepository, api_repository: API_monitorRepository):
+    def __init__(self, http_repository: HTTP_monitorRepository, api_repository: API_monitorRepository, ping_repository: PingMonitorRepository):
         self.http_repository = http_repository
         self.api_repository = api_repository
+        self.ping_repository = ping_repository
 
-        self._repositories = {MonitorType.HTTP: http_repository, MonitorType.API: api_repository}
+        self._repositories = {MonitorType.HTTP: http_repository, MonitorType.API: api_repository, MonitorType.PING: ping_repository}
 
     def get_repository(self, monitor_type: MonitorType):
         try:
@@ -21,10 +23,12 @@ class MonitorRepositoryFactory:
     async def list_active_monitors(self) -> list[BaseMonitorModel]:
         http_monitors = await self.http_repository.list_monitors()
         api_monitors = await self.api_repository.list_monitors()
+        ping_monitors = await self.ping_repository.list_monitors()
 
         return [
             *(m for m in http_monitors if m.is_active),
             *(m for m in api_monitors if m.is_active),
+            *(m for m in ping_monitors if m.is_active),
         ]
 
     async def update_monitoring_result(self, monitor_type: MonitorType, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
