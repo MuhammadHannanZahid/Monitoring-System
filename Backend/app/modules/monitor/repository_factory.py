@@ -21,9 +21,9 @@ class MonitorRepositoryFactory:
             raise ValueError(f"Unsupported monitor type: {monitor_type}")
 
     async def list_active_monitors(self) -> list[BaseMonitorModel]:
-        http_monitors = await self.http_repository.list_monitors()
-        api_monitors = await self.api_repository.list_monitors()
-        ping_monitors = await self.ping_repository.list_monitors()
+        http_monitors = await self.http_repository.list_active_monitors()
+        api_monitors = await self.api_repository.list_active_monitors()
+        ping_monitors = await self.ping_repository.list_active_monitors()
 
         return [
             *(m for m in http_monitors if m.is_active),

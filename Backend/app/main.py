@@ -18,6 +18,7 @@ from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
 from app.modules.monitor.repository_factory import MonitorRepositoryFactory
+from app.modules.ping_monitor.repository import PingMonitorRepository
 
 logger = get_logger(__name__)
 
@@ -31,14 +32,11 @@ async def lifespan(app: FastAPI):
 
     http_repository = HTTP_monitorRepository(database)
     api_repository = API_monitorRepository(database)
+    ping_repository = PingMonitorRepository(database)
     incident_repository = IncidentRepository(database)
-    monitor_result_repository = MonitorResultRepository(database)
-
-    http_repository = HTTP_monitorRepository(database)
-    api_repository = API_monitorRepository(database)
     incident_service = IncidentService(incident_repository)
+    monitor_result_repository = MonitorResultRepository(database)
     monitor_result_service = MonitorResultService(monitor_result_repository)
-
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
@@ -47,6 +45,7 @@ async def lifespan(app: FastAPI):
     repository_factory = MonitorRepositoryFactory(
         http_repository,
         api_repository,
+        ping_repository,
     )
 
     monitor_service = MonitorService(

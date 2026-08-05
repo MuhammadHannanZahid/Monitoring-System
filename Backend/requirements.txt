@@ -12,3 +12,4 @@ httpx
 black
 ruff
 python-jose[cryptography]
+aioping

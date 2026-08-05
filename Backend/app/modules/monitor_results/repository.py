@@ -277,7 +277,7 @@ class MonitorResultRepository:
 
         results = {}
 
-        for item in data:
+        for item in aggregation:
             document = item["document"]
 
             document["id"] = str(

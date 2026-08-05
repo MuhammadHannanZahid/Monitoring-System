@@ -1,10 +1,15 @@
 from app.shared.enums import MonitorType
 from app.modules.monitor.checkers.http_checker import HTTPChecker
 from app.modules.monitor.checkers.api_checker import ApiChecker
+from app.modules.monitor.checkers.ping_checker import PingChecker
 
 class CheckerFactory:
     def __init__(self):
-        self._checkers = {MonitorType.HTTP: HTTPChecker(), MonitorType.API: ApiChecker()}
+        self._checkers = {
+            MonitorType.HTTP: HTTPChecker(),
+            MonitorType.API: ApiChecker(),
+            MonitorType.PING: PingChecker(),
+        }
 
     def get_checker(self, monitor_type: MonitorType):
         try:
