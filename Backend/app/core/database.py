@@ -4,6 +4,8 @@ from bson.codec_options import CodecOptions
 from datetime import timezone
 from app.core.config import settings
 from app.core.logger import get_logger
+from pymongo import ASCENDING, DESCENDING
+from app.shared.database_constants import Collections
 
 logger = get_logger(__name__)
 
@@ -33,6 +35,7 @@ class DatabaseManager:
                 codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc)
             )
             await self._client.admin.command("ping")
+            await self._create_indexes()
             logger.info("MongoDB connected successfully.")
 
         except PyMongoError:
@@ -48,6 +51,27 @@ class DatabaseManager:
             self._client = None
             self._database = None
 
+    async def _create_indexes(self) -> None:
+        await self._create_monitor_result_indexes()
+        await self._create_incident_indexes()
+        logger.info("MongoDB indexes initialized.")
+
+    async def _create_monitor_result_indexes(self) -> None:
+        collection = self.database[Collections.MONITOR_RESULTS]
+        await collection.create_index([("monitor_id", ASCENDING)])
+        await collection.create_index([("checked_at", DESCENDING)])
+        await collection.create_index([("monitor_id", ASCENDING), ("checked_at", DESCENDING)])
+        await collection.create_index([("monitor_id", ASCENDING), ("is_slow", ASCENDING)])
+        await collection.create_index([("monitor_id", ASCENDING), ("success", ASCENDING)])
+        logger.info("Monitor Result indexes initialized.")
+
+    async def _create_incident_indexes(self) -> None:
+        collection = self.database[Collections.INCIDENTS]
+        await collection.create_index([("monitor_id", ASCENDING), ("resolved_at", ASCENDING)])
+        await collection.create_index([("monitor_id", ASCENDING), ("monitor_type", ASCENDING), ("resolved_at", ASCENDING)])
+        await collection.create_index([("started_at", DESCENDING)])
+        await collection.create_index([("is_resolved", ASCENDING)])
+        logger.info("Incident indexes initialized.")
 
     def get_database(self) -> AsyncIOMotorDatabase:
         return self.database

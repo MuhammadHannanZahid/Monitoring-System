@@ -154,5 +154,12 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
 
         return result.modified_count > 0
 
+    async def count_slow(self) -> int:
+        return await self.collection.count_documents(
+            {
+                "is_slow": True
+            }
+        )
+
 def get_HTTP_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> HTTP_monitorRepository:
     return HTTP_monitorRepository(database)

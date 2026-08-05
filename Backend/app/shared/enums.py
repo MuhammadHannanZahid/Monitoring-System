@@ -16,3 +16,9 @@ class MonitorStatus(str, Enum):
 class MonitorType(str, Enum):
     HTTP = "HTTP"
     API = "API"
+
+class PerformanceStatus(str, Enum):
+    UNKNOWN = "unknown"
+    FAST = "fast"
+    SLOW = "slow"
+    NOT_CHECKED = "not_checked"

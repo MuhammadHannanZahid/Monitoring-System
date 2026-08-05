@@ -19,12 +19,6 @@ class IncidentRepository:
         return str(result.inserted_id)
 
     async def get_active_incident(self, monitor_id: str, monitor_type: MonitorType) -> IncidentModel | None:
-        await self.collection.find_one({
-            "monitor_id": monitor_id,
-            "monitor_type": monitor_type,
-            "resolved_at": None,
-        })
-
         document = await self.collection.find_one(
             {
                 "monitor_id": monitor_id,
@@ -40,7 +34,7 @@ class IncidentRepository:
         return IncidentModel(**document)
 
 
-    async def resolve_incident(self, incident_id: str, monitor_type: MonitorType,) -> bool:
+    async def resolve_incident(self, incident_id: str) -> bool:
         try:
             object_id = ObjectId(incident_id)
         except InvalidId:
@@ -48,7 +42,7 @@ class IncidentRepository:
 
         result = await self.collection.update_one(
             {
-                "_id": ObjectId(incident_id),
+                "_id": object_id,
                 "resolved_at": None,
             },
             {
@@ -83,16 +77,6 @@ class IncidentRepository:
             incidents.append(IncidentModel(**document))
         return incidents
 
-
-    async def list_by_monitor(self, monitor_id: str) -> list[IncidentModel]:
-        cursor = self.collection.find({"monitor_id": monitor_id}).sort("started_at", -1)
-        incidents = []
-
-        async for document in cursor:
-            document["id"] = str(document.pop("_id"))
-            incidents.append(IncidentModel(**document))
-        return incidents
-
     async def count_open(self) -> int:
         return await self.collection.count_documents({"is_resolved": False})
 
@@ -105,6 +89,43 @@ class IncidentRepository:
             incidents.append(IncidentModel(**document))
 
         return incidents
+
+    async def count_open_by_monitor(
+            self,
+    ) -> dict[str, int]:
+
+        pipeline = [
+
+            {
+                "$match": {
+                    "resolved_at": None
+                }
+            },
+
+            {
+                "$group": {
+
+                    "_id": "$monitor_id",
+
+                    "count": {
+                        "$sum": 1
+                    }
+
+                }
+            }
+
+        ]
+
+        result = await (
+            self.collection
+            .aggregate(pipeline)
+            .to_list(None)
+        )
+
+        return {
+            item["_id"]: item["count"]
+            for item in result
+        }
 
 def get_incident_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> IncidentRepository:
     return IncidentRepository(database)

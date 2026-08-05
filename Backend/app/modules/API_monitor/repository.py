@@ -156,5 +156,12 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
             "unknown": unknown,
         }
 
+    async def count_slow(self) -> int:
+        return await self.collection.count_documents(
+            {
+                "is_slow": True
+            }
+        )
+
 def get_API_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> API_monitorRepository:
     return API_monitorRepository(database)

@@ -10,4 +10,5 @@ class MonitorResultModel(BaseModel):
     status_code: int | None = None
     response_time_ms: int | None = None
     success: bool
+    is_slow: bool = False
     checked_at: datetime

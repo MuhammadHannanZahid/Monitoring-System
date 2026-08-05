@@ -22,47 +22,51 @@ class MonitorService:
         return await self.repository_factory.list_active_monitors()
 
     async def check_and_update(self, monitor: BaseMonitorModel) -> None:
-        checker = self.checker_factory.get_checker(monitor.monitor_type)
-        result = await checker.check(monitor)
-        checked_at = datetime.now(timezone.utc)
+        try:
+            checker = self.checker_factory.get_checker(monitor.monitor_type)
+            result = await checker.check(monitor)
+            checked_at = datetime.now(timezone.utc)
 
-        await self.monitor_result_service.record_result(
-            monitor_id=monitor.id,
-            monitor_type=monitor.monitor_type,
-            status=result.status,
-            status_code=result.status_code,
-            response_time_ms=result.response_time_ms,
-            success=result.success,
-        )
+            await self.monitor_result_service.record_result(
+                monitor_id=monitor.id,
+                monitor_type=monitor.monitor_type,
+                status=result.status,
+                status_code=result.status_code,
+                response_time_ms=result.response_time_ms,
+                success=result.success,
+                is_slow=result.is_slow,
+            )
 
-        state_result = await self.monitor_state_service.process_result(
-            monitor_id=monitor.id,
-            monitor_type=monitor.monitor_type,
-            success=result.success,
-            status_code=result.status_code,
-            response_time_ms=result.response_time_ms,
-            checked_at=checked_at,
-        )
+            state_result = await self.monitor_state_service.process_result(
+                monitor_id=monitor.id,
+                monitor_type=monitor.monitor_type,
+                success=result.success,
+                status_code=result.status_code,
+                response_time_ms=result.response_time_ms,
+                checked_at=checked_at,
+            )
 
-        await self.repository_factory.update_monitoring_result(
-            monitor_type=monitor.monitor_type,
-            monitor_id=monitor.id,
-            status=state_result.current_status,
-            status_code=result.status_code,
-            response_time_ms=result.response_time_ms,
-            checked_at=checked_at,
-        )
+            await self.repository_factory.update_monitoring_result(
+                monitor_type=monitor.monitor_type,
+                monitor_id=monitor.id,
+                status=state_result.current_status,
+                status_code=result.status_code,
+                response_time_ms=result.response_time_ms,
+                checked_at=checked_at,
+            )
 
-        logger.info(
-            "Health Check | monitor='%s' | Status=%s | HTTP=%s | Response=%s ms | Success=%d | Failure=%d",
-            monitor.name,
-            state_result.current_status.value,
-            result.status_code,
-            result.response_time_ms,
-            state_result.state.consecutive_successes,
-            state_result.state.consecutive_failures,
-        )
-        await self._handle_incident_transition(monitor, result, state_result)
+            logger.info(
+                "Health Check | monitor='%s' | Status=%s | HTTP=%s | Response=%s ms | Success=%d | Failure=%d",
+                monitor.name,
+                state_result.current_status.value,
+                result.status_code,
+                result.response_time_ms,
+                state_result.state.consecutive_successes,
+                state_result.state.consecutive_failures,
+            )
+            await self._handle_incident_transition(monitor, result, state_result)
+        except Exception:
+            logger.exception("Failed to process monitor '%s'.", monitor.name)
 
     async def _handle_incident_transition(self, monitor: BaseMonitorModel, result, state_result) -> None:
         if state_result.transition == MonitorTransition.DOWN:
@@ -80,3 +84,28 @@ class MonitorService:
         if result.status_code is not None:
             return f"HTTP {result.status_code}"
         return "Timeout / Network Error"
+
+    async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
+        return await self.repository_factory.get_monitor(monitor_id)
+
+    async def get_monitor_lookup(self) -> dict[str, object]:
+        monitors = await self.list_monitors()
+
+        return {
+            monitor.id: monitor
+            for monitor in monitors
+        }
+
+    async def get_monitors_with_lookup(self) -> tuple[list[object], dict[str, object]]:
+        monitors = await self.list_monitors()
+
+        return (
+            monitors,
+            {
+                monitor.id: monitor
+                for monitor in monitors
+            },
+        )
+
+    async def list_monitors(self) -> list[BaseMonitorModel]:
+        return await self.repository_factory.list_monitors()
