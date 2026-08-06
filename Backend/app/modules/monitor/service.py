@@ -7,6 +7,8 @@ from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_results.service import MonitorResultService
 from app.shared.models.base_monitor import BaseMonitorModel
+from app.shared.enums import MonitorStatus, MonitorType
+from app.modules.monitor.schemas import HealthCheckResponse
 
 logger = get_logger(__name__)
 
@@ -23,8 +25,14 @@ class MonitorService:
 
     async def check_and_update(self, monitor: BaseMonitorModel) -> None:
         try:
+            repository = self.repository_factory.get_repository(monitor.monitor_type)
+            latest_monitor = await repository.get_by_id(monitor.id)
+            if latest_monitor is None:
+                logger.warning("Monitor '%s' no longer exists. Skipping check.", monitor.id)
+                return
+
             checker = self.checker_factory.get_checker(monitor.monitor_type)
-            result = await checker.check(monitor)
+            result = await checker.check(latest_monitor)
             checked_at = datetime.now(timezone.utc)
 
             await self.monitor_result_service.record_result(
@@ -72,7 +80,7 @@ class MonitorService:
         if state_result.transition == MonitorTransition.DOWN:
             active = await self.incident_service.get_active_incident(monitor.id, monitor.monitor_type)
             if active is None:
-                reason = self._build_incident_reason(result)
+                reason = self._build_incident_reason(monitor, result)
                 await self.incident_service.open_incident(monitor.id, monitor.monitor_type, reason)
                 logger.warning("Incident opened for '%s'.", monitor.name)
 
@@ -80,10 +88,36 @@ class MonitorService:
             await self.incident_service.resolve_incident(monitor.id, monitor.monitor_type)
             logger.info("Incident resolved for '%s'.", monitor.name)
 
-    def _build_incident_reason(self, result) -> str:
-        if result.status_code is not None:
-            return f"HTTP {result.status_code}"
-        return "Timeout / Network Error"
+    def _build_incident_reason(
+            self,
+            monitor: BaseMonitorModel,
+            result,
+    ) -> str:
+        if monitor.monitor_type == MonitorType.HEARTBEAT:
+            return "Heartbeat was not received."
+
+        if (
+                hasattr(result, "status_code")
+                and result.status_code is not None
+                and hasattr(monitor, "expected_status_code")
+                and monitor.expected_status_code is not None
+                and result.status_code != monitor.expected_status_code
+        ):
+            return (
+                f"Expected HTTP {monitor.expected_status_code}, "
+                f"got HTTP {result.status_code}."
+            )
+        if (
+                hasattr(result, "response_time_ms")
+                and hasattr(monitor, "timeout")
+                and result.response_time_ms is not None
+                and monitor.timeout is not None
+                and result.response_time_ms >= monitor.timeout
+        ):
+            return "Health check timed out."
+        if hasattr(result, "success") and not result.success:
+            return "Health check failed."
+        return "Monitor is unreachable."
 
     async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
         return await self.repository_factory.get_monitor(monitor_id)
@@ -109,3 +143,51 @@ class MonitorService:
 
     async def list_monitors(self) -> list[BaseMonitorModel]:
         return await self.repository_factory.list_monitors()
+
+    async def process_heartbeat(self, monitor: BaseMonitorModel) -> None:
+        repository = self.repository_factory.get_repository(monitor.monitor_type)
+
+        checked_at = datetime.now(timezone.utc)
+        await repository.update_last_heartbeat(monitor.id)
+        await self.monitor_result_service.record_result(
+            monitor_id=monitor.id,
+            monitor_type=monitor.monitor_type,
+            status=MonitorStatus.UP,
+            status_code=None,
+            response_time_ms=0,
+            success=True,
+            is_slow=False,
+        )
+
+        state_result = await self.monitor_state_service.process_result(
+            monitor_id=monitor.id,
+            monitor_type=monitor.monitor_type,
+            success=True,
+            status_code=None,
+            response_time_ms=0,
+            checked_at=checked_at,
+        )
+
+        await self.repository_factory.update_monitoring_result(
+            monitor_type=monitor.monitor_type,
+            monitor_id=monitor.id,
+            status=state_result.current_status,
+            status_code=None,
+            response_time_ms=0,
+            checked_at=checked_at,
+        )
+
+        logger.info(
+            "Heartbeat | monitor='%s' | Status=%s",
+            monitor.name,
+            state_result.current_status.value,
+        )
+
+        class HeartbeatResult:
+            status_code = None
+
+        await self._handle_incident_transition(
+            monitor,
+            HeartbeatResult(),
+            state_result,
+        )

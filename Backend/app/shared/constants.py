@@ -35,3 +35,5 @@ class Messages:
     monitor_URL_EXISTS = "monitor URL already exists."
 
     DASHBOARD_FETCHED = "Dashboard summary retrieved successfully."
+
+    heartbeat_RECEIVED = "Heartbeat received."

@@ -37,10 +37,9 @@ class MonitorScheduler:
             return
         self._running = False
         logger.info("Stopping monitor scheduler...")
-        workers = list(self._workers.values())
-        for worker in workers:
-            await self.stop_worker(worker)
-        self._workers.clear()
+        worker_ids = list(self._workers.keys())
+        for monitor_id in worker_ids:
+            await self.stop_worker(monitor_id)
         logger.info("Monitor scheduler stopped.")
 
     async def stop_worker(self, monitor_id: str) -> None:

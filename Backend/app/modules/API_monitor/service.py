@@ -27,6 +27,7 @@ class API_monitorService:
             headers=request.headers,
             request_body=request.request_body,
             expected_status_code=request.expected_status_code,
+            expected_response_time_ms=request.expected_response_time_ms,
             expected_json=request.expected_json,
             check_interval=request.check_interval,
             timeout=request.timeout,
@@ -41,6 +42,11 @@ class API_monitorService:
             expected_content_type=request.expected_content_type,
         )
         monitor.id = await self.repository.create(monitor)
+
+        # Start scheduler worker immediately
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(monitor)
+
         return monitor
 
     async def get_monitor(self, monitor_id: str) -> APIMonitorModel | None:
@@ -73,6 +79,11 @@ class API_monitorService:
         return await self.repository.get_by_id(monitor_id)
 
     async def delete_monitor(self, monitor_id: str) -> bool:
+        monitor = await self.get_monitor(monitor_id)
+        if monitor is None:
+            return False
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor_id)
         return await self.repository.delete_monitor(monitor_id)
 
     async def activate_monitor(self, monitor_id: str):

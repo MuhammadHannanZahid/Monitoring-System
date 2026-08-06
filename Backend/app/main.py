@@ -19,6 +19,7 @@ from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
 from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.ping_monitor.repository import PingMonitorRepository
+from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
 import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
@@ -34,6 +35,8 @@ async def lifespan(app: FastAPI):
     http_repository = HTTP_monitorRepository(database)
     api_repository = API_monitorRepository(database)
     ping_repository = PingMonitorRepository(database)
+    heartbeat_repository = HeartbeatMonitorRepository(database)
+    await heartbeat_repository.create_indexes()
     incident_repository = IncidentRepository(database)
     incident_service = IncidentService(incident_repository)
     monitor_result_repository = MonitorResultRepository(database)
@@ -47,6 +50,7 @@ async def lifespan(app: FastAPI):
         http_repository,
         api_repository,
         ping_repository,
+        heartbeat_repository,
     )
 
     monitor_service = MonitorService(

@@ -29,6 +29,8 @@ class PingMonitorService:
         )
 
         monitor.id = await self.repository.create(monitor)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(monitor)
         return monitor
 
     async def get_monitor(self, monitor_id: str) -> PingMonitorModel | None:
@@ -63,7 +65,10 @@ class PingMonitorService:
         return monitor
 
     async def delete_monitor(self, monitor_id: str) -> bool:
-        return await self.repository.delete(monitor_id)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor.id)
+
+        await self.repository.delete_monitor(monitor.id)
 
     async def activate_monitor(self, monitor_id: str) -> PingMonitorModel | None:
         logger.info("Scheduler object: %s", scheduler_state.scheduler)

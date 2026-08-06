@@ -4,14 +4,21 @@ from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.modules.ping_monitor.repository import PingMonitorRepository
+from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
 
 class MonitorRepositoryFactory:
-    def __init__(self, http_repository: HTTP_monitorRepository, api_repository: API_monitorRepository, ping_repository: PingMonitorRepository):
+    def __init__(self, http_repository: HTTP_monitorRepository, api_repository: API_monitorRepository, ping_repository: PingMonitorRepository, heartbeat_repository: HeartbeatMonitorRepository):
         self.http_repository = http_repository
         self.api_repository = api_repository
         self.ping_repository = ping_repository
+        self.heartbeat_repository = heartbeat_repository
 
-        self._repositories = {MonitorType.HTTP: http_repository, MonitorType.API: api_repository, MonitorType.PING: ping_repository}
+        self._repositories = {
+            MonitorType.HTTP: http_repository,
+            MonitorType.API: api_repository,
+            MonitorType.PING: ping_repository,
+            MonitorType.HEARTBEAT: heartbeat_repository,
+        }
 
     def get_repository(self, monitor_type: MonitorType):
         try:
@@ -24,8 +31,9 @@ class MonitorRepositoryFactory:
         http_monitors = await self.http_repository.list_active_monitors()
         api_monitors = await self.api_repository.list_active_monitors()
         ping_monitors = await self.ping_repository.list_active_monitors()
+        heartbeat_monitors = await self.heartbeat_repository.list_active_monitors()
 
-        return [*http_monitors, *api_monitors, *ping_monitors]
+        return [*http_monitors, *api_monitors, *ping_monitors, *heartbeat_monitors]
 
     async def update_monitoring_result(self, monitor_type: MonitorType, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         repository = self.get_repository(monitor_type)
@@ -42,8 +50,9 @@ class MonitorRepositoryFactory:
         http_monitors = await self.http_repository.list_monitors()
         api_monitors = await self.api_repository.list_monitors()
         ping_monitors = await self.ping_repository.list_monitors()
+        heartbeat_monitors = await self.heartbeat_repository.list_monitors()
 
-        return [*http_monitors, *api_monitors, *ping_monitors]
+        return [*http_monitors, *api_monitors, *ping_monitors, *heartbeat_monitors]
 
     async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
         for repository in self._repositories.values():

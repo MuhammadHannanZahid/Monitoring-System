@@ -2,6 +2,7 @@ from app.shared.enums import MonitorType
 from app.modules.monitor.checkers.http_checker import HTTPChecker
 from app.modules.monitor.checkers.api_checker import ApiChecker
 from app.modules.monitor.checkers.ping_checker import PingChecker
+from app.modules.monitor.checkers.heartbeat_checker import HeartbeatChecker
 
 class CheckerFactory:
     def __init__(self):
@@ -9,6 +10,7 @@ class CheckerFactory:
             MonitorType.HTTP: HTTPChecker(),
             MonitorType.API: ApiChecker(),
             MonitorType.PING: PingChecker(),
+            MonitorType.HEARTBEAT: HeartbeatChecker(),
         }
 
     def get_checker(self, monitor_type: MonitorType):

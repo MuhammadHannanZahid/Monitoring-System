@@ -9,3 +9,5 @@ class HealthCheckResponse(BaseModel):
     success: bool
     is_slow: bool = False
     performance_status: PerformanceStatus = PerformanceStatus.UNKNOWN
+    error: str | None = None
+    timed_out: bool = False

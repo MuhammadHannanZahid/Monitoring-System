@@ -17,6 +17,7 @@ class MonitorType(str, Enum):
     HTTP = "HTTP"
     API = "API"
     PING = "ping"
+    HEARTBEAT = "heartbeat"
 
 class PerformanceStatus(str, Enum):
     UNKNOWN = "unknown"

@@ -48,28 +48,25 @@ class MonitorWorker:
     async def _run(self) -> None:
         while self._running:
             start = asyncio.get_running_loop().time()
-
             try:
-                await self.monitor_service.check_and_update(
-                    self.monitor
-                )
+                monitor = await self.monitor_service.get_monitor(self.monitor.id)
+                if monitor is None:
+                    logger.info("Monitor '%s' removed. Worker stopping.", self.monitor.id)
+                    break
+
+                self.monitor = monitor
+                await self.monitor_service.check_and_update(self.monitor)
+            except asyncio.CancelledError:
+                break
+
             except Exception:
-                logger.exception(
-                    "Worker failed for '%s'.",
-                    self.monitor.name,
-                )
+                logger.exception("Worker failed for '%s'.", self.monitor.name)
 
-            elapsed = (
-                asyncio.get_running_loop().time()
-                - start
-            )
-
-            sleep_time = max(
-                0,
-                self.monitor.check_interval - elapsed,
-            )
-
+            elapsed = asyncio.get_running_loop().time() - start
+            sleep_time = max(0, self.monitor.check_interval - elapsed)
             try:
                 await asyncio.sleep(sleep_time)
             except asyncio.CancelledError:
                 break
+
+        self._running = False
