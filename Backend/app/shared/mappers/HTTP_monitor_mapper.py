@@ -9,6 +9,7 @@ class HTTP_monitorMapper:
             name=http_monitor.name,
             url=http_monitor.url,
             check_interval=http_monitor.check_interval,
+            timeout=http_monitor.timeout,
             expected_status_code=http_monitor.expected_status_code,
             is_active=http_monitor.is_active,
             created_at=http_monitor.created_at,

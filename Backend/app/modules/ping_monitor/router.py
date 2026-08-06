@@ -34,22 +34,21 @@ async def list_monitors(service: PingMonitorService = Depends(get_ping_service))
     )
 
 @router.get("/{PING_monitor_id}/get_one", response_model=SuccessResponse[PingMonitorResponse])
-async def get_ping_monitor(monitor_id: str, service: PingMonitorService = Depends(get_ping_service)):
-    PING_monitor = await service.get_monitor(monitor_id)
+async def get_ping_monitor(PING_monitor_id: str, service: PingMonitorService = Depends(get_ping_service)):
+    monitor = await service.get_monitor(PING_monitor_id)
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=PingMonitorMapper.to_response(PING_monitor),
+        data=PingMonitorMapper.to_response(monitor),
     )
 
 @router.put("/{PING_monitor_id}/update", response_model=SuccessResponse[PingMonitorResponse])
 async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRequest, service: PingMonitorService = Depends(get_ping_service)):
     PING_monitor = await service.update_monitor(
-        PING_monitor_id=PING_monitor_id,
+        monitor_id=PING_monitor_id,
         name=request.name,
         host=request.host,
         check_interval=request.check_interval,
-        timeout=request.timeout,
         expected_response_time_ms=request.expected_response_time_ms,
     )
 

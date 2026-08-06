@@ -19,6 +19,7 @@ from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
 from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.ping_monitor.repository import PingMonitorRepository
+import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
 
@@ -56,13 +57,14 @@ async def lifespan(app: FastAPI):
         checker_factory=checker_factory,
     )
 
-    scheduler = MonitorScheduler(monitor_service=monitor_service)
-    scheduler_task = asyncio.create_task(scheduler.start())
+    scheduler_state.scheduler = MonitorScheduler(monitor_service=monitor_service)
+    scheduler_task = asyncio.create_task(scheduler_state.scheduler.start())
+    logger.info("Main scheduler: %s", scheduler_state)
 
     try:
         yield
     finally:
-        await scheduler.stop()
+        await scheduler_state.scheduler.stop()
         scheduler_task.cancel()
 
         try:

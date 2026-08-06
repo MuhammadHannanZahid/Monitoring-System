@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from app.shared.models.api_monitor import APIMonitorModel
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.modules.API_monitor.schemas import CreateApiMonitorRequest, UpdateApiMonitorRequest
+import app.core.scheduler as scheduler_state
 
 class API_monitorService:
     def __init__(self, repository: API_monitorRepository):
@@ -74,8 +75,21 @@ class API_monitorService:
     async def delete_monitor(self, monitor_id: str) -> bool:
         return await self.repository.delete_monitor(monitor_id)
 
-    async def activate_monitor(self, monitor_id: str) -> bool:
-        return await self.repository.set_active(monitor_id, True)
+    async def activate_monitor(self, monitor_id: str):
+        monitor = await self.repository.get_by_id(monitor_id)
+        if monitor is None:
+            return None
+        await self.repository.set_active(monitor.id, True)
+        updated = await self.repository.get_by_id(monitor.id)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(updated)
+        return updated
 
-    async def deactivate_monitor(self, monitor_id: str) -> bool:
-        return await self.repository.set_active(monitor_id, False)
+    async def deactivate_monitor(self, monitor_id: str):
+        monitor = await self.repository.get_by_id(monitor_id)
+        if monitor is None:
+            return None
+        await self.repository.set_active(monitor.id, False)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor.id)
+        return await self.repository.get_by_id(monitor.id)

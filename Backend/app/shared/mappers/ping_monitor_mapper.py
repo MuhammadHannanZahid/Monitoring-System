@@ -10,7 +10,6 @@ class PingMonitorMapper:
             host=monitor.host,
             check_interval=monitor.check_interval,
             timeout=monitor.timeout,
-            expected_status_code=monitor.expected_status_code,
             expected_response_time_ms=monitor.expected_response_time_ms,
             is_active=monitor.is_active,
             created_by=monitor.created_by,

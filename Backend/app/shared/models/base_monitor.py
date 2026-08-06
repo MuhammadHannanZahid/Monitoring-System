@@ -15,3 +15,4 @@ class BaseMonitorModel(BaseModel):
     updated_at: datetime
     last_checked_at: datetime | None = None
     last_response_time_ms: int | None = None
+    last_status_code: int | None = None

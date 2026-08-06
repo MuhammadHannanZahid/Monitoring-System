@@ -81,7 +81,6 @@ class PingMonitorRepository:
             {
                 "$set": {
                     "status": status,
-                    "last_status_code": status_code,
                     "last_response_time_ms": response_time_ms,
                     "last_checked_at": checked_at,
                 }

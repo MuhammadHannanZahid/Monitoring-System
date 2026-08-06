@@ -14,6 +14,7 @@ class API_monitorMapper:
             expected_status_code=API_monitor.expected_status_code,
             expected_json=API_monitor.expected_json,
             check_interval=API_monitor.check_interval,
+            timeout=API_monitor.timeout,
             is_active=API_monitor.is_active,
             created_by=API_monitor.created_by,
             created_at=API_monitor.created_at,

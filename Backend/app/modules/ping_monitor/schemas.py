@@ -7,11 +7,13 @@ class CreatePingMonitorRequest(BaseModel):
     host: str = Field(min_length=1, max_length=255)
     expected_response_time_ms: int | None = None
     check_interval: int = Field(ge=10, le=86400)
+    timeout: int = Field(ge=1, le=300)
 
 class UpdatePingMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     host: str | None = Field(default=None, min_length=1, max_length=255)
     expected_response_time_ms: int | None = None
+    check_interval: int | None = Field(default=None, ge=10, le=86400)
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     is_active: bool | None = None
 

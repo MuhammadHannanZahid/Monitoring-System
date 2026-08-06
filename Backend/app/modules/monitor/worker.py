@@ -69,4 +69,7 @@ class MonitorWorker:
                 self.monitor.check_interval - elapsed,
             )
 
-            await asyncio.sleep(sleep_time)
+            try:
+                await asyncio.sleep(sleep_time)
+            except asyncio.CancelledError:
+                break
