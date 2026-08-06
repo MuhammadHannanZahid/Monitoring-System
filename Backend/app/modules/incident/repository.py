@@ -33,8 +33,7 @@ class IncidentRepository:
         document["id"] = str(document.pop("_id"))
         return IncidentModel(**document)
 
-
-    async def resolve_incident(self, incident_id: str) -> bool:
+    async def resolve_incident(self, incident_id: str, monitor_type: MonitorType) -> bool:
         try:
             object_id = ObjectId(incident_id)
         except InvalidId:
@@ -43,6 +42,7 @@ class IncidentRepository:
         result = await self.collection.update_one(
             {
                 "_id": object_id,
+                "monitor_type": monitor_type,
                 "resolved_at": None,
             },
             {

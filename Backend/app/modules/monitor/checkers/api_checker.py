@@ -8,7 +8,6 @@ from app.shared.enums import MonitorStatus
 
 logger = get_logger(__name__)
 
-
 class ApiChecker:
 
     def __init__(self):
@@ -27,7 +26,7 @@ class ApiChecker:
                 url=monitor.url,
                 headers=monitor.headers or {},
                 json=monitor.request_body or None,
-                timeout=settings.default_timeout,
+                timeout=monitor.timeout,
             )
 
             elapsed = int((time.perf_counter() - start) * 1000)

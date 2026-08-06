@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from app.modules.ping_monitor.repository import PingMonitorRepository
 from app.shared.enums import MonitorStatus, MonitorType
 from app.shared.models.ping_monitor import PingMonitorModel
+from urllib.parse import urlparse
+import ipaddress
 
 class PingMonitorService:
     def __init__(self, repository: PingMonitorRepository):
@@ -10,7 +12,7 @@ class PingMonitorService:
     async def create_monitor(self, name: str, host: str, check_interval: int, timeout: int, expected_response_time_ms: int | None, created_by: str | None = None) -> PingMonitorModel:
         monitor = PingMonitorModel(
             name=name,
-            host=host,
+            host=self._normalize_host(host),
             monitor_type=MonitorType.PING,
             check_interval=check_interval,
             timeout=timeout,
@@ -41,7 +43,7 @@ class PingMonitorService:
             monitor.name = name
 
         if host is not None:
-            monitor.host = host
+            monitor.host = self._normalize_host(host)
 
         if check_interval is not None:
             monitor.check_interval = check_interval
@@ -78,3 +80,18 @@ class PingMonitorService:
         monitor.updated_at = datetime.now(timezone.utc)
         await self.repository.update(monitor)
         return monitor
+
+    def _normalize_host(self, host: str) -> str:
+        host = host.strip()
+        if "://" in host:
+            parsed = urlparse(host)
+            if parsed.hostname:
+                host = parsed.hostname
+
+        host = host.rstrip("/")
+        if ":" in host:
+            try:
+                ipaddress.ip_address(host)
+            except ValueError:
+                host = host.split(":")[0]
+        return host.lower()

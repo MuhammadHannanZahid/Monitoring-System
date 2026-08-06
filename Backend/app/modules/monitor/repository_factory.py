@@ -25,11 +25,7 @@ class MonitorRepositoryFactory:
         api_monitors = await self.api_repository.list_active_monitors()
         ping_monitors = await self.ping_repository.list_active_monitors()
 
-        return [
-            *(m for m in http_monitors if m.is_active),
-            *(m for m in api_monitors if m.is_active),
-            *(m for m in ping_monitors if m.is_active),
-        ]
+        return [*http_monitors, *api_monitors, *ping_monitors]
 
     async def update_monitoring_result(self, monitor_type: MonitorType, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         repository = self.get_repository(monitor_type)
@@ -41,3 +37,17 @@ class MonitorRepositoryFactory:
             response_time_ms=response_time_ms,
             checked_at=checked_at,
         )
+
+    async def list_monitors(self) -> list[BaseMonitorModel]:
+        http_monitors = await self.http_repository.list_monitors()
+        api_monitors = await self.api_repository.list_monitors()
+        ping_monitors = await self.ping_repository.list_monitors()
+
+        return [*http_monitors, *api_monitors, *ping_monitors]
+
+    async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
+        for repository in self._repositories.values():
+            monitor = await repository.get_by_id(monitor_id)
+            if monitor is not None:
+                return monitor
+        return None

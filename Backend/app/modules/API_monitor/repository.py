@@ -163,5 +163,14 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
             }
         )
 
+    async def list_active_monitors(self) -> list[APIMonitorModel]:
+        cursor = self.collection.find({"is_active": True})
+        monitors = []
+
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            monitors.append(APIMonitorModel(**document))
+        return monitors
+
 def get_API_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> API_monitorRepository:
     return API_monitorRepository(database)
