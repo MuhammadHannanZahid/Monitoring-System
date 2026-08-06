@@ -161,5 +161,14 @@ class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
             }
         )
 
+    async def list_active_monitors(self) -> list[HTTPMonitorModel]:
+        cursor = self.collection.find({"is_active": True})
+        monitors = []
+
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            monitors.append(HTTPMonitorModel(**document))
+        return monitors
+
 def get_HTTP_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> HTTP_monitorRepository:
     return HTTP_monitorRepository(database)

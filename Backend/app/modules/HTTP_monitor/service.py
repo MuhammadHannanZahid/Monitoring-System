@@ -5,6 +5,7 @@ from app.shared.enums import MonitorStatus
 from app.shared.exceptions import ConflictError, NotFoundError
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from app.core.logger import get_logger
+import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
 
@@ -99,14 +100,17 @@ class HTTP_monitorService:
         await self.repository.delete_monitor(HTTP_monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", HTTP_monitor.name)
 
-    async def activate_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
-        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
-        await self.repository.set_active(HTTP_monitor.id, True)
-        logger.info("HTTP_monitor '%s' activated.", HTTP_monitor.name)
-        return await self.get_monitor(HTTP_monitor_id)
+    async def activate_monitor(self, HTTP_monitor_id: str):
+        monitor = await self.get_monitor(HTTP_monitor_id)
+        await self.repository.set_active(monitor.id, True)
+        updated = await self.get_monitor(HTTP_monitor_id)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(updated)
+        return updated
 
-    async def deactivate_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
-        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
-        await self.repository.set_active(HTTP_monitor.id, False)
-        logger.info("HTTP_monitor '%s' deactivated.", HTTP_monitor.name)
+    async def deactivate_monitor(self, HTTP_monitor_id: str):
+        monitor = await self.get_monitor(HTTP_monitor_id)
+        await self.repository.set_active(monitor.id, False)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor.id)
         return await self.get_monitor(HTTP_monitor_id)
