@@ -20,6 +20,9 @@ from app.modules.monitor.checkers.checker_factory import CheckerFactory
 from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.ping_monitor.repository import PingMonitorRepository
 from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
+from app.modules.auth_profiles.repository import AuthProfileRepository
+from app.modules.auth_profiles.token_manager import BearerTokenManager
+import app.core.auth_tokens as auth_token_state
 import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
@@ -37,6 +40,8 @@ async def lifespan(app: FastAPI):
     ping_repository = PingMonitorRepository(database)
     heartbeat_repository = HeartbeatMonitorRepository(database)
     await heartbeat_repository.create_indexes()
+    auth_profile_repository = AuthProfileRepository(database)
+    await auth_profile_repository.create_indexes()
     incident_repository = IncidentRepository(database)
     incident_service = IncidentService(incident_repository)
     monitor_result_repository = MonitorResultRepository(database)
@@ -44,7 +49,12 @@ async def lifespan(app: FastAPI):
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
-    checker_factory = CheckerFactory()
+    auth_token_state.token_manager = BearerTokenManager(
+        auth_profile_repository,
+    )
+    checker_factory = CheckerFactory(
+        token_manager=auth_token_state.token_manager,
+    )
 
     repository_factory = MonitorRepositoryFactory(
         http_repository,
@@ -77,6 +87,7 @@ async def lifespan(app: FastAPI):
             pass
 
         await checker_factory.close()
+        auth_token_state.token_manager = None
         await db_manager.disconnect()
         logger.info("Application stopped.")
 

@@ -1,8 +1,11 @@
 import time
 import httpx
-from app.core.config import settings
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
+from app.modules.auth_profiles.token_manager import (
+    AuthTokenError,
+    BearerTokenManager,
+)
 from app.modules.monitor.schemas import HealthCheckResponse
 from app.shared.enums import MonitorStatus
 
@@ -10,24 +13,42 @@ logger = get_logger(__name__)
 
 class ApiChecker:
 
-    def __init__(self):
-        self.client = httpx.AsyncClient(follow_redirects=True)
+    def __init__(
+        self,
+        token_manager: BearerTokenManager | None = None,
+        client: httpx.AsyncClient | None = None,
+    ):
+        self.token_manager = token_manager
+        self.client = client or httpx.AsyncClient(follow_redirects=True)
+        self._owns_client = client is None
 
     async def check(self, monitor) -> HealthCheckResponse:
-        start = time.perf_counter()
+        start = None
         status = MonitorStatus.DOWN
         success = False
         status_code = None
         response_time_ms = None
         is_slow = False
         try:
+            headers = await self._build_headers(monitor)
+            start = time.perf_counter()
             response = await self.client.request(
                 method=monitor.method,
                 url=monitor.url,
-                headers=monitor.headers or {},
+                headers=headers,
                 json=monitor.request_body or None,
                 timeout=monitor.timeout,
             )
+
+            if response.status_code == 401 and monitor.auth_profile_id:
+                headers = await self._build_headers(monitor, force_refresh=True)
+                response = await self.client.request(
+                    method=monitor.method,
+                    url=monitor.url,
+                    headers=headers,
+                    json=monitor.request_body or None,
+                    timeout=monitor.timeout,
+                )
 
             elapsed = int((time.perf_counter() - start) * 1000)
             status_code = response.status_code
@@ -82,12 +103,21 @@ class ApiChecker:
                     logger.warning("API Monitor '%s' failed response header validation.", monitor.name)
                 elif not content_type_ok:
                     logger.warning("API Monitor '%s' returned wrong Content-Type.", monitor.name)
+        except AuthTokenError as exc:
+            logger.warning(
+                "API Monitor '%s' could not authenticate: %s",
+                monitor.name,
+                exc,
+            )
+
         except httpx.TimeoutException:
-            response_time_ms = int((time.perf_counter() - start) * 1000)
+            if start is not None:
+                response_time_ms = int((time.perf_counter() - start) * 1000)
             logger.warning("API Monitor '%s' timed out.", monitor.name)
 
         except httpx.HTTPError as exc:
-            response_time_ms = int((time.perf_counter() - start) * 1000)
+            if start is not None:
+                response_time_ms = int((time.perf_counter() - start) * 1000)
             logger.warning("API Monitor '%s' failed: %s", monitor.name, exc)
 
         except Exception:
@@ -102,5 +132,25 @@ class ApiChecker:
             is_slow=is_slow,
         )
 
+    async def _build_headers(
+        self,
+        monitor,
+        *,
+        force_refresh: bool = False,
+    ) -> dict[str, str]:
+        headers = dict(monitor.headers or {})
+        if monitor.auth_profile_id is None:
+            return headers
+        if self.token_manager is None:
+            raise AuthTokenError("The bearer token manager is unavailable.")
+
+        token = await self.token_manager.get_token(
+            monitor.auth_profile_id,
+            force_refresh=force_refresh,
+        )
+        headers["Authorization"] = f"Bearer {token}"
+        return headers
+
     async def close(self):
-        await self.client.aclose()
+        if self._owns_client:
+            await self.client.aclose()
