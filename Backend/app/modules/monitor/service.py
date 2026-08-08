@@ -7,10 +7,13 @@ from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_results.service import MonitorResultService
 from app.shared.models.base_monitor import BaseMonitorModel
+from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 from app.shared.enums import MonitorStatus, MonitorType
-from app.modules.monitor.schemas import HealthCheckResponse
 
 logger = get_logger(__name__)
+
+MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
+
 
 class MonitorService:
     def __init__(self, repository_factory: MonitorRepositoryFactory, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService, checker_factory: CheckerFactory):
@@ -23,12 +26,21 @@ class MonitorService:
     async def list_active_monitors(self):
         return await self.repository_factory.list_active_monitors()
 
-    async def check_and_update(self, monitor: BaseMonitorModel) -> None:
+    async def check_and_update(self, monitor: MonitorModel) -> None:
         try:
             repository = self.repository_factory.get_repository(monitor.monitor_type)
             latest_monitor = await repository.get_by_id(monitor.id)
             if latest_monitor is None:
                 logger.warning("Monitor '%s' no longer exists. Skipping check.", monitor.id)
+                return
+
+            if (
+                latest_monitor.monitor_type == MonitorType.HEARTBEAT
+                and latest_monitor.last_heartbeat_at is None
+            ):
+                # A heartbeat monitor is not operational until the client has
+                # sent its first beat. Keep it UNKNOWN and do not create a
+                # result, state transition, or incident before then.
                 return
 
             checker = self.checker_factory.get_checker(monitor.monitor_type)
@@ -76,7 +88,7 @@ class MonitorService:
         except Exception:
             logger.exception("Failed to process monitor '%s'.", monitor.name)
 
-    async def _handle_incident_transition(self, monitor: BaseMonitorModel, result, state_result) -> None:
+    async def _handle_incident_transition(self, monitor: MonitorModel, result, state_result) -> None:
         if state_result.transition == MonitorTransition.DOWN:
             active = await self.incident_service.get_active_incident(monitor.id, monitor.monitor_type)
             if active is None:
@@ -90,7 +102,7 @@ class MonitorService:
 
     def _build_incident_reason(
             self,
-            monitor: BaseMonitorModel,
+            monitor: MonitorModel,
             result,
     ) -> str:
         if monitor.monitor_type == MonitorType.HEARTBEAT:
@@ -119,7 +131,7 @@ class MonitorService:
             return "Health check failed."
         return "Monitor is unreachable."
 
-    async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
+    async def get_monitor(self, monitor_id: str) -> MonitorModel | None:
         return await self.repository_factory.get_monitor(monitor_id)
 
     async def get_monitor_lookup(self) -> dict[str, object]:
@@ -141,20 +153,20 @@ class MonitorService:
             },
         )
 
-    async def list_monitors(self) -> list[BaseMonitorModel]:
+    async def list_monitors(self) -> list[MonitorModel]:
         return await self.repository_factory.list_monitors()
 
-    async def process_heartbeat(self, monitor: BaseMonitorModel) -> None:
+    async def process_heartbeat(self, monitor: HeartbeatMonitorModel) -> None:
         repository = self.repository_factory.get_repository(monitor.monitor_type)
 
         checked_at = datetime.now(timezone.utc)
-        await repository.update_last_heartbeat(monitor.id)
+        await repository.update_last_heartbeat(monitor.id, checked_at)
         await self.monitor_result_service.record_result(
             monitor_id=monitor.id,
             monitor_type=monitor.monitor_type,
             status=MonitorStatus.UP,
             status_code=None,
-            response_time_ms=0,
+            response_time_ms=None,
             success=True,
             is_slow=False,
         )
@@ -164,7 +176,7 @@ class MonitorService:
             monitor_type=monitor.monitor_type,
             success=True,
             status_code=None,
-            response_time_ms=0,
+            response_time_ms=None,
             checked_at=checked_at,
         )
 
@@ -173,14 +185,15 @@ class MonitorService:
             monitor_id=monitor.id,
             status=state_result.current_status,
             status_code=None,
-            response_time_ms=0,
+            response_time_ms=None,
             checked_at=checked_at,
         )
 
         logger.info(
-            "Heartbeat | monitor='%s' | Status=%s",
+            "Heartbeat monitor '%s' is %s; %s",
             monitor.name,
-            state_result.current_status.value,
+            state_result.current_status.value.upper(),
+            self._heartbeat_timing_message(monitor, checked_at),
         )
 
         class HeartbeatResult:
@@ -190,4 +203,36 @@ class MonitorService:
             monitor,
             HeartbeatResult(),
             state_result,
+        )
+
+    @staticmethod
+    def _heartbeat_timing_message(
+        monitor: HeartbeatMonitorModel,
+        received_at: datetime,
+    ) -> str:
+        if monitor.last_heartbeat_at is None:
+            return (
+                "first beat received; next beat expected in "
+                f"{monitor.expected_heartbeat_interval} seconds"
+            )
+
+        elapsed_seconds = max(
+            0.0,
+            (received_at - monitor.last_heartbeat_at).total_seconds(),
+        )
+        difference = monitor.expected_heartbeat_interval - elapsed_seconds
+
+        if difference > 0:
+            return (
+                f"beat received {difference:.2f} seconds earlier than the "
+                f"expected {monitor.expected_heartbeat_interval}-second interval"
+            )
+        if difference < 0:
+            return (
+                f"beat received {abs(difference):.2f} seconds later than the "
+                f"expected {monitor.expected_heartbeat_interval}-second interval"
+            )
+        return (
+            "beat received exactly at the expected "
+            f"{monitor.expected_heartbeat_interval}-second interval"
         )

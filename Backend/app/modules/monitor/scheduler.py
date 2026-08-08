@@ -1,7 +1,7 @@
-import asyncio
 from app.core.logger import get_logger
 from app.modules.monitor.service import MonitorService
 from app.modules.monitor.worker import MonitorWorker
+from app.shared.enums import MonitorType
 
 logger = get_logger(__name__)
 
@@ -21,6 +21,16 @@ class MonitorScheduler:
             await self.start_worker(monitor)
 
     async def start_worker(self, monitor) -> None:
+        if (
+            monitor.monitor_type == MonitorType.HEARTBEAT
+            and monitor.last_heartbeat_at is None
+        ):
+            logger.info(
+                "Heartbeat monitor '%s' is awaiting its first heartbeat.",
+                monitor.name,
+            )
+            return
+
         if monitor.id in self._workers:
             return
 

@@ -32,13 +32,24 @@ class MonitorStateService:
 
         previous_status = state.status
 
+        recovery_threshold = (
+            1
+            if monitor_type == MonitorType.HEARTBEAT
+            else settings.monitor_recovery_threshold
+        )
+        failure_threshold = (
+            1
+            if monitor_type == MonitorType.HEARTBEAT
+            else settings.monitor_failure_threshold
+        )
+
         if success:
             state.consecutive_successes += 1
             state.consecutive_failures = 0
 
             if (
                     previous_status != MonitorStatus.UP
-                    and state.consecutive_successes >= settings.monitor_recovery_threshold
+                    and state.consecutive_successes >= recovery_threshold
             ):
                 state.status = MonitorStatus.UP
 
@@ -48,7 +59,7 @@ class MonitorStateService:
 
             if (
                     previous_status != MonitorStatus.DOWN
-                    and state.consecutive_failures >= settings.monitor_failure_threshold
+                    and state.consecutive_failures >= failure_threshold
             ):
                 state.status = MonitorStatus.DOWN
 

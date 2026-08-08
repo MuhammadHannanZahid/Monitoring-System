@@ -32,9 +32,8 @@ async def create_monitor(
 ):
     monitor = await service.create_monitor(
         name=request.name,
-        check_interval=request.check_interval,
+        expected_heartbeat_interval=request.expected_heartbeat_interval,
         grace_period=request.grace_period,
-        expected_response_time_ms=request.expected_response_time_ms,
     )
 
     return success_response(
@@ -89,9 +88,8 @@ async def update_monitor(
     monitor = await service.update_monitor(
         heartbeat_monitor_id,
         name=request.name,
-        check_interval=request.check_interval,
+        expected_heartbeat_interval=request.expected_heartbeat_interval,
         grace_period=request.grace_period,
-        expected_response_time_ms=request.expected_response_time_ms,
     )
 
     if monitor is None:
@@ -111,7 +109,10 @@ async def delete_monitor(
     heartbeat_monitor_id: str,
     service: HeartbeatMonitorService = Depends(get_heartbeat_service),
 ):
-    await service.delete_monitor(heartbeat_monitor_id)
+    deleted = await service.delete_monitor(heartbeat_monitor_id)
+
+    if not deleted:
+        raise HTTPException(404)
 
     return success_response(
         message=Messages.monitor_DELETED,
@@ -175,10 +176,10 @@ async def receive_heartbeat(
         )
 
     return success_response(
-        message=Messages.HEARTBEAT_RECEIVED,
+        message=Messages.heartbeat_RECEIVED,
         data=HeartbeatResponse(
-            message=Messages.HEARTBEAT_RECEIVED,
-            next_heartbeat_in=monitor.check_interval,
+            message=Messages.heartbeat_RECEIVED,
+            expected_next_heartbeat_in=monitor.expected_heartbeat_interval,
             server_time=datetime.now(timezone.utc),
             token_rotation_required=False,
         ),

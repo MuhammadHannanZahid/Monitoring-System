@@ -3,8 +3,12 @@ from app.shared.enums import MonitorType, MonitorStatus
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel
+from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 from app.modules.ping_monitor.repository import PingMonitorRepository
 from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
+
+MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
+
 
 class MonitorRepositoryFactory:
     def __init__(self, http_repository: HTTP_monitorRepository, api_repository: API_monitorRepository, ping_repository: PingMonitorRepository, heartbeat_repository: HeartbeatMonitorRepository):
@@ -27,7 +31,7 @@ class MonitorRepositoryFactory:
         except KeyError:
             raise ValueError(f"Unsupported monitor type: {monitor_type}")
 
-    async def list_active_monitors(self) -> list[BaseMonitorModel]:
+    async def list_active_monitors(self) -> list[MonitorModel]:
         http_monitors = await self.http_repository.list_active_monitors()
         api_monitors = await self.api_repository.list_active_monitors()
         ping_monitors = await self.ping_repository.list_active_monitors()
@@ -46,7 +50,7 @@ class MonitorRepositoryFactory:
             checked_at=checked_at,
         )
 
-    async def list_monitors(self) -> list[BaseMonitorModel]:
+    async def list_monitors(self) -> list[MonitorModel]:
         http_monitors = await self.http_repository.list_monitors()
         api_monitors = await self.api_repository.list_monitors()
         ping_monitors = await self.ping_repository.list_monitors()
@@ -54,7 +58,7 @@ class MonitorRepositoryFactory:
 
         return [*http_monitors, *api_monitors, *ping_monitors, *heartbeat_monitors]
 
-    async def get_monitor(self, monitor_id: str) -> BaseMonitorModel | None:
+    async def get_monitor(self, monitor_id: str) -> MonitorModel | None:
         for repository in self._repositories.values():
             monitor = await repository.get_by_id(monitor_id)
             if monitor is not None:

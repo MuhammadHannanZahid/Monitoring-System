@@ -15,11 +15,10 @@ class HeartbeatMonitorMapper:
         return HeartbeatMonitorResponse(
             id=monitor.id,
             name=monitor.name,
-            check_interval=monitor.check_interval,
+            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
             grace_period=monitor.grace_period,
             status=monitor.status.value,
             is_active=monitor.is_active,
-            expected_response_time_ms=monitor.expected_response_time_ms,
             last_heartbeat_at=(
                 monitor.last_heartbeat_at.isoformat()
                 if monitor.last_heartbeat_at
