@@ -43,6 +43,8 @@ class HTTP_monitorService:
         )
 
         HTTP_monitor.id = await self.repository.create(HTTP_monitor)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(HTTP_monitor)
         logger.info("HTTP_monitor '%s' created. URL: %s", HTTP_monitor.name, HTTP_monitor.url)
         return HTTP_monitor
 
@@ -90,6 +92,10 @@ class HTTP_monitorService:
         if update_data:
             await self.repository.update_monitor(HTTP_monitor_id, update_data)
             updated_HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
+
+            if updated_HTTP_monitor.is_active and scheduler_state.scheduler is not None:
+                await scheduler_state.scheduler.stop_worker(updated_HTTP_monitor.id)
+                await scheduler_state.scheduler.start_worker(updated_HTTP_monitor)
             logger.info("HTTP_monitor '%s' updated. Fields changed: %s", updated_HTTP_monitor.name, ", ".join(update_data.keys()))
             return updated_HTTP_monitor
 
@@ -97,6 +103,9 @@ class HTTP_monitorService:
 
     async def delete_monitor(self, HTTP_monitor_id: str) -> None:
         HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(HTTP_monitor.id)
+
         await self.repository.delete_monitor(HTTP_monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", HTTP_monitor.name)
 
