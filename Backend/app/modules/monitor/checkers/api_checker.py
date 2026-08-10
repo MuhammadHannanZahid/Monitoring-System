@@ -3,8 +3,9 @@ import httpx
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
 from app.modules.auth_profiles.token_manager import (
+    ACCESS_TOKEN_COOKIE_NAME,
+    AccessTokenCookieManager,
     AuthTokenError,
-    BearerTokenManager,
 )
 from app.modules.monitor.schemas import HealthCheckResponse
 from app.shared.enums import MonitorStatus
@@ -15,7 +16,7 @@ class ApiChecker:
 
     def __init__(
         self,
-        token_manager: BearerTokenManager | None = None,
+        token_manager: AccessTokenCookieManager | None = None,
         client: httpx.AsyncClient | None = None,
     ):
         self.token_manager = token_manager
@@ -142,13 +143,21 @@ class ApiChecker:
         if monitor.auth_profile_id is None:
             return headers
         if self.token_manager is None:
-            raise AuthTokenError("The bearer token manager is unavailable.")
+            raise AuthTokenError("The access-token cookie manager is unavailable.")
 
         token = await self.token_manager.get_token(
             monitor.auth_profile_id,
             force_refresh=force_refresh,
         )
-        headers["Authorization"] = f"Bearer {token}"
+
+        # Orion uses cookie authentication. Remove any static auth/cookie
+        # headers so the fetched value is sent strictly as access_token.
+        headers = {
+            key: value
+            for key, value in headers.items()
+            if key.lower() not in {"authorization", "cookie"}
+        }
+        headers["Cookie"] = f"{ACCESS_TOKEN_COOKIE_NAME}={token}"
         return headers
 
     async def close(self):

@@ -5,9 +5,17 @@ import httpx
 
 from app.modules.API_monitor.schemas import CreateApiMonitorRequest
 from app.modules.API_monitor.service import API_monitorService
-from app.modules.auth_profiles.schemas import CreateAuthProfileRequest
+from app.modules.auth_profiles.repository import AuthProfileRepository
+from app.modules.auth_profiles.schemas import (
+    AuthProfileResponse,
+    CreateAuthProfileRequest,
+    UpdateAuthProfileRequest,
+)
 from app.modules.auth_profiles.service import AuthProfileService
-from app.modules.auth_profiles.token_manager import BearerTokenManager
+from app.modules.auth_profiles.token_manager import (
+    AccessTokenCookieManager,
+    AuthTokenError,
+)
 from app.modules.monitor.checkers.api_checker import ApiChecker
 from app.shared.enums import MonitorStatus
 from app.shared.models.api_monitor import APIMonitorModel
@@ -58,7 +66,7 @@ class FakeAuthProfileRepository:
         return self.profile
 
 
-def test_bearer_token_is_cached_for_fourteen_minutes():
+def test_access_token_cookie_is_cached_for_exactly_fourteen_minutes():
     profile = make_auth_profile()
     repository = FakeAuthProfileRepository(profile)
     current_time = [0.0]
@@ -68,14 +76,17 @@ def test_bearer_token_is_cached_for_fourteen_minutes():
         login_requests.append(request)
         return httpx.Response(
             200,
-            json={
-                "access_token": f"token-{len(login_requests)}",
-                "expires_in": 3600,
+            content=b"this response is deliberately not JSON",
+            headers={
+                "Set-Cookie": (
+                    f"access_token=token-{len(login_requests)}; "
+                    "Path=/; HttpOnly; SameSite=Lax"
+                )
             },
         )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handle_login))
-    manager = BearerTokenManager(
+    manager = AccessTokenCookieManager(
         repository,
         client=client,
         clock=lambda: current_time[0],
@@ -98,40 +109,31 @@ def test_bearer_token_is_cached_for_fourteen_minutes():
     assert login_requests[0].read() == b'{"username":"monitor","password":"secret"}'
 
 
-def test_token_refreshes_before_a_shorter_server_expiration():
+def test_token_manager_rejects_login_response_without_access_token_cookie():
     profile = make_auth_profile()
     repository = FakeAuthProfileRepository(profile)
-    current_time = [0.0]
-    login_count = 0
 
     def handle_login(request: httpx.Request) -> httpx.Response:
-        nonlocal login_count
-        login_count += 1
         return httpx.Response(
             200,
-            json={"access_token": f"short-{login_count}", "expires_in": 100},
+            content=b'{"access_token":"body-token","expires_in":3600}',
         )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handle_login))
-    manager = BearerTokenManager(
-        repository,
-        client=client,
-        clock=lambda: current_time[0],
-    )
+    manager = AccessTokenCookieManager(repository, client=client)
 
     async def scenario():
-        first = await manager.get_token(profile.id)
-        current_time[0] = 89
-        cached = await manager.get_token(profile.id)
-        current_time[0] = 90
-        refreshed = await manager.get_token(profile.id)
-        await client.aclose()
-        return first, cached, refreshed
+        try:
+            await manager.get_token(profile.id)
+        finally:
+            await client.aclose()
 
-    first, cached, refreshed = asyncio.run(scenario())
-
-    assert (first, cached, refreshed) == ("short-1", "short-1", "short-2")
-    assert login_count == 2
+    try:
+        asyncio.run(scenario())
+    except AuthTokenError as exc:
+        assert "access_token" in str(exc)
+    else:
+        raise AssertionError("A body token must not be accepted without Set-Cookie.")
 
 
 class FakeTokenManager:
@@ -143,20 +145,28 @@ class FakeTokenManager:
         return "fresh-token" if force_refresh else "cached-token"
 
 
-def test_api_checker_injects_bearer_token_and_retries_one_unauthorized_request():
+def test_api_checker_injects_only_access_token_cookie_and_retries_unauthorized():
     token_manager = FakeTokenManager()
-    authorization_headers = []
+    authentication_headers = []
 
     def handle_api(request: httpx.Request) -> httpx.Response:
-        authorization = request.headers.get("Authorization")
-        authorization_headers.append(authorization)
-        if authorization == "Bearer cached-token":
+        cookie = request.headers.get("Cookie")
+        authentication_headers.append(
+            (request.headers.get("Authorization"), cookie)
+        )
+        if cookie == "access_token=cached-token":
             return httpx.Response(401, json={"detail": "expired"})
         return httpx.Response(200, json={"ok": True})
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handle_api))
     checker = ApiChecker(token_manager=token_manager, client=client)
-    monitor = make_api_monitor()
+    monitor = make_api_monitor(
+        headers={
+            "X-Monitor": "true",
+            "Authorization": "Bearer configured-token",
+            "Cookie": "another_cookie=configured-value",
+        }
+    )
 
     async def scenario():
         result = await checker.check(monitor)
@@ -167,15 +177,19 @@ def test_api_checker_injects_bearer_token_and_retries_one_unauthorized_request()
 
     assert result.status == MonitorStatus.UP
     assert result.success is True
-    assert authorization_headers == [
-        "Bearer cached-token",
-        "Bearer fresh-token",
+    assert authentication_headers == [
+        (None, "access_token=cached-token"),
+        (None, "access_token=fresh-token"),
     ]
     assert token_manager.calls == [
         (monitor.auth_profile_id, False),
         (monitor.auth_profile_id, True),
     ]
-    assert monitor.headers == {"X-Monitor": "true"}
+    assert monitor.headers == {
+        "X-Monitor": "true",
+        "Authorization": "Bearer configured-token",
+        "Cookie": "another_cookie=configured-value",
+    }
 
 
 class FakeApiMonitorRepository:
@@ -237,4 +251,60 @@ def test_auth_profile_response_never_exposes_credential_values():
 
     assert response["credential_fields"] == ["password", "username"]
     assert "credentials" not in response
+    assert "credential_location" not in response
+    assert "token_field" not in response
+    assert "expires_in_field" not in response
     assert "secret" not in str(response)
+
+
+def test_removed_auth_profile_fields_are_absent_from_all_schemas():
+    removed_fields = {
+        "credential_location",
+        "token_field",
+        "expires_in_field",
+    }
+
+    for schema in (
+        AuthProfileModel,
+        CreateAuthProfileRequest,
+        UpdateAuthProfileRequest,
+        AuthProfileResponse,
+    ):
+        assert removed_fields.isdisjoint(schema.model_json_schema()["properties"])
+
+
+class FakeAuthProfileCollection:
+    def __init__(self):
+        self.unset_operation = None
+
+    async def update_many(self, query, operation):
+        self.unset_operation = (query, operation)
+
+    async def create_index(self, field, *, unique):
+        return None
+
+
+class FakeDatabase:
+    def __init__(self, collection):
+        self.collection = collection
+
+    def __getitem__(self, name):
+        return self.collection
+
+
+def test_auth_profile_startup_migration_removes_deprecated_database_fields():
+    collection = FakeAuthProfileCollection()
+    repository = AuthProfileRepository(FakeDatabase(collection))
+
+    asyncio.run(repository.create_indexes())
+
+    assert collection.unset_operation == (
+        {},
+        {
+            "$unset": {
+                "credential_location": "",
+                "token_field": "",
+                "expires_in_field": "",
+            }
+        },
+    )

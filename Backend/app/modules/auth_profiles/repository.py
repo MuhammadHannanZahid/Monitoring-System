@@ -9,6 +9,12 @@ from app.shared.models.auth_profile import AuthProfileModel
 
 
 class AuthProfileRepository:
+    DEPRECATED_FIELDS = {
+        "credential_location": "",
+        "token_field": "",
+        "expires_in_field": "",
+    }
+
     def __init__(self, database: AsyncIOMotorDatabase):
         self.collection = database[Collections.AUTH_PROFILES]
 
@@ -55,7 +61,10 @@ class AuthProfileRepository:
         update_data["updated_at"] = datetime.now(timezone.utc)
         result = await self.collection.update_one(
             {"_id": object_id},
-            {"$set": update_data},
+            {
+                "$set": update_data,
+                "$unset": self.DEPRECATED_FIELDS,
+            },
         )
         return result.matched_count > 0
 
@@ -67,4 +76,8 @@ class AuthProfileRepository:
         return result.deleted_count > 0
 
     async def create_indexes(self) -> None:
+        await self.collection.update_many(
+            {},
+            {"$unset": self.DEPRECATED_FIELDS},
+        )
         await self.collection.create_index("name", unique=True)

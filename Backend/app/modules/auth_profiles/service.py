@@ -53,8 +53,6 @@ class AuthProfileService:
             "login_url",
             "method",
             "credentials",
-            "credential_location",
-            "token_field",
         }
         invalid_null_fields = [
             field
@@ -93,9 +91,6 @@ class AuthProfileService:
             login_url=profile.login_url,
             method=profile.method,
             credential_fields=sorted(profile.credentials),
-            credential_location=profile.credential_location,
-            token_field=profile.token_field,
-            expires_in_field=profile.expires_in_field,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
         )

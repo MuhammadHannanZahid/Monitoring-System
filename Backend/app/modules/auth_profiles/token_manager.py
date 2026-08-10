@@ -1,7 +1,7 @@
 import asyncio
 import time
 from dataclasses import dataclass
-from datetime import timedelta
+from http.cookies import SimpleCookie
 from typing import Callable
 
 import httpx
@@ -12,31 +12,32 @@ from app.shared.models.auth_profile import AuthProfileModel
 
 logger = get_logger(__name__)
 
+ACCESS_TOKEN_COOKIE_NAME = "access_token"
+TOKEN_CACHE_TTL_SECONDS = 14 * 60
+
 
 class AuthTokenError(RuntimeError):
     pass
 
 
 @dataclass(frozen=True)
-class CachedBearerToken:
+class CachedAccessToken:
     value: str
-    refresh_at: float
+    expires_at: float
 
 
-class BearerTokenManager:
+class AccessTokenCookieManager:
     def __init__(
         self,
         repository: AuthProfileRepository,
         client: httpx.AsyncClient | None = None,
-        refresh_after: timedelta = timedelta(minutes=14),
         clock: Callable[[], float] = time.monotonic,
     ):
         self.repository = repository
         self.client = client or httpx.AsyncClient(follow_redirects=True)
-        self.refresh_after_seconds = refresh_after.total_seconds()
         self.clock = clock
         self._owns_client = client is None
-        self._cache: dict[str, CachedBearerToken] = {}
+        self._cache: dict[str, CachedAccessToken] = {}
         self._locks: dict[str, asyncio.Lock] = {}
 
     async def get_token(
@@ -59,10 +60,10 @@ class BearerTokenManager:
             if profile is None:
                 raise AuthTokenError(f"Auth profile '{profile_id}' was not found.")
 
-            token, refresh_seconds = await self._fetch_token(profile)
-            self._cache[profile_id] = CachedBearerToken(
+            token = await self._fetch_token(profile)
+            self._cache[profile_id] = CachedAccessToken(
                 value=token,
-                refresh_at=self.clock() + refresh_seconds,
+                expires_at=self.clock() + TOKEN_CACHE_TTL_SECONDS,
             )
             return token
 
@@ -77,62 +78,45 @@ class BearerTokenManager:
         if self._owns_client:
             await self.client.aclose()
 
-    def _is_valid(self, cached: CachedBearerToken | None) -> bool:
-        return cached is not None and self.clock() < cached.refresh_at
+    def _is_valid(self, cached: CachedAccessToken | None) -> bool:
+        return cached is not None and self.clock() < cached.expires_at
 
     async def _fetch_token(
         self,
         profile: AuthProfileModel,
-    ) -> tuple[str, float]:
-        request_data = {
-            "method": profile.method,
-            "url": profile.login_url,
-            "headers": profile.headers,
-        }
-        if profile.credential_location == "form":
-            request_data["data"] = profile.credentials
-        else:
-            request_data["json"] = profile.credentials
-
+    ) -> str:
         try:
-            response = await self.client.request(**request_data)
+            response = await self.client.request(
+                method=profile.method,
+                url=profile.login_url,
+                headers=profile.headers,
+                data=profile.credentials,
+            )
             response.raise_for_status()
-            payload = response.json()
-        except (httpx.HTTPError, ValueError) as exc:
+        except httpx.HTTPError as exc:
             raise AuthTokenError(
                 f"Authentication failed for profile '{profile.name}': {exc}"
             ) from exc
 
-        token = self._get_nested_value(payload, profile.token_field)
-        if not isinstance(token, str) or not token:
+        token = self._extract_access_token_cookie(response)
+        if token is None:
             raise AuthTokenError(
-                f"Token field '{profile.token_field}' was missing from the "
-                f"authentication response for profile '{profile.name}'."
+                f"The '{ACCESS_TOKEN_COOKIE_NAME}' cookie was missing from the "
+                f"login response for profile '{profile.name}'."
             )
 
-        refresh_seconds = self.refresh_after_seconds
-        if profile.expires_in_field:
-            expires_in = self._get_nested_value(payload, profile.expires_in_field)
-            if isinstance(expires_in, str):
-                try:
-                    expires_in = float(expires_in)
-                except ValueError:
-                    expires_in = None
-            if isinstance(expires_in, (int, float)) and expires_in > 0:
-                safety_window = min(30.0, float(expires_in) * 0.1)
-                refresh_seconds = min(
-                    refresh_seconds,
-                    max(0.0, float(expires_in) - safety_window),
-                )
-
-        logger.info("Bearer token refreshed for auth profile '%s'.", profile.name)
-        return token, refresh_seconds
+        logger.info("Access-token cookie refreshed for auth profile '%s'.", profile.name)
+        return token
 
     @staticmethod
-    def _get_nested_value(payload: object, field_path: str) -> object | None:
-        value = payload
-        for part in field_path.split("."):
-            if not isinstance(value, dict) or part not in value:
-                return None
-            value = value[part]
-        return value
+    def _extract_access_token_cookie(response: httpx.Response) -> str | None:
+        # Redirect responses can carry the login cookie, so inspect the full
+        # response chain from newest to oldest without parsing any body data.
+        for candidate in reversed([*response.history, response]):
+            for header in candidate.headers.get_list("set-cookie"):
+                cookies = SimpleCookie()
+                cookies.load(header)
+                morsel = cookies.get(ACCESS_TOKEN_COOKIE_NAME)
+                if morsel is not None and morsel.value:
+                    return morsel.value
+        return None

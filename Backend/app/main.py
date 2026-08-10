@@ -21,7 +21,7 @@ from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.ping_monitor.repository import PingMonitorRepository
 from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
 from app.modules.auth_profiles.repository import AuthProfileRepository
-from app.modules.auth_profiles.token_manager import BearerTokenManager
+from app.modules.auth_profiles.token_manager import AccessTokenCookieManager
 import app.core.auth_tokens as auth_token_state
 import app.core.scheduler as scheduler_state
 
@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
-    auth_token_state.token_manager = BearerTokenManager(
+    auth_token_state.token_manager = AccessTokenCookieManager(
         auth_profile_repository,
     )
     checker_factory = CheckerFactory(
