@@ -134,8 +134,3 @@ class HeartbeatMonitorRepository:
         )
 
         return result.modified_count > 0
-
-    async def create_indexes(self):
-        await self.collection.create_index("heartbeat_token_hash", unique=True)
-        await self.collection.create_index("is_active")
-        await self.collection.create_index("name")

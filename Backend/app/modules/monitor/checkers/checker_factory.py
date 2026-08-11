@@ -3,12 +3,13 @@ from app.modules.monitor.checkers.http_checker import HTTPChecker
 from app.modules.monitor.checkers.api_checker import ApiChecker
 from app.modules.monitor.checkers.ping_checker import PingChecker
 from app.modules.monitor.checkers.heartbeat_checker import HeartbeatChecker
+from app.modules.auth_profiles.token_manager import AccessTokenCookieManager
 
 class CheckerFactory:
-    def __init__(self):
+    def __init__(self, token_manager: AccessTokenCookieManager | None = None):
         self._checkers = {
             MonitorType.HTTP: HTTPChecker(),
-            MonitorType.API: ApiChecker(),
+            MonitorType.API: ApiChecker(token_manager=token_manager),
             MonitorType.PING: PingChecker(),
             MonitorType.HEARTBEAT: HeartbeatChecker(),
         }
@@ -22,3 +23,5 @@ class CheckerFactory:
     async def close(self):
         for checker in self._checkers.values():
             await checker.close()
+        if token_manager := self._checkers[MonitorType.API].token_manager:
+            await token_manager.close()

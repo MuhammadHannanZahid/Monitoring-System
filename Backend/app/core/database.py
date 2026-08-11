@@ -54,6 +54,7 @@ class DatabaseManager:
     async def _create_indexes(self) -> None:
         await self._create_monitor_result_indexes()
         await self._create_incident_indexes()
+        await self._create_heartbeat_indexes()
         logger.info("MongoDB indexes initialized.")
 
     async def _create_monitor_result_indexes(self) -> None:
@@ -72,6 +73,13 @@ class DatabaseManager:
         await collection.create_index([("started_at", DESCENDING)])
         await collection.create_index([("is_resolved", ASCENDING)])
         logger.info("Incident indexes initialized.")
+
+    async def _create_heartbeat_indexes(self) -> None:
+        collection = self.database[Collections.HEARTBEAT_MONITORS]
+        await collection.create_index("heartbeat_token_hash", unique=True)
+        await collection.create_index("is_active")
+        await collection.create_index("name")
+        logger.info("Heartbeat indexes initialized.")
 
     def get_database(self) -> AsyncIOMotorDatabase:
         return self.database

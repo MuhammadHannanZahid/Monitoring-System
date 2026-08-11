@@ -18,7 +18,6 @@ class APIMonitorModel(BaseMonitorModel):
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
 
-
 class CreateApiMonitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     url: str = Field(max_length=500)
@@ -72,3 +71,4 @@ class ApiMonitorResponse(BaseModel):
     expected_response_time_ms: int | None
     expected_headers: dict[str, str] | None
     expected_content_type: str | None
+    auth_profile_id: str | None = None

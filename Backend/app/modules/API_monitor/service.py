@@ -6,11 +6,18 @@ from app.shared.models.api_monitor import (
     UpdateApiMonitorRequest,
 )
 from app.modules.API_monitor.repository import API_monitorRepository
+from app.modules.API_monitor.schemas import CreateApiMonitorRequest, UpdateApiMonitorRequest
+from app.modules.auth_profiles.repository import AuthProfileRepository
 import app.core.scheduler as scheduler_state
 
 class API_monitorService:
-    def __init__(self, repository: API_monitorRepository):
+    def __init__(
+        self,
+        repository: API_monitorRepository,
+        auth_profile_repository: AuthProfileRepository | None = None,
+    ):
         self.repository = repository
+        self.auth_profile_repository = auth_profile_repository
 
     async def create_monitor(self, request: CreateApiMonitorRequest, expected_response_time_ms: int | None = None, created_by: str | None = None) -> APIMonitorModel:
 
@@ -21,6 +28,8 @@ class API_monitorService:
         existing = await self.repository.get_by_url(request.url)
         if existing:
             raise ValueError("API monitor for this URL already exists.")
+
+        await self._validate_auth_profile(request.auth_profile_id)
 
         now = datetime.now(timezone.utc)
 
@@ -44,6 +53,7 @@ class API_monitorService:
             last_response_time_ms=None,
             expected_headers=request.expected_headers,
             expected_content_type=request.expected_content_type,
+            auth_profile_id=request.auth_profile_id,
         )
         monitor.id = await self.repository.create(monitor)
 
@@ -76,11 +86,22 @@ class API_monitorService:
             if existing and existing.id != monitor_id:
                 raise ValueError("API monitor for this URL already exists.")
 
+        if "auth_profile_id" in update_data:
+            await self._validate_auth_profile(update_data["auth_profile_id"])
+
         success = await self.repository.update_monitor(monitor_id, update_data)
 
         if not success:
             return None
         return await self.repository.get_by_id(monitor_id)
+
+    async def _validate_auth_profile(self, profile_id: str | None) -> None:
+        if profile_id is None:
+            return
+        if self.auth_profile_repository is None:
+            raise ValueError("Auth profile validation is unavailable.")
+        if await self.auth_profile_repository.get_by_id(profile_id) is None:
+            raise ValueError("Auth profile not found.")
 
     async def delete_monitor(self, monitor_id: str) -> bool:
         monitor = await self.get_monitor(monitor_id)
