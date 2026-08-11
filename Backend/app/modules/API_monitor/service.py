@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
-from app.core.database import get_database
+from app.core.database import get_engine
 from app.shared.models.api_monitor import (
     APIMonitorModel,
     ApiMonitorResponse,
@@ -175,8 +175,9 @@ class API_monitorService:
 
 
 class API_monitorRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.API_MONITORS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.API_MONITORS]
         self.model = APIMonitorModel
 
     async def create(self, entity: APIMonitorModel) -> str:
@@ -342,5 +343,7 @@ class API_monitorRepository:
             monitors.append(APIMonitorModel(**document))
         return monitors
 
-def get_API_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> API_monitorRepository:
-    return API_monitorRepository(database)
+def get_API_monitor_repository(
+    engine: AIOEngine = Depends(get_engine),
+) -> API_monitorRepository:
+    return API_monitorRepository(engine)

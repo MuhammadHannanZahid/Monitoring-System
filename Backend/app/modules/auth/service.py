@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
-from app.core.database import get_database
+from app.core.database import get_engine
 from app.core.jwt import JWTService
 from app.core.security import PasswordService, RefreshTokenService
 from app.modules.auth.dto import AuthTokens
@@ -86,9 +86,10 @@ class AuthService:
 class AuthRepository:
     def __init__(
         self,
-        database: AsyncIOMotorDatabase,
+        engine: AIOEngine,
     ):
-        self.collection = database[Collections.USERS]
+        self.engine = engine
+        self.collection = engine.database[Collections.USERS]
 
     async def create_user(
         self,
@@ -194,6 +195,6 @@ class AuthRepository:
 
 
 def get_auth_repository(
-    database: AsyncIOMotorDatabase = Depends(get_database),
+    engine: AIOEngine = Depends(get_engine),
 ) -> AuthRepository:
-    return AuthRepository(database)
+    return AuthRepository(engine)

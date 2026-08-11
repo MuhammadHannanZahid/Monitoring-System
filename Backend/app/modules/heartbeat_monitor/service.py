@@ -6,7 +6,7 @@ import uuid
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
 import app.core.scheduler as scheduler_state
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
@@ -216,8 +216,9 @@ class HeartbeatMonitorService:
 
 
 class HeartbeatMonitorRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database["heartbeat_monitors"]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database["heartbeat_monitors"]
 
     @staticmethod
     def _to_object_id(monitor_id: str) -> ObjectId | None:

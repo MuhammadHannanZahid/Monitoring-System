@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
-from app.core.database import get_database
+from app.core.database import get_engine
 from app.shared.constants import Collections
 from app.shared.models.monitor_result import MonitorResultModel
 from app.shared.models.base_monitor import MonitorStatus
@@ -46,8 +46,9 @@ class MonitorResultService:
 
 
 class MonitorResultRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.MONITOR_RESULTS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.MONITOR_RESULTS]
 
     async def save_result(self, result: MonitorResultModel) -> str:
         document = result.model_dump()
@@ -332,5 +333,7 @@ class MonitorResultRepository:
 
         return results
 
-def get_monitor_result_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> MonitorResultRepository:
-    return MonitorResultRepository(database)
+def get_monitor_result_repository(
+    engine: AIOEngine = Depends(get_engine),
+) -> MonitorResultRepository:
+    return MonitorResultRepository(engine)

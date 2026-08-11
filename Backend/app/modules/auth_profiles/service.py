@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
 import app.modules.auth_profiles.token_manager as auth_token_state
 from app.shared.constants import Collections
@@ -114,8 +114,9 @@ class AuthProfileRepository:
         "expires_in_field": "",
     }
 
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.AUTH_PROFILES]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.AUTH_PROFILES]
 
     @staticmethod
     def _to_object_id(profile_id: str) -> ObjectId | None:

@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-motor
+odmantic
 pymongo
 python-jose
 argon2-cffi

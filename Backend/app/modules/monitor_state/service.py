@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from odmantic import AIOEngine
+
 from app.core.config import settings
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
@@ -102,8 +104,9 @@ class MonitorStateService:
 
 
 class MonitorStateRepository:
-    def __init__(self,database):
-        self.collection = database[Collections.MONITOR_STATES]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.MONITOR_STATES]
 
     async def create(self, monitor_id: str, monitor_type: MonitorType):
         state = MonitorStateModel(monitor_id=monitor_id, monitor_type=monitor_type)

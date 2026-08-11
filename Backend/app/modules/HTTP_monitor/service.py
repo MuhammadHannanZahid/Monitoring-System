@@ -3,8 +3,9 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
-from app.core.database import get_database
+from odmantic import AIOEngine
+
+from app.core.database import get_engine
 from app.shared.constants import Collections
 from app.shared.constants import Messages
 from app.shared.models.base_monitor import MonitorStatus
@@ -159,8 +160,9 @@ class HTTP_monitorService:
 
 
 class HTTP_monitorRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.HTTP_MONITORS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.HTTP_MONITORS]
         self.model = HTTPMonitorModel
 
     async def create(self, entity: HTTPMonitorModel) -> str:
@@ -324,5 +326,7 @@ class HTTP_monitorRepository:
             monitors.append(HTTPMonitorModel(**document))
         return monitors
 
-def get_HTTP_monitor_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> HTTP_monitorRepository:
-    return HTTP_monitorRepository(database)
+def get_HTTP_monitor_repository(
+    engine: AIOEngine = Depends(get_engine),
+) -> HTTP_monitorRepository:
+    return HTTP_monitorRepository(engine)

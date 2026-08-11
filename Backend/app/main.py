@@ -50,19 +50,19 @@ async def lifespan(app: FastAPI):
 
     await db_manager.connect()
 
-    database = db_manager.database
+    engine = db_manager.engine
 
-    http_repository = HTTP_monitorRepository(database)
-    api_repository = API_monitorRepository(database)
-    ping_repository = PingMonitorRepository(database)
-    heartbeat_repository = HeartbeatMonitorRepository(database)
-    auth_profile_repository = AuthProfileRepository(database)
+    http_repository = HTTP_monitorRepository(engine)
+    api_repository = API_monitorRepository(engine)
+    ping_repository = PingMonitorRepository(engine)
+    heartbeat_repository = HeartbeatMonitorRepository(engine)
+    auth_profile_repository = AuthProfileRepository(engine)
     await auth_profile_repository.create_indexes()
-    incident_repository = IncidentRepository(database)
+    incident_repository = IncidentRepository(engine)
     incident_service = IncidentService(incident_repository)
-    monitor_result_repository = MonitorResultRepository(database)
+    monitor_result_repository = MonitorResultRepository(engine)
     monitor_result_service = MonitorResultService(monitor_result_repository)
-    monitor_state_repository = MonitorStateRepository(database)
+    monitor_state_repository = MonitorStateRepository(engine)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
     auth_token_state.token_manager = AccessTokenCookieManager(auth_profile_repository)

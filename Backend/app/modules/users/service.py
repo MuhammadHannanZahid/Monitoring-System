@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
 from app.core.config import settings
-from app.core.database import get_database
+from app.core.database import get_engine
 from app.core.security import PasswordService
 from app.shared.constants import Collections, Messages
 from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
@@ -148,8 +148,9 @@ class UserService:
 
 
 class UserRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.USERS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.USERS]
 
     async def update_seed_admin(self) -> None:
         await self.collection.update_one(
@@ -229,5 +230,7 @@ class UserRepository:
     async def set_active(self, user_id: str, is_active: bool) -> bool:
         return await self.update_user(user_id,{"is_active": is_active})
 
-def get_user_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> UserRepository:
-    return UserRepository(database)
+def get_user_repository(
+    engine: AIOEngine = Depends(get_engine),
+) -> UserRepository:
+    return UserRepository(engine)

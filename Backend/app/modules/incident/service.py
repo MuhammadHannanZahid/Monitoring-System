@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
-from app.core.database import get_database
+from app.core.database import get_engine
 from app.core.logger import get_logger
 from app.shared.constants import Collections
 from app.shared.models.incident import IncidentModel
@@ -67,8 +67,9 @@ class IncidentService:
 
 
 class IncidentRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.INCIDENTS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.INCIDENTS]
 
     async def create_incident(self, incident: IncidentModel) -> str:
         document = incident.model_dump()
@@ -185,5 +186,7 @@ class IncidentRepository:
             for item in result
         }
 
-def get_incident_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> IncidentRepository:
-    return IncidentRepository(database)
+def get_incident_repository(
+    engine: AIOEngine = Depends(get_engine),
+) -> IncidentRepository:
+    return IncidentRepository(engine)

@@ -1,5 +1,7 @@
 from fastapi import Depends
-from app.core.database import get_database
+from odmantic import AIOEngine
+
+from app.core.database import get_engine
 
 from app.modules.heartbeat_monitor.service import (
     HeartbeatMonitorRepository,
@@ -8,9 +10,9 @@ from app.modules.heartbeat_monitor.service import (
 
 
 def get_heartbeat_repository(
-    database=Depends(get_database),
+    engine: AIOEngine = Depends(get_engine),
 ) -> HeartbeatMonitorRepository:
-    return HeartbeatMonitorRepository(database)
+    return HeartbeatMonitorRepository(engine)
 
 
 def get_heartbeat_service(

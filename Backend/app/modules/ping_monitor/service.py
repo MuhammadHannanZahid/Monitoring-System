@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from odmantic import AIOEngine
 
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
@@ -141,8 +141,9 @@ class PingMonitorService:
 
 
 class PingMonitorRepository:
-    def __init__(self, database: AsyncIOMotorDatabase):
-        self.collection = database[Collections.PING_MONITORS]
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+        self.collection = engine.database[Collections.PING_MONITORS]
 
     def _to_object_id(self, monitor_id: str) -> ObjectId | None:
         try:

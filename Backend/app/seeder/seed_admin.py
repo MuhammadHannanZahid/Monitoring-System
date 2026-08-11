@@ -4,9 +4,9 @@ from app.core.config import settings
 from app.core.database import db_manager
 from app.core.logger import get_logger
 from app.core.security import password_service
+from app.modules.users.service import UserRepository
 
 from app.shared.models.auth_user import UserModel
-from app.shared.constants import Collections
 from app.shared.models.auth_user import UserRole
 
 from .base import BaseSeeder
@@ -16,11 +16,10 @@ logger = get_logger(__name__)
 
 class AdminSeeder(BaseSeeder):
     async def run(self) -> None:
-        database = db_manager.get_database()
-        users = database[Collections.USERS]
+        repository = UserRepository(db_manager.get_engine())
 
-        existing_admin = await users.find_one(
-            {"username": settings.default_admin_username}
+        existing_admin = await repository.get_by_username(
+            settings.default_admin_username
         )
 
         if existing_admin:
@@ -43,9 +42,6 @@ class AdminSeeder(BaseSeeder):
             last_login=None,
         )
 
-        document = admin.model_dump()
-        document.pop("id", None)
-
-        await users.insert_one(document)
+        await repository.create_user(admin)
 
         logger.info("Default admin created successfully.")
