@@ -160,9 +160,5 @@ class ApiChecker:
         return headers
 
     async def close(self):
-# <<<<<<< HEAD
-#         await self.client.aclose()
-# =======
         if self._owns_client:
             await self.client.aclose()
-# >>>>>>> API-Monitor-Improvement

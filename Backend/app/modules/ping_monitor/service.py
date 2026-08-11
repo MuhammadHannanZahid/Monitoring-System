@@ -73,29 +73,8 @@ class PingMonitorService:
 
     async def delete_monitor(self, monitor_id: str) -> bool:
         if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.stop_worker(monitor.id)
-
-        await self.repository.delete_monitor(monitor.id)
-
-    async def activate_monitor(self, monitor_id: str) -> PingMonitorModel | None:
-        logger.info("Scheduler object: %s", scheduler_state.scheduler)
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, True)
-        updated = await self.repository.get_by_id(monitor.id)
-        if updated is not None and scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.start_worker(updated)
-        return updated
-
-    async def deactivate_monitor(self, monitor_id: str) -> PingMonitorModel | None:
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, False)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.stop_worker(monitor.id)
-        return await self.repository.get_by_id(monitor.id)
+            await scheduler_state.scheduler.stop_worker(monitor_id)
+        return await self.repository.delete(monitor_id)
 
     def _normalize_host(self, host: str) -> str:
         host = host.strip()
@@ -235,22 +214,6 @@ class PingMonitorRepository:
         result = await self.collection.replace_one({"_id": object_id}, document)
         return result.modified_count > 0
 
-    async def set_active(self, monitor_id: str, is_active: bool) -> bool:
-        object_id = self._to_object_id(monitor_id)
-
-        if object_id is None:
-            return False
-
-        result = await self.collection.update_one(
-            {"_id": object_id},
-            {
-                "$set": {
-                    "is_active": is_active,
-                }
-            },
-        )
-        return result.modified_count > 0
-
     async def delete(self, monitor_id: str) -> bool:
         object_id = self._to_object_id(monitor_id)
 
@@ -259,7 +222,3 @@ class PingMonitorRepository:
 
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
-
-    async def get_by_name(self, name: str) -> PingMonitorModel | None:
-        document = await self.collection.find_one({"name": name})
-        return self._to_model(document)

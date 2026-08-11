@@ -166,15 +166,6 @@ class AuthRepository:
         self.engine = engine
         self.collection = engine.database[Collections.USERS]
 
-    async def create_user(
-        self,
-        user: UserModel,
-    ) -> str:
-        document = user.model_dump()
-        document.pop("id", None)
-        result = await self.collection.insert_one(document)
-        return str(result.inserted_id)
-
     async def get_by_username(
         self,
         username: str,
@@ -215,7 +206,6 @@ class AuthRepository:
         try:
             object_id = ObjectId(user_id)
         except InvalidId:
-            # FIX: Return False to match return type
             return False
 
         result = await self.collection.update_one(
@@ -264,7 +254,6 @@ class AuthRepository:
         try:
             object_id = ObjectId(user_id)
         except InvalidId:
-            # FIX: Return False to match return type
             return False
 
         now = datetime.now(timezone.utc)

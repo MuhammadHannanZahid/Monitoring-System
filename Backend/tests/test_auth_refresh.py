@@ -151,8 +151,8 @@ def test_refresh_rotates_token_and_rejects_replay(monkeypatch):
         asyncio.run(service.refresh_tokens(refresh_token))
 
 
-def test_refresh_route_is_exposed():
-    assert "/api/auth/refresh" in app.openapi()["paths"]
+def test_refresh_route_is_not_exposed():
+    assert "/api/auth/refresh" not in app.openapi()["paths"]
 
 
 def test_auth_cookies_are_http_only_and_scoped_to_api(monkeypatch):

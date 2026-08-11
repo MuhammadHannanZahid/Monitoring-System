@@ -134,14 +134,6 @@ class MonitorService:
     async def get_monitor(self, monitor_id: str) -> MonitorModel | None:
         return await self.repository_factory.get_monitor(monitor_id)
 
-    async def get_monitor_lookup(self) -> dict[str, object]:
-        monitors = await self.list_monitors()
-
-        return {
-            monitor.id: monitor
-            for monitor in monitors
-        }
-
     async def get_monitors_with_lookup(self) -> tuple[list[object], dict[str, object]]:
         monitors = await self.list_monitors()
 

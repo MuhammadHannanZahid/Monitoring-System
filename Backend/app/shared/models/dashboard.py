@@ -17,21 +17,6 @@ class DashboardSummaryResponse(BaseModel):
     average_response_time_ms: float
 
 
-class DashboardMonitorResponse(BaseModel):
-    id: str
-    name: str
-    url: str
-    status: MonitorStatus | None = None
-    is_slow: bool
-    response_time_ms: int | None
-    expected_response_time_ms: int | None
-    status_code: int | None
-    uptime_percentage: float | None = None
-    incidents: int | None = None
-    last_checked_at: datetime | None
-    is_active: bool
-
-
 class DashboardIncidentResponse(BaseModel):
     id: str
     monitor_id: str
@@ -52,7 +37,7 @@ class DashboardActivityResponse(BaseModel):
 
 class ResponseHistoryPoint(BaseModel):
     checked_at: datetime
-    response_time_ms: int
+    response_time_ms: int | None
 
 
 class ResponseHistoryResponse(BaseModel):

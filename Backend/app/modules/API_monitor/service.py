@@ -66,7 +66,6 @@ class API_monitorService:
         )
         monitor.id = await self.repository.create(monitor)
 
-        # Start scheduler worker immediately
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(monitor)
 
@@ -119,25 +118,6 @@ class API_monitorService:
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
         return await self.repository.delete_monitor(monitor_id)
-
-    async def activate_monitor(self, monitor_id: str):
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, True)
-        updated = await self.repository.get_by_id(monitor.id)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.start_worker(updated)
-        return updated
-
-    async def deactivate_monitor(self, monitor_id: str):
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, False)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.stop_worker(monitor.id)
-        return await self.repository.get_by_id(monitor.id)
 
     def to_response(self, API_monitor: APIMonitorModel) -> ApiMonitorResponse:
         return ApiMonitorResponse(
@@ -253,9 +233,6 @@ class API_monitorRepository:
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
 
-    async def set_active(self, monitor_id: str, is_active: bool) -> bool:
-        return await self.update_monitor(monitor_id, {"is_active": is_active})
-
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(monitor_id)
@@ -275,64 +252,6 @@ class API_monitorRepository:
             },
         )
         return result.modified_count > 0
-
-    async def update_monitor_state(self, monitor_id: str, *, status: MonitorStatus, consecutive_failures: int, consecutive_successes: int, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
-        try:
-            object_id = ObjectId(monitor_id)
-        except InvalidId:
-            return False
-
-        result = await self.collection.update_one(
-            {"_id": object_id},
-            {
-                "$set": {
-                    "status": status,
-                    "last_status_code": status_code,
-                    "last_response_time_ms": response_time_ms,
-                    "last_checked_at": checked_at,
-                    "updated_at": checked_at,
-                    "consecutive_failures": consecutive_failures,
-                    "consecutive_successes": consecutive_successes,
-                }
-            },
-        )
-        return result.modified_count > 0
-
-    async def count_all(self) -> int:
-        return await self.collection.count_documents({})
-
-    async def count_active(self) -> int:
-        return await self.collection.count_documents({"is_active": True})
-
-    async def count_inactive(self) -> int:
-        return await self.collection.count_documents({"is_active": False})
-
-    async def count_by_status(self, status: MonitorStatus) -> int:
-        return await self.collection.count_documents({"status": status})
-
-    async def get_dashboard_counts(self) -> dict[str, int]:
-        total = await self.collection.count_documents({})
-        active = await self.collection.count_documents({"is_active": True})
-        inactive = await self.collection.count_documents({"is_active": False})
-        up = await self.collection.count_documents({"status": MonitorStatus.UP})
-        down = await self.collection.count_documents({"status": MonitorStatus.DOWN})
-        unknown = await self.collection.count_documents({"status": MonitorStatus.UNKNOWN})
-
-        return {
-            "total": total,
-            "active": active,
-            "inactive": inactive,
-            "up": up,
-            "down": down,
-            "unknown": unknown,
-        }
-
-    async def count_slow(self) -> int:
-        return await self.collection.count_documents(
-            {
-                "is_slow": True
-            }
-        )
 
     async def list_active_monitors(self) -> list[APIMonitorModel]:
         cursor = self.collection.find({"is_active": True})

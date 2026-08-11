@@ -72,10 +72,6 @@ class HeartbeatMonitorService:
     async def get_monitor(self, monitor_id: str) -> HeartbeatMonitorModel | None:
         return await self.repository.get_by_id(monitor_id)
 
-    async def get_by_token(self, token: str) -> HeartbeatMonitorModel | None:
-        token_hash = self._hash_token(token)
-        return await self.repository.get_by_token_hash(token_hash)
-
     async def list_monitors(self) -> list[HeartbeatMonitorModel]:
         return await self.repository.list_monitors()
 
@@ -112,29 +108,6 @@ class HeartbeatMonitorService:
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
         return await self.repository.delete(monitor_id)
-
-    async def activate_monitor(self, monitor_id: str) -> HeartbeatMonitorModel | None:
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, True)
-        updated = await self.repository.get_by_id(monitor.id)
-        if (
-            updated is not None
-            and updated.last_heartbeat_at is not None
-            and scheduler_state.scheduler is not None
-        ):
-            await scheduler_state.scheduler.start_worker(updated)
-        return updated
-
-    async def deactivate_monitor(self, monitor_id: str) -> HeartbeatMonitorModel | None:
-        monitor = await self.repository.get_by_id(monitor_id)
-        if monitor is None:
-            return None
-        await self.repository.set_active(monitor.id, False)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.stop_worker(monitor.id)
-        return await self.repository.get_by_id(monitor.id)
 
     async def regenerate_token(self, monitor_id: str) -> HeartbeatMonitorModel | None:
         monitor = await self.repository.get_by_id(monitor_id)
@@ -245,9 +218,6 @@ class HeartbeatMonitorRepository:
             return None
         return self._to_model(await self.collection.find_one({"_id": object_id}))
 
-    async def get_by_name(self, name: str) -> HeartbeatMonitorModel | None:
-        return self._to_model(await self.collection.find_one({"name": name}))
-
     async def get_by_token_hash(self, token_hash: str) -> HeartbeatMonitorModel | None:
         return self._to_model(
             await self.collection.find_one({"heartbeat_token_hash": token_hash})
@@ -280,21 +250,6 @@ class HeartbeatMonitorRepository:
             {
                 "$set": update_data,
                 "$unset": {"check_interval": ""},
-            },
-        )
-        return result.modified_count > 0
-
-    async def set_active(self, monitor_id: str, is_active: bool) -> bool:
-        object_id = self._to_object_id(monitor_id)
-        if object_id is None:
-            return False
-        result = await self.collection.update_one(
-            {"_id": object_id},
-            {
-                "$set": {
-                    "is_active": is_active,
-                    "updated_at": datetime.now(timezone.utc),
-                }
             },
         )
         return result.modified_count > 0

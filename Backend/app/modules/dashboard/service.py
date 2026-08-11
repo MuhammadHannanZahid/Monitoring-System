@@ -1,5 +1,5 @@
 from app.shared.models.base_monitor import MonitorStatus
-from app.shared.models.dashboard import (DashboardSummaryResponse, DashboardMonitorResponse, DashboardIncidentResponse,
+from app.shared.models.dashboard import (DashboardSummaryResponse, DashboardIncidentResponse,
     DashboardActivityResponse, ResponseHistoryResponse, ResponseHistoryPoint, UptimeResponse, StatusHistoryResponse,
     StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError
@@ -15,7 +15,7 @@ class DashboardService:
         self.incident_repository = incident_repository
 
     async def get_summary(self) -> DashboardSummaryResponse:
-        monitors = await self.monitor_service.get_monitors_with_lookup()
+        monitors, _ = await self.monitor_service.get_monitors_with_lookup()
         total_monitors = len(monitors)
         active_monitors = sum(1 for monitor in monitors if monitor.is_active)
         inactive_monitors = total_monitors - active_monitors
@@ -38,56 +38,11 @@ class DashboardService:
             slow_monitors=slow_monitors,
         )
 
-    async def get_monitors(self) -> list[DashboardMonitorResponse]:
-        monitors = await self.monitor_service.get_monitors_with_lookup()
-        total = len(monitors)
-        responses = []
-
-        for monitor in monitors:
-            stats = stats_lookup.get(
-                monitor.id,
-                {
-                    "total": 0,
-                    "successful": 0,
-                },
-            )
-
-            total = stats["total"]
-            successful = stats["successful"]
-
-            uptime = (
-                round(successful / total * 100, 2)
-                if total > 0
-                else 0.0
-            )
-
-            incidents = incident_lookup.get(
-                monitor.id,
-                0,
-            )
-
-            responses.append(
-                DashboardMonitorResponse(
-                    id=monitor.id,
-                    name=monitor.name,
-                    url=monitor.url,
-                    status=monitor.status,
-                    response_time_ms=monitor.last_response_time_ms,
-                    status_code=monitor.last_status_code,
-                    uptime_percentage=uptime,
-                    incidents=incidents,
-                    last_checked_at=monitor.last_checked_at,
-                    is_active=monitor.is_active,
-                )
-            )
-
-        return responses
-
     async def get_recent_incidents(self) -> list[DashboardIncidentResponse]:
 
         incidents = await self.incident_repository.get_recent()
 
-        monitor_map = await self.monitor_service.get_monitors_with_lookup()
+        _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
 
         results = []
 
@@ -111,7 +66,7 @@ class DashboardService:
 
         results = await self.monitor_result_repository.get_recent()
 
-        monitor_map = await self.monitor_service.get_monitors_with_lookup()
+        _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
 
         activities = []
 

@@ -43,10 +43,6 @@ class TokenResponse(BaseModel):
     token_type: Literal["Bearer"] = "Bearer"
 
 
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str = Field(min_length=1)
-
-
 class CurrentUserResponse(BaseModel):
     id: str
     username: str

@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Response
 
 from app.modules.auth.dependencies import (
-    REFRESH_TOKEN_COOKIE,
     clear_auth_cookies,
     get_auth_service,
     set_auth_cookies,
@@ -9,11 +8,9 @@ from app.modules.auth.dependencies import (
 from app.modules.auth.service import AuthService
 from app.shared.authorization import require_admin, require_viewer
 from app.shared.constants import Messages
-from app.shared.exceptions import AuthenticationError
 from app.shared.models.auth_user import (
     CurrentUserResponse,
     LoginRequest,
-    RefreshTokenRequest,
     TokenResponse,
     UserModel,
 )
@@ -40,33 +37,6 @@ async def login(
 
     return success_response(
         message=Messages.LOGIN_SUCCESS,
-        data=TokenResponse(
-            access_token=tokens.access_token,
-            refresh_token=tokens.refresh_token,
-        ),
-    )
-
-
-@router.post("/refresh", response_model=SuccessResponse[TokenResponse])
-async def refresh_tokens(
-    http_request: Request,
-    response: Response,
-    request: RefreshTokenRequest | None = None,
-    service: AuthService = Depends(get_auth_service),
-):
-    refresh_token = (
-        request.refresh_token
-        if request is not None
-        else http_request.cookies.get(REFRESH_TOKEN_COOKIE)
-    )
-    if refresh_token is None:
-        raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
-
-    tokens = await service.refresh_tokens(refresh_token)
-    set_auth_cookies(response, tokens)
-
-    return success_response(
-        message=Messages.TOKEN_REFRESHED,
         data=TokenResponse(
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,

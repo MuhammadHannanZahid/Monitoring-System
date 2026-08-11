@@ -17,16 +17,3 @@ class IncidentModel(BaseModel):
     def duration_seconds(self) -> int:
         end = self.resolved_at or datetime.now(timezone.utc)
         return int((end - self.started_at).total_seconds())
-
-
-class IncidentResponse(BaseModel):
-    id: str
-    HTTP_monitor_id: str
-    started_at: datetime
-    resolved_at: datetime | None
-    is_resolved: bool
-    reason: str | None
-
-
-class IncidentListResponse(BaseModel):
-    list[IncidentResponse]

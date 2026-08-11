@@ -116,23 +116,6 @@ class UserService:
         await self.repository.delete_user(user_id)
         logger.info("User '%s' deleted.", user.username)
 
-    async def activate_user(self, user_id: str) -> UserModel:
-        user = await self.get_user(user_id)
-        await self.repository.set_active(user_id,True)
-        logger.info("User '%s' activated.", user.username)
-        return await self.get_user(user_id)
-
-    async def deactivate_user(self, user_id: str) -> UserModel:
-        user = await self.get_user(user_id)
-        if user.role == UserRole.ADMIN:
-            logger.warning("Attempted deactivation of admin account '%s'.", user.username)
-            raise AuthorizationError(Messages.ADMIN_DEACTIVATION_NOT_ALLOWED)
-
-        user = await self.get_user(user_id)
-        await self.repository.set_active(user_id,False)
-        logger.info("User '%s' deactivated.", user.username)
-        return await self.get_user(user_id)
-
     def to_response(self, user: UserModel) -> UserResponse:
         return UserResponse(
             id=user.id,
@@ -228,9 +211,6 @@ class UserRepository:
 
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
-
-    async def set_active(self, user_id: str, is_active: bool) -> bool:
-        return await self.update_user(user_id,{"is_active": is_active})
 
 def get_user_repository(
     engine: AIOEngine = Depends(get_engine),
