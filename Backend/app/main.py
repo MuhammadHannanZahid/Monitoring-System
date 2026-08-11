@@ -39,7 +39,6 @@ async def lifespan(app: FastAPI):
     api_repository = API_monitorRepository(database)
     ping_repository = PingMonitorRepository(database)
     heartbeat_repository = HeartbeatMonitorRepository(database)
-    await heartbeat_repository.create_indexes()
     auth_profile_repository = AuthProfileRepository(database)
     await auth_profile_repository.create_indexes()
     incident_repository = IncidentRepository(database)
@@ -49,12 +48,8 @@ async def lifespan(app: FastAPI):
     monitor_state_repository = MonitorStateRepository(database)
     monitor_state_service = MonitorStateService(monitor_state_repository)
 
-    auth_token_state.token_manager = AccessTokenCookieManager(
-        auth_profile_repository,
-    )
-    checker_factory = CheckerFactory(
-        token_manager=auth_token_state.token_manager,
-    )
+    auth_token_state.token_manager = AccessTokenCookieManager(auth_profile_repository)
+    checker_factory = CheckerFactory(token_manager=auth_token_state.token_manager)
 
     repository_factory = MonitorRepositoryFactory(
         http_repository,
