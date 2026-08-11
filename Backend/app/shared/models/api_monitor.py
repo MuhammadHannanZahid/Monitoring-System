@@ -15,3 +15,4 @@ class APIMonitorModel(BaseMonitorModel):
     expected_response_time_ms: int | None = None
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
+    auth_profile_id: str | None = None

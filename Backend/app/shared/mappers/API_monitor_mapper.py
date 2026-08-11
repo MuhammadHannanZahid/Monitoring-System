@@ -26,6 +26,7 @@ class API_monitorMapper:
             expected_response_time_ms=API_monitor.expected_response_time_ms,
             expected_headers=API_monitor.expected_headers,
             expected_content_type=API_monitor.expected_content_type,
+            auth_profile_id=API_monitor.auth_profile_id,
         )
 
     @staticmethod

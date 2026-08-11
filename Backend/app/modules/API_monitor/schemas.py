@@ -15,6 +15,7 @@ class CreateApiMonitorRequest(BaseModel):
     timeout: int = Field(default=10, gt=0)
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
+    auth_profile_id: str | None = None
 
 class UpdateApiMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -30,6 +31,7 @@ class UpdateApiMonitorRequest(BaseModel):
     is_active: bool | None = None
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
+    auth_profile_id: str | None = None
 
 class ApiMonitorResponse(BaseModel):
     id: str
@@ -53,3 +55,4 @@ class ApiMonitorResponse(BaseModel):
     expected_response_time_ms: int | None
     expected_headers: dict[str, str] | None
     expected_content_type: str | None
+    auth_profile_id: str | None

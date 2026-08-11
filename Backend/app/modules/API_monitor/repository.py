@@ -71,7 +71,7 @@ class API_monitorRepository(BaseRepository[APIMonitorModel]):
             {"_id": object_id},
             {"$set": update_data},
         )
-        return result.modified_count > 0
+        return result.matched_count > 0
 
     async def delete_monitor(self, monitor_id: str) -> bool:
         try:
