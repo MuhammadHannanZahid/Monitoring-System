@@ -2,6 +2,7 @@ class Messages:
     LOGIN_SUCCESS = "Login successful."
     LOGOUT_SUCCESS = "Logout successful."
     TOKEN_REFRESHED = "Token refreshed successfully."
+    INVALID_REFRESH_TOKEN = "Invalid or expired refresh token."
     INVALID_CREDENTIALS = "Invalid username or password."
     INCIDENT_CREATED = "Incident created successfully."
 

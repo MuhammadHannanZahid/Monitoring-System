@@ -4,7 +4,6 @@ from app.core.logger import get_logger
 from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from .base_checker import BaseChecker
-from app.core.config import settings
 
 logger = get_logger(__name__)
 

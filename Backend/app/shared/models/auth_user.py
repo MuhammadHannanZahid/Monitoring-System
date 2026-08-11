@@ -25,6 +25,7 @@ class UserModel(BaseModel):
     password_hash: str
     role: UserRole
     refresh_token_hash: str | None = None
+    refresh_token_expires_at: datetime | None = None
     is_active: bool = True
     created_at: datetime
     updated_at: datetime
@@ -40,6 +41,10 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: Literal["Bearer"] = "Bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(min_length=1)
 
 
 class CurrentUserResponse(BaseModel):

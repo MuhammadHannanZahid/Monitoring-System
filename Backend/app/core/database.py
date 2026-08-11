@@ -1,10 +1,13 @@
+import os
+from datetime import timezone
+
+from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
-from pymongo.errors import PyMongoError
-from datetime import timezone
-from app.core.config import settings
-from app.core.logger import get_logger
 from pymongo import ASCENDING, DESCENDING
+from pymongo.errors import PyMongoError
+
+from app.core.logger import get_logger
 from app.shared.constants import Collections
 
 logger = get_logger(__name__)
@@ -22,14 +25,17 @@ class DatabaseManager:
     async def connect(self) -> None:
         try:
             logger.info("Connecting to MongoDB...")
+            load_dotenv()
+            mongo_uri = os.environ["MONGO_URI"]
+            database_name = os.environ["DATABASE_NAME"]
             client = AsyncIOMotorClient(
-                settings.mongo_uri,
+                mongo_uri,
                 tz_aware=True,
                 tzinfo=timezone.utc,
             )
             self._engine = AIOEngine(
                 client=client,
-                database=settings.database_name,
+                database=database_name,
             )
             await self.engine.client.admin.command("ping")
             await self._create_indexes()

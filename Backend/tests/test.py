@@ -1,6 +1,10 @@
-from app.core.config import settings
+import os
 
-print(settings.app_name)
-print(settings.database_name)
-print(settings.jwt_secret)
-print(settings.api_prefix)
+from dotenv import load_dotenv
+
+load_dotenv()
+
+print(os.environ["APP_NAME"])
+print(os.environ["DATABASE_NAME"])
+print(os.environ["JWT_SECRET"])
+print(os.environ["API_PREFIX"])

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
+from jose import JWTError
 from odmantic import AIOEngine
 
 from app.core.database import get_engine
@@ -42,10 +43,20 @@ class AuthService:
             logger.warning("Failed login attempt for username '%s'. Invalid password.", username)
             raise AuthenticationError(Messages.INVALID_CREDENTIALS)
 
-        refresh_token = self.refresh_token_service.generate_token()
-        refresh_token_hash = (self.refresh_token_service.hash_token(refresh_token))
+        refresh_token, refresh_token_expires_at = (
+            self.jwt_service.create_refresh_token(
+                user_id=user.id,
+                username=user.username,
+                role=user.role,
+            )
+        )
+        refresh_token_hash = self.refresh_token_service.hash_token(refresh_token)
 
-        updated_refresh = await self.repository.update_refresh_token(user.id, refresh_token_hash)
+        updated_refresh = await self.repository.update_refresh_token(
+            user.id,
+            refresh_token_hash,
+            refresh_token_expires_at,
+        )
         if not updated_refresh:
             raise NotFoundError("User not found.")
 
@@ -60,6 +71,70 @@ class AuthService:
         return AuthTokens(
             access_token=access_token,
             refresh_token=refresh_token,
+        )
+
+    async def refresh_tokens(self, refresh_token: str) -> AuthTokens:
+        try:
+            payload = self.jwt_service.verify_refresh_token(refresh_token)
+        except JWTError as exc:
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN) from exc
+
+        user_id = payload.get("sub")
+        if not isinstance(user_id, str):
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+        user = await self.repository.get_by_id(user_id)
+        if (
+            user is None
+            or user.id is None
+            or not user.is_active
+            or user.refresh_token_hash is None
+            or user.refresh_token_expires_at is None
+        ):
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+        refresh_token_expires_at = user.refresh_token_expires_at
+        if refresh_token_expires_at.tzinfo is None:
+            refresh_token_expires_at = refresh_token_expires_at.replace(
+                tzinfo=timezone.utc
+            )
+        if refresh_token_expires_at <= datetime.now(timezone.utc):
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+        if not self.refresh_token_service.verify_token(
+            refresh_token,
+            user.refresh_token_hash,
+        ):
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+        new_refresh_token, new_refresh_token_expires_at = (
+            self.jwt_service.create_refresh_token(
+                user_id=user.id,
+                username=user.username,
+                role=user.role,
+            )
+        )
+        new_refresh_token_hash = self.refresh_token_service.hash_token(
+            new_refresh_token
+        )
+        rotated = await self.repository.rotate_refresh_token(
+            user_id=user.id,
+            current_refresh_token_hash=user.refresh_token_hash,
+            new_refresh_token_hash=new_refresh_token_hash,
+            refresh_token_expires_at=new_refresh_token_expires_at,
+        )
+        if not rotated:
+            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+        access_token = self.jwt_service.create_access_token(
+            user_id=user.id,
+            username=user.username,
+            role=user.role,
+        )
+        logger.info("Tokens refreshed for user '%s'.", user.username)
+        return AuthTokens(
+            access_token=access_token,
+            refresh_token=new_refresh_token,
         )
 
     async def get_current_user(self, user_id: str,) -> UserModel:
@@ -135,7 +210,8 @@ class AuthRepository:
         self,
         user_id: str,
         refresh_token_hash: str,
-    ):
+        refresh_token_expires_at: datetime,
+    ) -> bool:
         try:
             object_id = ObjectId(user_id)
         except InvalidId:
@@ -147,6 +223,34 @@ class AuthRepository:
             {
                 "$set": {
                     "refresh_token_hash": refresh_token_hash,
+                    "refresh_token_expires_at": refresh_token_expires_at,
+                    "updated_at": datetime.now(timezone.utc),
+                }
+            },
+        )
+        return result.modified_count > 0
+
+    async def rotate_refresh_token(
+        self,
+        user_id: str,
+        current_refresh_token_hash: str,
+        new_refresh_token_hash: str,
+        refresh_token_expires_at: datetime,
+    ) -> bool:
+        try:
+            object_id = ObjectId(user_id)
+        except InvalidId:
+            return False
+
+        result = await self.collection.update_one(
+            {
+                "_id": object_id,
+                "refresh_token_hash": current_refresh_token_hash,
+            },
+            {
+                "$set": {
+                    "refresh_token_hash": new_refresh_token_hash,
+                    "refresh_token_expires_at": refresh_token_expires_at,
                     "updated_at": datetime.now(timezone.utc),
                 }
             },
@@ -187,6 +291,7 @@ class AuthRepository:
             {
                 "$set": {
                     "refresh_token_hash": None,
+                    "refresh_token_expires_at": None,
                     "updated_at": datetime.now(timezone.utc),
                 }
             },

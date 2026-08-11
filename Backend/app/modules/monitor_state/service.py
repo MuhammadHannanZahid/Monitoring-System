@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime
 
+from dotenv import load_dotenv
 from odmantic import AIOEngine
 
-from app.core.config import settings
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.monitor_state import MonitorStateModel
@@ -36,15 +37,16 @@ class MonitorStateService:
 
         previous_status = state.status
 
+        load_dotenv()
         recovery_threshold = (
             1
             if monitor_type == MonitorType.HEARTBEAT
-            else settings.monitor_recovery_threshold
+            else os.enviro["MONITOR_RECOVERY_THRESHOLD"]
         )
         failure_threshold = (
             1
             if monitor_type == MonitorType.HEARTBEAT
-            else settings.monitor_failure_threshold
+            else os.enviro["MONITOR_FAILURE_THRESHOLD"]
         )
 
         if success:

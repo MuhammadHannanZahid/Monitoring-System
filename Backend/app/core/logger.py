@@ -1,9 +1,10 @@
 import logging
+import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from app.core.config import settings
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 LOG_DIR = BASE_DIR / "logs"
@@ -28,7 +29,10 @@ formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT,)
 
 root_logger = logging.getLogger()
 
-root_logger.setLevel(settings.log_level.upper())
+load_dotenv()
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+
+root_logger.setLevel(log_level)
 
 root_logger.propagate = False
 
@@ -37,7 +41,7 @@ if root_logger.handlers:
 
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(formatter)
-console_handler.setLevel(settings.log_level.upper())
+console_handler.setLevel(log_level)
 
 app_handler = RotatingFileHandler(
     APP_LOG_FILE,
@@ -47,7 +51,7 @@ app_handler = RotatingFileHandler(
 )
 
 app_handler.setFormatter(formatter)
-app_handler.setLevel(settings.log_level.upper())
+app_handler.setLevel(log_level)
 app_handler.addFilter(MaxLevelFilter(logging.WARNING))
 
 error_handler = RotatingFileHandler(

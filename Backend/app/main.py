@@ -1,5 +1,8 @@
 from contextlib import asynccontextmanager
 import asyncio
+import os
+
+from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
@@ -9,7 +12,6 @@ from app.api.API_monitor import router as api_monitor_router
 from app.api.ping_monitor import router as ping_router
 from app.api.heartbeat_monitor import router as heartbeat_router
 from app.api.auth_profiles import router as auth_profiles_router
-from app.core.config import settings
 from app.core.database import db_manager
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
@@ -103,7 +105,12 @@ async def lifespan(app: FastAPI):
         await db_manager.disconnect()
         logger.info("Application stopped.")
 
-app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
+load_dotenv()
+app = FastAPI(
+    title=os.environ["APP_NAME"],
+    version=os.environ["APP_VERSION"],
+    lifespan=lifespan,
+)
 
 register_exception_handlers(app)
 app.include_router(api_router)

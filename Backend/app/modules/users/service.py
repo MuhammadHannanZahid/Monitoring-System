@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
+from dotenv import load_dotenv
 from fastapi import Depends
 from odmantic import AIOEngine
 
-from app.core.config import settings
 from app.core.database import get_engine
 from app.core.security import PasswordService
 from app.shared.constants import Collections, Messages
@@ -153,8 +154,9 @@ class UserRepository:
         self.collection = engine.database[Collections.USERS]
 
     async def update_seed_admin(self) -> None:
+        load_dotenv()
         await self.collection.update_one(
-            {"username": settings.default_admin_username},
+            {"username": os.environ["DEFAULT_ADMIN_USERNAME"]},
             {
                 "$set": {
                     "role": UserRole.ADMIN,
