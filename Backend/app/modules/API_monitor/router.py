@@ -5,8 +5,13 @@ from app.modules.API_monitor.service import API_monitorService
 from app.shared.mappers.API_monitor_mapper import API_monitorMapper
 from app.shared.responses import ApiResponse
 from app.modules.API_monitor.schemas import ApiMonitorResponse
+from app.shared.authorization import require_admin
 
-router = APIRouter(prefix="/API_monitors", tags=["API Monitors"])
+router = APIRouter(
+    prefix="/API_monitors",
+    tags=["API Monitors"],
+    dependencies=[Depends(require_admin())],
+)
 
 @router.post("/create", response_model=ApiResponse[ApiMonitorResponse], status_code=status.HTTP_201_CREATED)
 async def create_monitor(request: CreateApiMonitorRequest, service: API_monitorService = Depends(get_API_monitor_service)):

@@ -12,6 +12,7 @@ from app.modules.heartbeat_monitor.schemas import (
     RegenerateHeartbeatTokenResponse,
 )
 from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
+from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.mappers.heartbeat_monitor_mapper import HeartbeatMonitorMapper
 from app.shared.responses import SuccessResponse, success_response
@@ -25,6 +26,7 @@ router = APIRouter(
 @router.post(
     "/create",
     response_model=SuccessResponse[HeartbeatTokenResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def create_monitor(
     request: CreateHeartbeatMonitorRequest,
@@ -45,6 +47,7 @@ async def create_monitor(
 @router.get(
     "/list_all",
     response_model=SuccessResponse[list[HeartbeatMonitorResponse]],
+    dependencies=[Depends(require_admin())],
 )
 async def list_monitors(
     service: HeartbeatMonitorService = Depends(get_heartbeat_service),
@@ -60,6 +63,7 @@ async def list_monitors(
 @router.get(
     "/{heartbeat_monitor_id}/get_one",
     response_model=SuccessResponse[HeartbeatMonitorResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def get_monitor(
     heartbeat_monitor_id: str,
@@ -79,6 +83,7 @@ async def get_monitor(
 @router.put(
     "/{heartbeat_monitor_id}/update",
     response_model=SuccessResponse[HeartbeatMonitorResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def update_monitor(
     heartbeat_monitor_id: str,
@@ -104,6 +109,7 @@ async def update_monitor(
 @router.delete(
     "/{heartbeat_monitor_id}/delete",
     response_model=SuccessResponse[None],
+    dependencies=[Depends(require_admin())],
 )
 async def delete_monitor(
     heartbeat_monitor_id: str,
@@ -123,6 +129,7 @@ async def delete_monitor(
 @router.patch(
     "/{heartbeat_monitor_id}/activate",
     response_model=SuccessResponse[HeartbeatMonitorResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def activate_monitor(
     heartbeat_monitor_id: str,
@@ -142,6 +149,7 @@ async def activate_monitor(
 @router.patch(
     "/{heartbeat_monitor_id}/deactivate",
     response_model=SuccessResponse[HeartbeatMonitorResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def deactivate_monitor(
     heartbeat_monitor_id: str,
@@ -189,6 +197,7 @@ async def receive_heartbeat(
 @router.patch(
     "/{heartbeat_monitor_id}/regenerate-token",
     response_model=SuccessResponse[RegenerateHeartbeatTokenResponse],
+    dependencies=[Depends(require_admin())],
 )
 async def regenerate_heartbeat_token(
     heartbeat_monitor_id: str,
