@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 
 class IncidentModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
@@ -17,3 +17,16 @@ class IncidentModel(BaseModel):
     def duration_seconds(self) -> int:
         end = self.resolved_at or datetime.now(timezone.utc)
         return int((end - self.started_at).total_seconds())
+
+
+class IncidentResponse(BaseModel):
+    id: str
+    HTTP_monitor_id: str
+    started_at: datetime
+    resolved_at: datetime | None
+    is_resolved: bool
+    reason: str | None
+
+
+class IncidentListResponse(BaseModel):
+    list[IncidentResponse]

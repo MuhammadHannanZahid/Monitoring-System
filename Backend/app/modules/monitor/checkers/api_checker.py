@@ -3,8 +3,7 @@ import httpx
 from app.core.config import settings
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
-from app.modules.monitor.schemas import HealthCheckResponse
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
 
 logger = get_logger(__name__)
 

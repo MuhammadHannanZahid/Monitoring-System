@@ -1,7 +1,6 @@
 import asyncio
 from app.core.logger import get_logger
-from app.modules.monitor.schemas import HealthCheckResponse
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
 from app.shared.models.ping_monitor import PingMonitorModel
 from .base_checker import BaseChecker
 import re

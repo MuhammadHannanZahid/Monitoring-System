@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from app.core.logger import get_logger
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 
 logger = get_logger(__name__)

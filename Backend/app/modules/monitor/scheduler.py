@@ -1,7 +1,7 @@
 from app.core.logger import get_logger
 from app.modules.monitor.service import MonitorService
 from app.modules.monitor.worker import MonitorWorker
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 
 logger = get_logger(__name__)
 

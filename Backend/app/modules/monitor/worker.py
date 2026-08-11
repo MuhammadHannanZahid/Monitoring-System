@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.core.logger import get_logger
 from app.modules.monitor.service import MonitorService
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 

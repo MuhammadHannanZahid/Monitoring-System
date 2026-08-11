@@ -1,5 +1,5 @@
 from datetime import datetime
-from app.shared.enums import MonitorType, MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
 from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel

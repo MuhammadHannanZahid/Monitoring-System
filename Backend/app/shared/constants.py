@@ -37,3 +37,17 @@ class Messages:
     DASHBOARD_FETCHED = "Dashboard summary retrieved successfully."
 
     heartbeat_RECEIVED = "Heartbeat received."
+
+
+class Collections:
+    USERS = "users"
+    MONITORS = "monitors"
+    INCIDENTS = "incidents"
+    STATUS_HISTORY = "status_history"
+    MONITORS = "monitors"
+    INCIDENTS = "incidents"
+    MONITOR_RESULTS = "monitor_results"
+    MONITOR_STATES = "monitor_states"
+    HTTP_MONITORS = "http_monitors"
+    API_MONITORS = "api_monitors"
+    PING_MONITORS = "ping_monitors"

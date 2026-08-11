@@ -1,5 +1,5 @@
-from app.shared.enums import MonitorStatus
-from app.modules.dashboard.schemas import (DashboardSummaryResponse, DashboardMonitorResponse, DashboardIncidentResponse,
+from app.shared.models.base_monitor import MonitorStatus
+from app.shared.models.dashboard import (DashboardSummaryResponse, DashboardMonitorResponse, DashboardIncidentResponse,
     DashboardActivityResponse, ResponseHistoryResponse, ResponseHistoryPoint, UptimeResponse, StatusHistoryResponse,
     StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError

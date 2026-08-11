@@ -1,7 +1,13 @@
 from contextlib import asynccontextmanager
 import asyncio
-from fastapi import FastAPI
-from app.api.api import api_router
+from fastapi import APIRouter, FastAPI
+from app.api.auth import router as auth_router
+from app.api.users import router as users_router
+from app.api.HTTP_monitor import router as HTTP_monitor_router
+from app.api.dashboard import router as dashboard_router
+from app.api.API_monitor import router as api_monitor_router
+from app.api.ping_monitor import router as ping_router
+from app.api.heartbeat_monitor import router as heartbeat_router
 from app.core.config import settings
 from app.core.database import db_manager
 from app.core.exception_handlers import register_exception_handlers
@@ -23,6 +29,15 @@ from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
 import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
+
+api_router = APIRouter(prefix="/api")
+api_router.include_router(auth_router)
+api_router.include_router(users_router)
+api_router.include_router(HTTP_monitor_router)
+api_router.include_router(dashboard_router)
+api_router.include_router(api_monitor_router)
+api_router.include_router(ping_router)
+api_router.include_router(heartbeat_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

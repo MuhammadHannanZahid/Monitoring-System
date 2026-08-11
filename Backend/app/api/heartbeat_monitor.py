@@ -3,18 +3,20 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.modules.heartbeat_monitor.dependencies import get_heartbeat_service
-from app.modules.heartbeat_monitor.schemas import (
-    CreateHeartbeatMonitorRequest,
-    UpdateHeartbeatMonitorRequest,
-    HeartbeatMonitorResponse,
-    HeartbeatTokenResponse,
-    HeartbeatResponse,
-    RegenerateHeartbeatTokenResponse,
+from app.modules.heartbeat_monitor.service import (
+    HeartbeatMonitorMapper,
+    HeartbeatMonitorService,
 )
-from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
-from app.shared.mappers.heartbeat_monitor_mapper import HeartbeatMonitorMapper
+from app.shared.models.heartbeat_monitor import (
+    CreateHeartbeatMonitorRequest,
+    HeartbeatMonitorResponse,
+    HeartbeatResponse,
+    HeartbeatTokenResponse,
+    RegenerateHeartbeatTokenResponse,
+    UpdateHeartbeatMonitorRequest,
+)
 from app.shared.responses import SuccessResponse, success_response
 
 router = APIRouter(
@@ -123,46 +125,6 @@ async def delete_monitor(
     return success_response(
         message=Messages.monitor_DELETED,
         data=None,
-    )
-
-
-@router.patch(
-    "/{heartbeat_monitor_id}/activate",
-    response_model=SuccessResponse[HeartbeatMonitorResponse],
-    dependencies=[Depends(require_admin())],
-)
-async def activate_monitor(
-    heartbeat_monitor_id: str,
-    service: HeartbeatMonitorService = Depends(get_heartbeat_service),
-):
-    monitor = await service.activate_monitor(heartbeat_monitor_id)
-
-    if monitor is None:
-        raise HTTPException(404)
-
-    return success_response(
-        message=Messages.monitor_ACTIVATED,
-        data=HeartbeatMonitorMapper.to_response(monitor),
-    )
-
-
-@router.patch(
-    "/{heartbeat_monitor_id}/deactivate",
-    response_model=SuccessResponse[HeartbeatMonitorResponse],
-    dependencies=[Depends(require_admin())],
-)
-async def deactivate_monitor(
-    heartbeat_monitor_id: str,
-    service: HeartbeatMonitorService = Depends(get_heartbeat_service),
-):
-    monitor = await service.deactivate_monitor(heartbeat_monitor_id)
-
-    if monitor is None:
-        raise HTTPException(404)
-
-    return success_response(
-        message=Messages.monitor_DEACTIVATED,
-        data=HeartbeatMonitorMapper.to_response(monitor),
     )
 
 

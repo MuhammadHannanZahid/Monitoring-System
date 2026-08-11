@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from app.modules.monitor_results.repository import MonitorResultRepository
 from app.shared.models.monitor_result import MonitorResultModel
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus
 
 class MonitorResultService:
     def __init__(self, repository: MonitorResultRepository):

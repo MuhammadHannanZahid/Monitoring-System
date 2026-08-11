@@ -1,8 +1,9 @@
 from fastapi.routing import APIRoute
 
-from app.modules.API_monitor.router import router as api_monitor_router
+from app.api.API_monitor import router as api_monitor_router
 from app.modules.auth.dependencies import get_current_user
-from app.modules.heartbeat_monitor.router import router as heartbeat_monitor_router
+from app.api.heartbeat_monitor import router as heartbeat_monitor_router
+from app.main import app
 
 
 def dependency_calls(route: APIRoute) -> set[object]:
@@ -51,3 +52,12 @@ def test_heartbeat_receiver_uses_its_monitor_token_instead_of_user_auth():
 
     assert get_current_user not in dependency_calls(receiver)
     assert receiver.include_in_schema is False
+
+
+def test_activate_and_deactivate_routes_are_not_exposed():
+    paths = set(app.openapi()["paths"])
+
+    assert not any(
+        path.endswith("/activate") or path.endswith("/deactivate")
+        for path in paths
+    )

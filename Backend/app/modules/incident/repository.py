@@ -4,9 +4,9 @@ from bson.errors import InvalidId
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
-from app.shared.database_constants import Collections
+from app.shared.constants import Collections
 from app.shared.models.incident import IncidentModel
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 
 class IncidentRepository:
     def __init__(self, database: AsyncIOMotorDatabase):

@@ -5,7 +5,7 @@ from datetime import timezone
 from app.core.config import settings
 from app.core.logger import get_logger
 from pymongo import ASCENDING, DESCENDING
-from app.shared.database_constants import Collections
+from app.shared.constants import Collections
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,4 @@
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 from app.modules.monitor.checkers.http_checker import HTTPChecker
 from app.modules.monitor.checkers.api_checker import ApiChecker
 from app.modules.monitor.checkers.ping_checker import PingChecker

@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.shared.enums import MonitorStatus, MonitorType
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
 
 class MonitorResultModel(BaseModel):
     id: str | None = None

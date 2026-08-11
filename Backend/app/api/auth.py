@@ -1,16 +1,22 @@
 from fastapi import APIRouter, Depends
-from app.modules.auth.schemas import (LoginRequest, TokenResponse, CurrentUserResponse)
-from app.modules.auth.service import AuthService
-from app.shared.constants import Messages
-from app.shared.responses import SuccessResponse, success_response
+
 from app.modules.auth.dependencies import get_auth_service
-from app.shared.models.auth_user import UserModel
+from app.modules.auth.service import AuthService
 from app.shared.authorization import require_admin, require_viewer
+from app.shared.constants import Messages
+from app.shared.models.auth_user import (
+    CurrentUserResponse,
+    LoginRequest,
+    TokenResponse,
+    UserModel,
+)
+from app.shared.responses import SuccessResponse, success_response
 
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
+
 
 @router.post("/login", response_model=SuccessResponse[TokenResponse])
 async def login(request: LoginRequest, service: AuthService = Depends(get_auth_service),):
@@ -28,6 +34,7 @@ async def login(request: LoginRequest, service: AuthService = Depends(get_auth_s
         ),
     )
 
+
 @router.get("/me", response_model=SuccessResponse[CurrentUserResponse])
 async def me(current_user: UserModel = Depends(require_viewer())):
     return success_response(
@@ -39,6 +46,7 @@ async def me(current_user: UserModel = Depends(require_viewer())):
         ),
     )
 
+
 @router.post("/logout", response_model=SuccessResponse[None],)
 async def logout(current_user: UserModel = Depends(require_viewer()), service: AuthService = Depends(get_auth_service)):
     await service.logout(current_user.id)
@@ -47,6 +55,7 @@ async def logout(current_user: UserModel = Depends(require_viewer()), service: A
         message=Messages.LOGOUT_SUCCESS,
         data=None,
     )
+
 
 @router.get("/admin-test", response_model=SuccessResponse[str])
 async def admin_test(current_user: UserModel = Depends(require_admin())):

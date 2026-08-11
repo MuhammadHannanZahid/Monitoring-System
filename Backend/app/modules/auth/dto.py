@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from app.shared.enums import UserRole
+from app.shared.models.auth_user import UserRole
 
 @dataclass(slots=True)
 class AuthTokens:

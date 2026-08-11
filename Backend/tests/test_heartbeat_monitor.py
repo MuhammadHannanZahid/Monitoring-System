@@ -9,7 +9,7 @@ from app.modules.monitor.service import MonitorService
 from app.modules.monitor.worker import MonitorWorker
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
-from app.shared.enums import MonitorStatus, MonitorType
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 from app.shared.models.monitor_state import MonitorStateModel

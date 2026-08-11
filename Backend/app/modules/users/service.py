@@ -2,9 +2,8 @@ from datetime import datetime, timezone
 from app.core.security import PasswordService
 from app.modules.users.repository import UserRepository
 from app.shared.constants import Messages
-from app.shared.enums import UserRole
 from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
-from app.shared.models.auth_user import UserModel
+from app.shared.models.auth_user import UserModel, UserResponse, UserRole
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -123,3 +122,21 @@ class UserService:
         await self.repository.set_active(user_id,False)
         logger.info("User '%s' deactivated.", user.username)
         return await self.get_user(user_id)
+
+
+class UserMapper:
+    @staticmethod
+    def to_response(user: UserModel) -> UserResponse:
+        return UserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        )
+
+    @staticmethod
+    def to_response_list(users: list[UserModel]) -> list[UserResponse]:
+        return [UserMapper.to_response(user) for user in users]

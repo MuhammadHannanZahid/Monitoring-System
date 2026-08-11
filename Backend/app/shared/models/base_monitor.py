@@ -1,6 +1,27 @@
 from datetime import datetime
+from enum import Enum
+
 from pydantic import BaseModel
-from app.shared.enums import MonitorStatus, MonitorType
+
+
+class MonitorStatus(str, Enum):
+    UNKNOWN = "unknown"
+    UP = "up"
+    DOWN = "down"
+
+
+class MonitorType(str, Enum):
+    HTTP = "HTTP"
+    API = "API"
+    PING = "ping"
+    HEARTBEAT = "heartbeat"
+
+
+class PerformanceStatus(str, Enum):
+    UNKNOWN = "unknown"
+    FAST = "fast"
+    SLOW = "slow"
+    NOT_CHECKED = "not_checked"
 
 class BaseMonitorModel(BaseModel):
     id: str | None = None
@@ -16,3 +37,15 @@ class BaseMonitorModel(BaseModel):
     last_checked_at: datetime | None = None
     last_response_time_ms: int | None = None
     last_status_code: int | None = None
+
+
+class HealthCheckResponse(BaseModel):
+    url: str
+    status: MonitorStatus
+    status_code: int | None
+    response_time_ms: int | None
+    success: bool
+    is_slow: bool = False
+    performance_status: PerformanceStatus = PerformanceStatus.UNKNOWN
+    error: str | None = None
+    timed_out: bool = False

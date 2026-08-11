@@ -4,8 +4,13 @@ import uuid
 
 import app.core.scheduler as scheduler_state
 from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
-from app.shared.enums import MonitorStatus, MonitorType
-from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
+from app.shared.models.heartbeat_monitor import (
+    HeartbeatMonitorModel,
+    HeartbeatMonitorResponse,
+    HeartbeatTokenResponse,
+    RegenerateHeartbeatTokenResponse,
+)
 from app.modules.monitor.service import MonitorService
 
 
@@ -158,3 +163,51 @@ class HeartbeatMonitorService:
         if updated is not None and scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(updated)
         return updated
+
+
+class HeartbeatMonitorMapper:
+
+    @staticmethod
+    def to_response(
+        monitor: HeartbeatMonitorModel,
+    ) -> HeartbeatMonitorResponse:
+        return HeartbeatMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+            grace_period=monitor.grace_period,
+            status=monitor.status.value,
+            is_active=monitor.is_active,
+            last_heartbeat_at=(
+                monitor.last_heartbeat_at.isoformat()
+                if monitor.last_heartbeat_at
+                else None
+            ),
+            created_at=monitor.created_at.isoformat(),
+            updated_at=monitor.updated_at.isoformat(),
+        )
+
+    @staticmethod
+    def to_response_list(
+        monitors: list[HeartbeatMonitorModel],
+    ) -> list[HeartbeatMonitorResponse]:
+        return [
+            HeartbeatMonitorMapper.to_response(m)
+            for m in monitors
+        ]
+
+    @staticmethod
+    def to_token_response(
+        monitor: HeartbeatMonitorModel,
+    ) -> HeartbeatTokenResponse:
+        return HeartbeatTokenResponse(
+            heartbeat_token=monitor.heartbeat_token,
+        )
+
+    @staticmethod
+    def to_regenerated_token_response(
+        monitor: HeartbeatMonitorModel,
+    ) -> RegenerateHeartbeatTokenResponse:
+        return RegenerateHeartbeatTokenResponse(
+            heartbeat_token=monitor.heartbeat_token,
+        )

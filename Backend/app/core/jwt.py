@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from jose import JWTError, jwt
 from app.core.config import settings
-from app.shared.enums import UserRole, TokenType
+from app.shared.models.auth_user import TokenType, UserRole
 
 
 class JWTService:

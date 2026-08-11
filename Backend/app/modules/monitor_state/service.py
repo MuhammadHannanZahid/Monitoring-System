@@ -1,11 +1,10 @@
 from datetime import datetime
 from app.core.config import settings
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.monitor_state import MonitorStateModel
-from app.modules.monitor_state.schemas import MonitorStateResult
+from app.shared.models.monitor_state import MonitorStateResult
 from app.modules.monitor_state.repository import MonitorStateRepository
 from app.modules.monitor_state.enums import MonitorTransition
-from app.shared.enums import MonitorType
 
 class MonitorStateService:
     def __init__(self, repository: MonitorStateRepository):

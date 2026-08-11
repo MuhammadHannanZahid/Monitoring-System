@@ -3,7 +3,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus
 
 class HeartbeatMonitorRepository:
     def __init__(self, database: AsyncIOMotorDatabase):

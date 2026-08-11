@@ -1,10 +1,10 @@
 from bson import ObjectId
 from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from app.shared.database_constants import Collections
+from app.shared.constants import Collections
 from app.shared.models.ping_monitor import PingMonitorModel
 from datetime import datetime
-from app.shared.enums import MonitorStatus
+from app.shared.models.base_monitor import MonitorStatus
 
 class PingMonitorRepository:
     def __init__(self, database: AsyncIOMotorDatabase):

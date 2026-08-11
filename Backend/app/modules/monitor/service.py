@@ -8,7 +8,7 @@ from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_results.service import MonitorResultService
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.shared.enums import MonitorStatus, MonitorType
+from app.shared.models.base_monitor import MonitorStatus, MonitorType
 
 logger = get_logger(__name__)
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.modules.monitor.schemas import HealthCheckResponse
+from app.shared.models.base_monitor import HealthCheckResponse
 from app.shared.models.base_monitor import BaseMonitorModel
 
 

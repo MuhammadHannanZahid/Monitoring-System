@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from app.core.logger import get_logger
 from app.modules.incident.repository import IncidentRepository
 from app.shared.models.incident import IncidentModel
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 
 logger = get_logger(__name__)
 

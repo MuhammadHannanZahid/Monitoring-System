@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
-from app.shared.database_constants import Collections
+from app.shared.constants import Collections
 from app.shared.models.monitor_result import MonitorResultModel
 
 class MonitorResultRepository:

@@ -1,8 +1,8 @@
 from datetime import datetime
-from app.shared.database_constants import Collections
-from app.shared.enums import MonitorStatus
+from app.shared.constants import Collections
+from app.shared.models.base_monitor import MonitorStatus
 from app.shared.models.monitor_state import MonitorStateModel
-from app.shared.enums import MonitorType
+from app.shared.models.base_monitor import MonitorType
 
 class MonitorStateRepository:
     def __init__(self,database):
