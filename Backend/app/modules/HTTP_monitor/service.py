@@ -10,7 +10,6 @@ from app.shared.constants import Messages
 from app.shared.models.base_monitor import MonitorStatus
 from app.shared.exceptions import ConflictError, NotFoundError
 from app.shared.models.HTTP_monitor import HTTPMonitorModel, HTTP_monitorResponse
-from app.shared.repositories.base_repository import BaseRepository
 from app.core.logger import get_logger
 import app.core.scheduler as scheduler_state
 
@@ -159,12 +158,17 @@ class HTTP_monitorService:
         ]
 
 
-class HTTP_monitorRepository(BaseRepository[HTTPMonitorModel]):
+class HTTP_monitorRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
-        super().__init__(
-            database[Collections.HTTP_MONITORS],
-            HTTPMonitorModel,
-        )
+        self.collection = database[Collections.HTTP_MONITORS]
+        self.model = HTTPMonitorModel
+
+    async def create(self, entity: HTTPMonitorModel) -> str:
+        document = entity.model_dump()
+        document.pop("id", None)
+
+        result = await self.collection.insert_one(document)
+        return str(result.inserted_id)
 
     async def get_by_id(self, monitor_id: str) -> HTTPMonitorModel | None:
         try:

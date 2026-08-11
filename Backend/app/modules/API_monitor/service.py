@@ -17,7 +17,6 @@ from app.shared.models.api_monitor import (
 from app.modules.auth_profiles.service import AuthProfileRepository
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus
-from app.shared.repositories.base_repository import BaseRepository
 import app.core.scheduler as scheduler_state
 
 class API_monitorService:
@@ -175,12 +174,17 @@ class API_monitorService:
         ]
 
 
-class API_monitorRepository(BaseRepository[APIMonitorModel]):
+class API_monitorRepository:
     def __init__(self, database: AsyncIOMotorDatabase):
-        super().__init__(
-            database[Collections.API_MONITORS],
-            APIMonitorModel,
-        )
+        self.collection = database[Collections.API_MONITORS]
+        self.model = APIMonitorModel
+
+    async def create(self, entity: APIMonitorModel) -> str:
+        document = entity.model_dump()
+        document.pop("id", None)
+
+        result = await self.collection.insert_one(document)
+        return str(result.inserted_id)
 
     async def get_by_id(self, monitor_id: str) -> APIMonitorModel | None:
         try:
