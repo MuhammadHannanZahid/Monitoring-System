@@ -4,8 +4,8 @@ from app.shared.models.dashboard import (DashboardSummaryResponse, DashboardMoni
     StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError
 from app.shared.constants import Messages
-from app.modules.monitor_results.repository import MonitorResultRepository
-from app.modules.incident.repository import IncidentRepository
+from app.modules.monitor_results.service import MonitorResultRepository
+from app.modules.incident.service import IncidentRepository
 from app.modules.monitor.service import MonitorService
 
 class DashboardService:

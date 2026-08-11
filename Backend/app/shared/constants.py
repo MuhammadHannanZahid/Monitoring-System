@@ -51,3 +51,5 @@ class Collections:
     HTTP_MONITORS = "http_monitors"
     API_MONITORS = "api_monitors"
     PING_MONITORS = "ping_monitors"
+    HEARTBEAT_MONITORS = "heartbeat_monitors"
+    AUTH_PROFILES = "auth_profiles"

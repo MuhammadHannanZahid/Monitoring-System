@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
-from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
-from app.modules.API_monitor.repository import API_monitorRepository
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.modules.ping_monitor.repository import PingMonitorRepository
-from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
+
+if TYPE_CHECKING:
+    from app.modules.API_monitor.service import API_monitorRepository
+    from app.modules.HTTP_monitor.service import HTTP_monitorRepository
+    from app.modules.heartbeat_monitor.service import HeartbeatMonitorRepository
+    from app.modules.ping_monitor.service import PingMonitorRepository
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 

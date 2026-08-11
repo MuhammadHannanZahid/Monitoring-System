@@ -1,8 +1,7 @@
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.database import get_database
-from app.modules.ping_monitor.repository import PingMonitorRepository
-from app.modules.ping_monitor.service import PingMonitorService
+from app.modules.ping_monitor.service import PingMonitorRepository, PingMonitorService
 
 def get_ping_repository(database: AsyncIOMotorDatabase = Depends(get_database)) -> PingMonitorRepository:
     return PingMonitorRepository(database)

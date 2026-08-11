@@ -1,8 +1,10 @@
 from fastapi import Depends
 from app.core.database import get_database
 
-from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
-from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
+from app.modules.heartbeat_monitor.service import (
+    HeartbeatMonitorRepository,
+    HeartbeatMonitorService,
+)
 
 
 def get_heartbeat_repository(

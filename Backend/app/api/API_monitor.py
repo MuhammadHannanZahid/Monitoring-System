@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.modules.API_monitor.dependencies import get_API_monitor_service
-from app.modules.API_monitor.service import API_monitorMapper, API_monitorService
+from app.modules.API_monitor.service import API_monitorService
 from app.shared.authorization import require_admin
 from app.shared.models.api_monitor import (
     ApiMonitorResponse,
@@ -28,7 +28,7 @@ async def create_monitor(request: CreateApiMonitorRequest, service: API_monitorS
         return ApiResponse(
             success=True,
             message="API monitor created successfully.",
-            data=API_monitorMapper.to_response(monitor),
+            data=service.to_response(monitor),
         )
 
     except ValueError as exc:
@@ -45,7 +45,7 @@ async def list_monitors(service: API_monitorService = Depends(get_API_monitor_se
     return ApiResponse(
         success=True,
         message="API monitors retrieved successfully.",
-        data=API_monitorMapper.to_response_list(monitors),
+        data=service.to_response_list(monitors),
     )
 
 
@@ -62,7 +62,7 @@ async def get_monitor(monitor_id: str, service: API_monitorService = Depends(get
     return ApiResponse(
         success=True,
         message="API monitor retrieved successfully.",
-        data=API_monitorMapper.to_response(monitor),
+        data=service.to_response(monitor),
     )
 
 
@@ -84,7 +84,7 @@ async def update_monitor(monitor_id: str, request: UpdateApiMonitorRequest, serv
         return ApiResponse(
             success=True,
             message="API monitor updated successfully.",
-            data=API_monitorMapper.to_response(monitor),
+            data=service.to_response(monitor),
         )
 
     except ValueError as exc:

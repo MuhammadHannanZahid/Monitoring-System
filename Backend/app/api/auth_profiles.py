@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.modules.auth_profiles.dependencies import get_auth_profile_service
-from app.modules.auth_profiles.schemas import (
+from app.modules.auth_profiles.service import AuthProfileService
+from app.shared.authorization import require_admin
+from app.shared.models.auth_profile import (
     AuthProfileResponse,
     CreateAuthProfileRequest,
     UpdateAuthProfileRequest,
 )
-from app.modules.auth_profiles.service import AuthProfileService
-from app.shared.authorization import require_admin
 from app.shared.responses import ApiResponse
 
 router = APIRouter(

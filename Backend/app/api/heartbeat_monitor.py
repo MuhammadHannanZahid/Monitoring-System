@@ -3,10 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.modules.heartbeat_monitor.dependencies import get_heartbeat_service
-from app.modules.heartbeat_monitor.service import (
-    HeartbeatMonitorMapper,
-    HeartbeatMonitorService,
-)
+from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.models.heartbeat_monitor import (
@@ -42,7 +39,7 @@ async def create_monitor(
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=HeartbeatMonitorMapper.to_token_response(monitor),
+        data=service.to_token_response(monitor),
     )
 
 
@@ -58,7 +55,7 @@ async def list_monitors(
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=HeartbeatMonitorMapper.to_response_list(monitors),
+        data=service.to_response_list(monitors),
     )
 
 
@@ -78,7 +75,7 @@ async def get_monitor(
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=HeartbeatMonitorMapper.to_response(monitor),
+        data=service.to_response(monitor),
     )
 
 
@@ -104,7 +101,7 @@ async def update_monitor(
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=HeartbeatMonitorMapper.to_response(monitor),
+        data=service.to_response(monitor),
     )
 
 
@@ -174,7 +171,7 @@ async def regenerate_heartbeat_token(
 
     return success_response(
         message="Heartbeat token regenerated successfully.",
-        data=HeartbeatMonitorMapper.to_regenerated_token_response(
+        data=service.to_regenerated_token_response(
             monitor
         ),
     )

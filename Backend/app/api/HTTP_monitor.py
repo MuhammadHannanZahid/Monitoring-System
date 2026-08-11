@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.modules.HTTP_monitor.dependencies import get_HTTP_monitor_service
-from app.modules.HTTP_monitor.service import HTTP_monitorMapper, HTTP_monitorService
+from app.modules.HTTP_monitor.service import HTTP_monitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.models.HTTP_monitor import (
@@ -27,7 +27,7 @@ async def create_HTTP_monitor(request: CreateHTTP_monitorRequest, service: HTTP_
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=HTTP_monitorMapper.to_response(HTTP_monitor),
+        data=service.to_response(HTTP_monitor),
     )
 
 
@@ -37,7 +37,7 @@ async def list_monitors(service: HTTP_monitorService = Depends(get_HTTP_monitor_
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=HTTP_monitorMapper.to_response_list(HTTP_monitors),
+        data=service.to_response_list(HTTP_monitors),
     )
 
 
@@ -47,7 +47,7 @@ async def get_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = 
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=HTTP_monitorMapper.to_response(HTTP_monitor),
+        data=service.to_response(HTTP_monitor),
     )
 
 
@@ -65,7 +65,7 @@ async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorR
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=HTTP_monitorMapper.to_response(HTTP_monitor),
+        data=service.to_response(HTTP_monitor),
     )
 
 

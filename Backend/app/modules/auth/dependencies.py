@@ -1,8 +1,7 @@
 from fastapi import Depends
 from app.core.jwt import jwt_service
 from app.core.security import (password_service, refresh_token_service,)
-from app.modules.auth.repository import (AuthRepository, get_auth_repository,)
-from app.modules.auth.service import AuthService
+from app.modules.auth.service import AuthRepository, AuthService, get_auth_repository
 from jose import JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.shared.models.auth_user import UserModel

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.modules.users.dependencies import get_user_service
-from app.modules.users.service import UserMapper, UserService
+from app.modules.users.service import UserService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.models.auth_user import CreateUserRequest, UpdateUserRequest, UserResponse
@@ -20,7 +20,7 @@ async def create_user(request: CreateUserRequest, service: UserService = Depends
 
     return success_response(
         message=Messages.USER_CREATED,
-        data=UserMapper.to_response(user)
+        data=service.to_response(user)
     )
 
 
@@ -30,7 +30,7 @@ async def list_users(service: UserService = Depends(get_user_service)):
 
     return success_response(
         message=Messages.USERS_FETCHED,
-        data=UserMapper.to_response_list(users)
+        data=service.to_response_list(users)
     )
 
 
@@ -40,7 +40,7 @@ async def get_user(user_id: str, service: UserService = Depends(get_user_service
 
     return success_response(
         message=Messages.USER_FETCHED,
-        data=UserMapper.to_response(user),
+        data=service.to_response(user),
     )
 
 
@@ -56,7 +56,7 @@ async def update_user(user_id: str, request: UpdateUserRequest, service: UserSer
 
     return success_response(
         message=Messages.USER_UPDATED,
-        data=UserMapper.to_response(user),
+        data=service.to_response(user),
     )
 
 

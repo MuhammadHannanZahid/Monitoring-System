@@ -1,8 +1,11 @@
 from fastapi import Depends
-from app.modules.API_monitor.repository import API_monitorRepository, get_API_monitor_repository
-from app.modules.API_monitor.service import API_monitorService
+from app.modules.API_monitor.service import (
+    API_monitorRepository,
+    API_monitorService,
+    get_API_monitor_repository,
+)
 from app.modules.auth_profiles.dependencies import get_auth_profile_repository
-from app.modules.auth_profiles.repository import AuthProfileRepository
+from app.modules.auth_profiles.service import AuthProfileRepository
 
 
 def get_API_monitor_service(

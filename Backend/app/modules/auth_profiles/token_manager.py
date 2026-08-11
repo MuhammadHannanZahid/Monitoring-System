@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import asyncio
 import time
 from dataclasses import dataclass
 from http.cookies import SimpleCookie
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import httpx
 
 from app.core.logger import get_logger
-from app.modules.auth_profiles.repository import AuthProfileRepository
 from app.shared.models.auth_profile import AuthProfileModel
+
+if TYPE_CHECKING:
+    from app.modules.auth_profiles.service import AuthProfileRepository
 
 logger = get_logger(__name__)
 
@@ -120,3 +124,6 @@ class AccessTokenCookieManager:
                 if morsel is not None and morsel.value:
                     return morsel.value
         return None
+
+
+token_manager: AccessTokenCookieManager | None = None

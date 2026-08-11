@@ -8,27 +8,28 @@ from app.api.dashboard import router as dashboard_router
 from app.api.API_monitor import router as api_monitor_router
 from app.api.ping_monitor import router as ping_router
 from app.api.heartbeat_monitor import router as heartbeat_router
+from app.api.auth_profiles import router as auth_profiles_router
 from app.core.config import settings
 from app.core.database import db_manager
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
 from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
-from app.modules.HTTP_monitor.repository import HTTP_monitorRepository
-from app.modules.API_monitor.repository import API_monitorRepository
-from app.modules.incident.repository import IncidentRepository
-from app.modules.incident.service import IncidentService
-from app.modules.monitor_results.repository import MonitorResultRepository
-from app.modules.monitor_results.service import MonitorResultService
-from app.modules.monitor_state.service import MonitorStateService
-from app.modules.monitor_state.repository import MonitorStateRepository
+from app.modules.HTTP_monitor.service import HTTP_monitorRepository
+from app.modules.API_monitor.service import API_monitorRepository
+from app.modules.incident.service import IncidentRepository, IncidentService
+from app.modules.monitor_results.service import (
+    MonitorResultRepository,
+    MonitorResultService,
+)
+from app.modules.monitor_state.service import MonitorStateRepository, MonitorStateService
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
 from app.modules.monitor.repository_factory import MonitorRepositoryFactory
-from app.modules.ping_monitor.repository import PingMonitorRepository
-from app.modules.heartbeat_monitor.repository import HeartbeatMonitorRepository
-from app.modules.auth_profiles.repository import AuthProfileRepository
+from app.modules.ping_monitor.service import PingMonitorRepository
+from app.modules.heartbeat_monitor.service import HeartbeatMonitorRepository
+from app.modules.auth_profiles.service import AuthProfileRepository
 from app.modules.auth_profiles.token_manager import AccessTokenCookieManager
-import app.core.auth_tokens as auth_token_state
+import app.modules.auth_profiles.token_manager as auth_token_state
 import app.core.scheduler as scheduler_state
 
 logger = get_logger(__name__)
@@ -41,6 +42,7 @@ api_router.include_router(dashboard_router)
 api_router.include_router(api_monitor_router)
 api_router.include_router(ping_router)
 api_router.include_router(heartbeat_router)
+api_router.include_router(auth_profiles_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

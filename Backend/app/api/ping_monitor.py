@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.modules.ping_monitor.dependencies import get_ping_service
-from app.modules.ping_monitor.service import PingMonitorMapper, PingMonitorService
+from app.modules.ping_monitor.service import PingMonitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
 from app.shared.models.ping_monitor import (
@@ -26,7 +26,7 @@ async def create_ping_monitor(request: CreatePingMonitorRequest, service: PingMo
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=PingMonitorMapper.to_response(monitor),
+        data=service.to_response(monitor),
     )
 
 
@@ -36,7 +36,7 @@ async def list_monitors(service: PingMonitorService = Depends(get_ping_service))
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=PingMonitorMapper.to_response_list(PING_monitors),
+        data=service.to_response_list(PING_monitors),
     )
 
 
@@ -46,7 +46,7 @@ async def get_ping_monitor(PING_monitor_id: str, service: PingMonitorService = D
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=PingMonitorMapper.to_response(monitor),
+        data=service.to_response(monitor),
     )
 
 
@@ -62,7 +62,7 @@ async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRe
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=PingMonitorMapper.to_response(PING_monitor),
+        data=service.to_response(PING_monitor),
     )
 
 
