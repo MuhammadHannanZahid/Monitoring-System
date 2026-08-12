@@ -1,16 +1,14 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
-
 from app.core.logger import get_logger
 from app.modules.incident.service import IncidentService
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
-from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_results.service import MonitorResultService
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.shared.models.monitor_state import MonitorTransition
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 
 if TYPE_CHECKING:
@@ -22,7 +20,6 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
-
 
 class MonitorService:
     def __init__(
@@ -66,13 +63,7 @@ class MonitorService:
                 logger.warning("Monitor '%s' no longer exists. Skipping check.", monitor.id)
                 return
 
-            if (
-                latest_monitor.monitor_type == MonitorType.HEARTBEAT
-                and latest_monitor.last_heartbeat_at is None
-            ):
-                # A heartbeat monitor is not operational until the client has
-                # sent its first beat. Keep it UNKNOWN and do not create a
-                # result, state transition, or incident before then.
+            if latest_monitor.monitor_type == MonitorType.HEARTBEAT and latest_monitor.last_heartbeat_at is None:
                 return
 
             checker = self.checker_factory.get_checker(monitor.monitor_type)
@@ -131,11 +122,7 @@ class MonitorService:
             await self.incident_service.resolve_incident(monitor.id, monitor.monitor_type)
             logger.info("Incident resolved for '%s'.", monitor.name)
 
-    def _build_incident_reason(
-            self,
-            monitor: MonitorModel,
-            result,
-    ) -> str:
+    def _build_incident_reason(self, monitor: MonitorModel, result) -> str:
         if monitor.monitor_type == MonitorType.HEARTBEAT:
             return "Heartbeat was not received."
 
@@ -162,15 +149,9 @@ class MonitorService:
             return "Health check failed."
         return "Monitor is unreachable."
 
-    async def get_monitor(
-        self,
-        monitor_id: str,
-        monitor_type: MonitorType | None = None,
-    ) -> MonitorModel | None:
+    async def get_monitor(self, monitor_id: str, monitor_type: MonitorType | None = None) -> MonitorModel | None:
         if monitor_type is not None:
-            return await self._get_monitor_service(monitor_type).get_monitor(
-                monitor_id
-            )
+            return await self._get_monitor_service(monitor_type).get_monitor(monitor_id)
         for service in self._monitor_services.values():
             monitor = await service.get_monitor(monitor_id)
             if monitor is not None:
@@ -229,12 +210,7 @@ class MonitorService:
             checked_at=checked_at,
         )
 
-        logger.info(
-            "Heartbeat monitor '%s' is %s; %s",
-            monitor.name,
-            state_result.current_status.value.upper(),
-            self._heartbeat_timing_message(monitor, checked_at),
-        )
+        logger.info("Heartbeat monitor '%s' is %s; %s", monitor.name, state_result.current_status.value.upper(), self._heartbeat_timing_message(monitor, checked_at))
 
         await self._handle_incident_transition(
             monitor,
@@ -251,10 +227,7 @@ class MonitorService:
             ) from exc
 
     @staticmethod
-    def _heartbeat_timing_message(
-        monitor: HeartbeatMonitorModel,
-        received_at: datetime,
-    ) -> str:
+    def _heartbeat_timing_message(monitor: HeartbeatMonitorModel, received_at: datetime) -> str:
         if monitor.last_heartbeat_at is None:
             return (
                 "first beat received; next beat expected in "

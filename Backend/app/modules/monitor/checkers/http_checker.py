@@ -3,11 +3,10 @@ import time
 from app.core.logger import get_logger
 from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
-from .base_checker import BaseChecker
 
 logger = get_logger(__name__)
 
-class HTTPChecker(BaseChecker):
+class HTTPChecker:
     def __init__(self):
         self.client = httpx.AsyncClient(follow_redirects=True)
 
@@ -30,9 +29,7 @@ class HTTPChecker(BaseChecker):
                 is_slow = True
 
             status_ok = response.status_code == monitor.expected_status_code
-
             is_slow = monitor.expected_response_time_ms is not None and elapsed > monitor.expected_response_time_ms
-
             success = status_ok
             status = MonitorStatus.UP if success else MonitorStatus.DOWN
 

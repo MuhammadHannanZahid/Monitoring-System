@@ -1,19 +1,11 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
 import app.modules.auth_profiles.token_manager as auth_token_state
 from app.shared.constants import Collections
-from app.shared.models.auth_profile import (
-    AuthProfileModel,
-    CreateAuthProfileRequest,
-    UpdateAuthProfileRequest,
-)
-
+from app.shared.models.auth_profile import AuthProfileModel, CreateAuthProfileRequest, UpdateAuthProfileRequest
 
 class AuthProfileService:
     DEPRECATED_FIELDS = {
@@ -25,10 +17,7 @@ class AuthProfileService:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.AUTH_PROFILES]
 
-    async def create_profile(
-        self,
-        request: CreateAuthProfileRequest,
-    ) -> AuthProfileModel:
+    async def create_profile(self, request: CreateAuthProfileRequest) -> AuthProfileModel:
         if await self.collection.find_one({"name": request.name}) is not None:
             raise ValueError("An auth profile with this name already exists.")
 
@@ -64,11 +53,7 @@ class AuthProfileService:
             profiles.append(AuthProfileModel(**document))
         return profiles
 
-    async def update_profile(
-        self,
-        profile_id: str,
-        request: UpdateAuthProfileRequest,
-    ) -> AuthProfileModel | None:
+    async def update_profile(self, profile_id: str, request: UpdateAuthProfileRequest) -> AuthProfileModel | None:
         profile = await self.get_profile(profile_id)
         if profile is None:
             return None
@@ -81,9 +66,7 @@ class AuthProfileService:
             if field in update_data and update_data[field] is None
         ]
         if invalid_null_fields:
-            raise ValueError(
-                f"Auth profile fields cannot be null: {', '.join(sorted(invalid_null_fields))}."
-            )
+            raise ValueError(f"Auth profile fields cannot be null: {', '.join(sorted(invalid_null_fields))}.")
         if update_data.get("headers") is None and "headers" in update_data:
             update_data["headers"] = {}
 

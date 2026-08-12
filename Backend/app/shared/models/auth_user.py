@@ -1,24 +1,24 @@
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field
-
 
 class UserRole(str, Enum):
     ADMIN = "admin"
     VIEWER = "viewer"
 
-
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
 
+@dataclass(slots=True)
+class AuthTokens:
+    access_token: str
+    refresh_token: str
+
 class UserModel(BaseModel):
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     id: str | None = None
     username: str
@@ -31,36 +31,30 @@ class UserModel(BaseModel):
     updated_at: datetime
     last_login: datetime | None = None
 
-
 class LoginRequest(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=8)
-
 
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: Literal["Bearer"] = "Bearer"
 
-
 class CurrentUserResponse(BaseModel):
     id: str
     username: str
     role: UserRole
-
 
 class CreateUserRequest(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=8)
     role: UserRole
 
-
 class UpdateUserRequest(BaseModel):
     username: str | None = Field(default=None, min_length=3, max_length=50)
     password: str | None = Field(default=None, min_length=8)
     role: UserRole | None = None
     is_active: bool | None = None
-
 
 class UserResponse(BaseModel):
     id: str

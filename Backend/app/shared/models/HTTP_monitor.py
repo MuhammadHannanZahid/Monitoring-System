@@ -1,14 +1,9 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict, Field
-
 from app.shared.models.base_monitor import BaseMonitorModel, MonitorStatus, MonitorType
 
 class HTTPMonitorModel(BaseMonitorModel):
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     monitor_type: MonitorType = MonitorType.HTTP
     url: str
@@ -16,7 +11,6 @@ class HTTPMonitorModel(BaseMonitorModel):
     failure_count: int = 0
     success_count: int = 0
     expected_response_time_ms: int | None = None
-
 
 class CreateHTTP_monitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -26,7 +20,6 @@ class CreateHTTP_monitorRequest(BaseModel):
     timeout: int = Field(gt=0)
     expected_status_code: int = Field(ge=100, le=599)
 
-
 class UpdateHTTP_monitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     url: str | None = Field(default=None, max_length=500)
@@ -35,7 +28,6 @@ class UpdateHTTP_monitorRequest(BaseModel):
     timeout: int | None = Field(default=None, gt=0)
     expected_status_code: int | None = Field(default=None, ge=100, le=599)
     is_active: bool | None = None
-
 
 class HTTP_monitorResponse(BaseModel):
     id: str

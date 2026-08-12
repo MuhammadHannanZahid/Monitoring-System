@@ -1,18 +1,14 @@
 from fastapi import Depends
-
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 from app.modules.dashboard.service import DashboardService
 from app.modules.monitor.service import MonitorService
-
 
 def get_monitor_service() -> MonitorService:
     if scheduler_state.scheduler is None:
         raise RuntimeError("The monitor scheduler has not been initialized.")
     return scheduler_state.scheduler.monitor_service
 
-def get_dashboard_service(
-    monitor_service: MonitorService = Depends(get_monitor_service),
-) -> DashboardService:
+def get_dashboard_service(monitor_service: MonitorService = Depends(get_monitor_service)) -> DashboardService:
     return DashboardService(
         monitor_service=monitor_service,
         monitor_result_service=monitor_service.monitor_result_service,

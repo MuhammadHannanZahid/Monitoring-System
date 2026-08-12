@@ -3,21 +3,12 @@ import httpx
 from app.core.logger import get_logger
 from app.modules.API_monitor.json_matcher import json_matches
 from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
-from app.modules.auth_profiles.token_manager import (
-    ACCESS_TOKEN_COOKIE_NAME,
-    AccessTokenCookieManager,
-    AuthTokenError,
-)
+from app.modules.auth_profiles.token_manager import ACCESS_TOKEN_COOKIE_NAME, AccessTokenCookieManager, AuthTokenError
 
 logger = get_logger(__name__)
 
 class ApiChecker:
-
-    def __init__(
-        self,
-        token_manager: AccessTokenCookieManager | None = None,
-        client: httpx.AsyncClient | None = None,
-    ):
+    def __init__(self, token_manager: AccessTokenCookieManager | None = None, client: httpx.AsyncClient | None = None):
         self.token_manager = token_manager
         self.client = client or httpx.AsyncClient(follow_redirects=True)
         self._owns_client = client is None
@@ -104,11 +95,7 @@ class ApiChecker:
                 elif not content_type_ok:
                     logger.warning("API Monitor '%s' returned wrong Content-Type.", monitor.name)
         except AuthTokenError as exc:
-            logger.warning(
-                "API Monitor '%s' could not authenticate: %s",
-                monitor.name,
-                exc,
-            )
+            logger.warning("API Monitor '%s' could not authenticate: %s", monitor.name, exc)
 
         except httpx.TimeoutException:
             if start is not None:
@@ -132,12 +119,7 @@ class ApiChecker:
             is_slow=is_slow,
         )
 
-    async def _build_headers(
-        self,
-        monitor,
-        *,
-        force_refresh: bool = False,
-    ) -> dict[str, str]:
+    async def _build_headers(self, monitor, *, force_refresh: bool = False) -> dict[str, str]:
         headers = dict(monitor.headers or {})
         if monitor.auth_profile_id is None:
             return headers
@@ -149,8 +131,6 @@ class ApiChecker:
             force_refresh=force_refresh,
         )
 
-        # Orion uses cookie authentication. Remove any static auth/cookie
-        # headers so the fetched value is sent strictly as access_token.
         headers = {
             key: value
             for key, value in headers.items()

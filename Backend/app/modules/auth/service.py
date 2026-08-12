@@ -1,31 +1,20 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from jose import JWTError
 from odmantic import AIOEngine
-
 from app.core.jwt import JWTService
 from app.core.logger import get_logger
 from app.core.security import PasswordService, RefreshTokenService
-from app.modules.auth.dto import AuthTokens
 from app.shared.constants import Collections, Messages
 from app.shared.exceptions import AuthenticationError, NotFoundError
-from app.shared.models.auth_user import UserModel
+from app.shared.models.auth_user import AuthTokens, UserModel
 
 logger = get_logger(__name__)
 
-
 class AuthService:
-    def __init__(
-        self,
-        engine: AIOEngine,
-        password_service: PasswordService,
-        jwt_service: JWTService,
-        refresh_token_service: RefreshTokenService,
-    ) -> None:
+    def __init__(self, engine: AIOEngine, password_service: PasswordService, jwt_service: JWTService, refresh_token_service: RefreshTokenService) -> None:
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
         self.jwt_service = jwt_service
@@ -34,22 +23,15 @@ class AuthService:
     async def login(self, username: str, password: str) -> AuthTokens:
         document = await self.collection.find_one({"username": username})
         if document is None:
-            logger.warning(
-                "Failed login attempt for username '%s'. User does not exist.",
-                username,
-            )
+            logger.warning("Failed login attempt for username '%s'. User does not exist.", username)
             raise AuthenticationError(Messages.INVALID_CREDENTIALS)
 
         document["id"] = str(document.pop("_id"))
         user = UserModel(**document)
         if user.id is None or not self.password_service.verify_password(
             password=password,
-            hashed_password=user.password_hash,
-        ):
-            logger.warning(
-                "Failed login attempt for username '%s'. Invalid password.",
-                username,
-            )
+            hashed_password=user.password_hash):
+            logger.warning("Failed login attempt for username '%s'. Invalid password.", username)
             raise AuthenticationError(Messages.INVALID_CREDENTIALS)
 
         refresh_token, refresh_token_expires_at = (
@@ -105,12 +87,7 @@ class AuthService:
             raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
         document["id"] = str(document.pop("_id"))
         user = UserModel(**document)
-        if (
-            user.id is None
-            or not user.is_active
-            or user.refresh_token_hash is None
-            or user.refresh_token_expires_at is None
-        ):
+        if user.id is None or not user.is_active or user.refresh_token_hash is None or user.refresh_token_expires_at is None:
             raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
 
         refresh_token_expires_at = user.refresh_token_expires_at

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-
 from app.modules.users.dependencies import get_user_service
 from app.modules.users.service import UserService
 from app.shared.authorization import require_admin
@@ -8,7 +7,6 @@ from app.shared.models.auth_user import CreateUserRequest, UpdateUserRequest, Us
 from app.shared.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(require_admin())])
-
 
 @router.post("/create",response_model=SuccessResponse[UserResponse])
 async def create_user(request: CreateUserRequest, service: UserService = Depends(get_user_service)):
@@ -31,7 +29,6 @@ async def create_user(request: CreateUserRequest, service: UserService = Depends
         ),
     )
 
-
 @router.get("/list", response_model=SuccessResponse[list[UserResponse]])
 async def list_users(service: UserService = Depends(get_user_service)):
     users = await service.list_users()
@@ -52,7 +49,6 @@ async def list_users(service: UserService = Depends(get_user_service)):
         ],
     )
 
-
 @router.get("/{user_id}/get_one", response_model=SuccessResponse[UserResponse])
 async def get_user(user_id: str, service: UserService = Depends(get_user_service)):
     user = await service.get_user(user_id)
@@ -69,7 +65,6 @@ async def get_user(user_id: str, service: UserService = Depends(get_user_service
             last_login=user.last_login,
         ),
     )
-
 
 @router.put("/{user_id}/update", response_model=SuccessResponse[UserResponse])
 async def update_user(user_id: str, request: UpdateUserRequest, service: UserService = Depends(get_user_service)):
@@ -93,7 +88,6 @@ async def update_user(user_id: str, request: UpdateUserRequest, service: UserSer
             last_login=user.last_login,
         ),
     )
-
 
 @router.delete("/{user_id}/delete", response_model=SuccessResponse[None])
 async def delete_user(user_id: str, service: UserService = Depends(get_user_service)):

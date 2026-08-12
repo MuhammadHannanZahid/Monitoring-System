@@ -2,19 +2,18 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 from bson import ObjectId
 from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
 from app.modules.monitor.checkers.heartbeat_checker import HeartbeatChecker
 from app.modules.monitor.scheduler import MonitorScheduler
 from app.modules.monitor.service import MonitorService
 from app.modules.monitor.worker import MonitorWorker
-from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.shared.models.monitor_state import MonitorStateModel
+from app.shared.models.monitor_state import MonitorStateModel, MonitorTransition
 
 
 def make_monitor(**changes) -> HeartbeatMonitorModel:

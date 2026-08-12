@@ -1,12 +1,10 @@
 import os
 from datetime import timezone
-
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import PyMongoError
-
 from app.core.logger import get_logger
 from app.shared.constants import Collections
 
@@ -28,15 +26,8 @@ class DatabaseManager:
             load_dotenv()
             mongo_uri = os.environ["MONGO_URI"]
             database_name = os.environ["DATABASE_NAME"]
-            client = AsyncIOMotorClient(
-                mongo_uri,
-                tz_aware=True,
-                tzinfo=timezone.utc,
-            )
-            self._engine = AIOEngine(
-                client=client,
-                database=database_name,
-            )
+            client = AsyncIOMotorClient(mongo_uri, tz_aware=True, tzinfo=timezone.utc)
+            self._engine = AIOEngine(client=client, database=database_name)
             await self.engine.client.admin.command("ping")
             await self._create_indexes()
             logger.info("MongoDB connected successfully.")
@@ -50,7 +41,6 @@ class DatabaseManager:
             logger.info("Closing MongoDB connection.")
             self._engine.client.close()
             logger.info("MongoDB connection closed.")
-
             self._engine = None
 
     async def _create_indexes(self) -> None:

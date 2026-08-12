@@ -1,14 +1,11 @@
 from datetime import datetime
-
 from pydantic import BaseModel, Field
-
 from app.shared.models.base_monitor import BaseMonitorModel, MonitorStatus, MonitorType
 
 class PingMonitorModel(BaseMonitorModel):
     host: str
     monitor_type: MonitorType = MonitorType.PING
     expected_response_time_ms: int | None = None
-
 
 class CreatePingMonitorRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -17,7 +14,6 @@ class CreatePingMonitorRequest(BaseModel):
     check_interval: int = Field(ge=10, le=86400)
     timeout: int = Field(ge=1, le=300)
 
-
 class UpdatePingMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     host: str | None = Field(default=None, min_length=1, max_length=255)
@@ -25,7 +21,6 @@ class UpdatePingMonitorRequest(BaseModel):
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     check_interval: int | None = Field(default=None, ge=10, le=86400)
     is_active: bool | None = None
-
 
 class PingMonitorResponse(BaseModel):
     id: str

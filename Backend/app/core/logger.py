@@ -3,7 +3,6 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -12,7 +11,6 @@ LOG_DIR.mkdir(exist_ok=True)
 
 APP_LOG_FILE = LOG_DIR / "app.log"
 ERROR_LOG_FILE = LOG_DIR / "error.log"
-
 LOG_FORMAT = ("%(asctime)s | %(levelname)-8s | %(name)s | %(message)s")
 
 class MaxLevelFilter(logging.Filter):
@@ -24,8 +22,7 @@ class MaxLevelFilter(logging.Filter):
         return record.levelno <= self.level
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT,)
+formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
 
 root_logger = logging.getLogger()
 
@@ -33,7 +30,6 @@ load_dotenv()
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 
 root_logger.setLevel(log_level)
-
 root_logger.propagate = False
 
 if root_logger.handlers:

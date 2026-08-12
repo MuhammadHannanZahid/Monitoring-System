@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
-
 from app.core.logger import get_logger
 from app.modules.monitor.service import MonitorService
 from app.shared.models.base_monitor import MonitorType
@@ -11,13 +10,8 @@ logger = get_logger(__name__)
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 
-
 class MonitorWorker:
-    def __init__(
-        self,
-        monitor: MonitorModel,
-        monitor_service: MonitorService,
-    ):
+    def __init__(self, monitor: MonitorModel, monitor_service: MonitorService):
         self.monitor = monitor
         self.monitor_service = monitor_service
 
@@ -31,10 +25,7 @@ class MonitorWorker:
         self._running = True
         self._task = asyncio.create_task(self._run())
 
-        logger.info(
-            "Started worker for '%s'.",
-            self.monitor.name,
-        )
+        logger.info("Started worker for '%s'.", self.monitor.name)
 
     async def stop(self) -> None:
         self._running = False
@@ -47,10 +38,7 @@ class MonitorWorker:
             except asyncio.CancelledError:
                 pass
 
-        logger.info(
-            "Stopped worker for '%s'.",
-            self.monitor.name,
-        )
+        logger.info("Stopped worker for '%s'.", self.monitor.name)
 
     async def _run(self) -> None:
         if self.monitor.monitor_type == MonitorType.HEARTBEAT:
@@ -93,24 +81,15 @@ class MonitorWorker:
                     self.monitor.monitor_type,
                 )
                 if monitor is None:
-                    logger.info(
-                        "Heartbeat monitor '%s' removed. Worker stopping.",
-                        self.monitor.id,
-                    )
+                    logger.info("Heartbeat monitor '%s' removed. Worker stopping.", self.monitor.id)
                     break
 
                 if not isinstance(monitor, HeartbeatMonitorModel):
-                    logger.error(
-                        "Monitor '%s' was registered as heartbeat with an incompatible model.",
-                        self.monitor.id,
-                    )
+                    logger.error("Monitor '%s' was registered as heartbeat with an incompatible model.", self.monitor.id)
                     break
 
                 if monitor.last_heartbeat_at is None:
-                    logger.info(
-                        "Heartbeat monitor '%s' is awaiting its first heartbeat. Worker stopping.",
-                        monitor.name,
-                    )
+                    logger.info("Heartbeat monitor '%s' is awaiting its first heartbeat. Worker stopping.", monitor.name)
                     break
 
                 self.monitor = monitor
@@ -120,36 +99,16 @@ class MonitorWorker:
                     continue
 
                 await self.monitor_service.check_and_update(monitor)
-
-                # Once overdue, check once per promised heartbeat interval. A
-                # received beat updates state immediately and moves the next
-                # deadline when the worker reloads the monitor.
                 await asyncio.sleep(monitor.expected_heartbeat_interval)
             except asyncio.CancelledError:
                 break
             except Exception:
-                logger.exception(
-                    "Heartbeat worker failed for '%s'.",
-                    self.monitor.name,
-                )
-
+                logger.exception("Heartbeat worker failed for '%s'.", self.monitor.name)
         self._running = False
 
     @staticmethod
-    def _seconds_until_heartbeat_deadline(
-        monitor: HeartbeatMonitorModel,
-    ) -> float:
+    def _seconds_until_heartbeat_deadline(monitor: HeartbeatMonitorModel) -> float:
         if monitor.last_heartbeat_at is None:
-            raise ValueError(
-                "A heartbeat deadline is unavailable before the first heartbeat."
-            )
-        deadline = monitor.last_heartbeat_at + timedelta(
-            seconds=(
-                monitor.expected_heartbeat_interval
-                + monitor.grace_period
-            )
-        )
-        return max(
-            0.0,
-            (deadline - datetime.now(timezone.utc)).total_seconds(),
-        )
+            raise ValueError("A heartbeat deadline is unavailable before the first heartbeat.")
+        deadline = monitor.last_heartbeat_at + timedelta(seconds=monitor.expected_heartbeat_interval + monitor.grace_period)
+        return max(0.0, (deadline - datetime.now(timezone.utc)).total_seconds())

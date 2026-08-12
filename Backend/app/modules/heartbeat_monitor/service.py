@@ -1,15 +1,12 @@
 from __future__ import annotations
-
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
@@ -17,23 +14,12 @@ from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 if TYPE_CHECKING:
     from app.modules.monitor.service import MonitorService
 
-
 class HeartbeatMonitorService:
-    def __init__(
-        self,
-        engine: AIOEngine,
-        monitor_service: MonitorService | None = None,
-    ):
+    def __init__(self, engine: AIOEngine, monitor_service: MonitorService | None = None):
         self.collection = engine.database[Collections.HEARTBEAT_MONITORS]
         self.monitor_service = monitor_service
 
-    async def create_monitor(
-        self,
-        name: str,
-        expected_heartbeat_interval: int,
-        grace_period: int,
-        created_by: str | None = None,
-    ) -> HeartbeatMonitorModel:
+    async def create_monitor(self, name: str, expected_heartbeat_interval: int, grace_period: int, created_by: str | None = None) -> HeartbeatMonitorModel:
         token = uuid.uuid4().hex
         now = datetime.now(timezone.utc)
         monitor = HeartbeatMonitorModel(
@@ -74,13 +60,7 @@ class HeartbeatMonitorService:
             monitors.append(HeartbeatMonitorModel(**document))
         return monitors
 
-    async def update_monitor(
-        self,
-        monitor_id: str,
-        name: str | None = None,
-        expected_heartbeat_interval: int | None = None,
-        grace_period: int | None = None,
-    ) -> HeartbeatMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, name: str | None = None, expected_heartbeat_interval: int | None = None, grace_period: int | None = None) -> HeartbeatMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -121,10 +101,7 @@ class HeartbeatMonitorService:
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
 
-    async def regenerate_token(
-        self,
-        monitor_id: str,
-    ) -> HeartbeatMonitorModel | None:
+    async def regenerate_token(self, monitor_id: str) -> HeartbeatMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -177,14 +154,7 @@ class HeartbeatMonitorService:
             await scheduler_state.scheduler.start_worker(updated)
         return updated
 
-    async def update_monitoring_result(
-        self,
-        monitor_id: str,
-        status: MonitorStatus,
-        status_code: int | None,
-        response_time_ms: int | None,
-        checked_at: datetime,
-    ) -> bool:
+    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(monitor_id)
         except (InvalidId, TypeError):

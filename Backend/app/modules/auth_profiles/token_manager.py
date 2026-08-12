@@ -1,13 +1,10 @@
 from __future__ import annotations
-
 import asyncio
 import time
 from dataclasses import dataclass
 from http.cookies import SimpleCookie
 from typing import TYPE_CHECKING, Callable
-
 import httpx
-
 from app.core.logger import get_logger
 from app.shared.models.auth_profile import AuthProfileModel
 
@@ -19,24 +16,16 @@ logger = get_logger(__name__)
 ACCESS_TOKEN_COOKIE_NAME = "access_token"
 TOKEN_CACHE_TTL_SECONDS = 14 * 60
 
-
 class AuthTokenError(RuntimeError):
     pass
-
 
 @dataclass(frozen=True)
 class CachedAccessToken:
     value: str
     expires_at: float
 
-
 class AccessTokenCookieManager:
-    def __init__(
-        self,
-        auth_profile_service: AuthProfileService,
-        client: httpx.AsyncClient | None = None,
-        clock: Callable[[], float] = time.monotonic,
-    ):
+    def __init__(self, auth_profile_service: AuthProfileService, client: httpx.AsyncClient | None = None, clock: Callable[[], float] = time.monotonic):
         self.auth_profile_service = auth_profile_service
         self.client = client or httpx.AsyncClient(follow_redirects=True)
         self.clock = clock
@@ -44,12 +33,7 @@ class AccessTokenCookieManager:
         self._cache: dict[str, CachedAccessToken] = {}
         self._locks: dict[str, asyncio.Lock] = {}
 
-    async def get_token(
-        self,
-        profile_id: str,
-        *,
-        force_refresh: bool = False,
-    ) -> str:
+    async def get_token(self, profile_id: str, *, force_refresh: bool = False) -> str:
         cached = self._cache.get(profile_id)
         if not force_refresh and self._is_valid(cached):
             return cached.value
@@ -85,10 +69,7 @@ class AccessTokenCookieManager:
     def _is_valid(self, cached: CachedAccessToken | None) -> bool:
         return cached is not None and self.clock() < cached.expires_at
 
-    async def _fetch_token(
-        self,
-        profile: AuthProfileModel,
-    ) -> str:
+    async def _fetch_token(self, profile: AuthProfileModel) -> str:
         try:
             response = await self.client.request(
                 method=profile.method,
@@ -98,9 +79,7 @@ class AccessTokenCookieManager:
             )
             response.raise_for_status()
         except httpx.HTTPError as exc:
-            raise AuthTokenError(
-                f"Authentication failed for profile '{profile.name}': {exc}"
-            ) from exc
+            raise AuthTokenError(f"Authentication failed for profile '{profile.name}': {exc}") from exc
 
         token = self._extract_access_token_cookie(response)
         if token is None:
@@ -114,8 +93,6 @@ class AccessTokenCookieManager:
 
     @staticmethod
     def _extract_access_token_cookie(response: httpx.Response) -> str | None:
-        # Redirect responses can carry the login cookie, so inspect the full
-        # response chain from newest to oldest without parsing any body data.
         for candidate in reversed([*response.history, response]):
             for header in candidate.headers.get_list("set-cookie"):
                 cookies = SimpleCookie()
@@ -124,6 +101,5 @@ class AccessTokenCookieManager:
                 if morsel is not None and morsel.value:
                     return morsel.value
         return None
-
 
 token_manager: AccessTokenCookieManager | None = None

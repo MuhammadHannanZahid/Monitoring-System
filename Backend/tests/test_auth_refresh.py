@@ -14,10 +14,9 @@ from app.modules.auth.dependencies import (
     get_current_user,
     set_auth_cookies,
 )
-from app.modules.auth.dto import AuthTokens
 from app.modules.auth.service import AuthService
 from app.shared.exceptions import AuthenticationError
-from app.shared.models.auth_user import TokenType, UserModel, UserRole
+from app.shared.models.auth_user import AuthTokens, TokenType, UserModel, UserRole
 
 
 USER_ID = "507f1f77bcf86cd799439011"

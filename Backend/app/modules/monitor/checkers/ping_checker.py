@@ -2,12 +2,11 @@ import asyncio
 from app.core.logger import get_logger
 from app.shared.models.base_monitor import HealthCheckResponse, MonitorStatus
 from app.shared.models.ping_monitor import PingMonitorModel
-from .base_checker import BaseChecker
 import re
 
 logger = get_logger(__name__)
 
-class PingChecker(BaseChecker):
+class PingChecker:
     async def check(self, monitor: PingMonitorModel) -> HealthCheckResponse:
         response_time_ms = None
         success = False
@@ -26,7 +25,6 @@ class PingChecker(BaseChecker):
 
             if process.returncode == 0:
                 output = stdout.decode()
-
                 match = re.search(r"time=([\d.]+)", output)
 
                 if match:
@@ -37,32 +35,15 @@ class PingChecker(BaseChecker):
                 success = True
                 status = MonitorStatus.UP
 
-                if (
-                        response_time_ms is not None
-                        and monitor.expected_response_time_ms is not None
-                        and response_time_ms > monitor.expected_response_time_ms
-                ):
+                if response_time_ms is not None and monitor.expected_response_time_ms is not None and response_time_ms > monitor.expected_response_time_ms:
                     is_slow = True
 
                 if is_slow:
-                    logger.warning(
-                        "Ping monitor '%s' is UP but SLOW (%d ms > %d ms).",
-                        monitor.name,
-                        response_time_ms,
-                        monitor.expected_response_time_ms,
-                    )
+                    logger.warning("Ping monitor '%s' is UP but SLOW (%d ms > %d ms).", monitor.name, response_time_ms, monitor.expected_response_time_ms)
                 else:
-                    logger.info(
-                        "Ping monitor '%s' is UP (%d ms).",
-                        monitor.name,
-                        response_time_ms,
-                    )
+                    logger.info("Ping monitor '%s' is UP (%d ms).", monitor.name, response_time_ms)
             else:
-                logger.warning(
-                    "Ping monitor '%s' failed: %s",
-                    monitor.name,
-                    stderr.decode().strip(),
-                )
+                logger.warning("Ping monitor '%s' failed: %s", monitor.name, stderr.decode().strip())
 
         except asyncio.TimeoutError:
             response_time_ms = monitor.timeout * 1000
@@ -79,3 +60,6 @@ class PingChecker(BaseChecker):
             success=success,
             is_slow=is_slow,
         )
+
+    async def close(self) -> None:
+        return None

@@ -1,18 +1,12 @@
 from fastapi import APIRouter, Depends
-
 from app.modules.ping_monitor.dependencies import get_ping_service
 from app.modules.ping_monitor.service import PingMonitorService
 from app.shared.authorization import require_admin
 from app.shared.constants import Messages
-from app.shared.models.ping_monitor import (
-    CreatePingMonitorRequest,
-    PingMonitorResponse,
-    UpdatePingMonitorRequest,
-)
+from app.shared.models.ping_monitor import CreatePingMonitorRequest, PingMonitorResponse, UpdatePingMonitorRequest
 from app.shared.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/ping-monitors", tags=["Ping Monitors"], dependencies=[Depends(require_admin())])
-
 
 @router.post("/create", response_model=SuccessResponse[PingMonitorResponse])
 async def create_ping_monitor(request: CreatePingMonitorRequest, service: PingMonitorService = Depends(get_ping_service)):
@@ -44,7 +38,6 @@ async def create_ping_monitor(request: CreatePingMonitorRequest, service: PingMo
         ),
     )
 
-
 @router.get("/list_all", response_model=SuccessResponse[list[PingMonitorResponse]])
 async def list_monitors(service: PingMonitorService = Depends(get_ping_service)):
     PING_monitors = await service.list_monitors()
@@ -72,7 +65,6 @@ async def list_monitors(service: PingMonitorService = Depends(get_ping_service))
         ],
     )
 
-
 @router.get("/{PING_monitor_id}/get_one", response_model=SuccessResponse[PingMonitorResponse])
 async def get_ping_monitor(PING_monitor_id: str, service: PingMonitorService = Depends(get_ping_service)):
     monitor = await service.get_monitor(PING_monitor_id)
@@ -96,7 +88,6 @@ async def get_ping_monitor(PING_monitor_id: str, service: PingMonitorService = D
             status=monitor.status,
         ),
     )
-
 
 @router.put("/{PING_monitor_id}/update", response_model=SuccessResponse[PingMonitorResponse])
 async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRequest, service: PingMonitorService = Depends(get_ping_service)):
@@ -127,7 +118,6 @@ async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRe
             status=PING_monitor.status,
         ),
     )
-
 
 @router.delete("/{PING_monitor_id}/delete", response_model=SuccessResponse[None])
 async def delete_ping_monitor(PING_monitor_id: str, service: PingMonitorService = Depends(get_ping_service)):

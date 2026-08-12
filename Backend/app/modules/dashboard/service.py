@@ -39,11 +39,8 @@ class DashboardService:
         )
 
     async def get_recent_incidents(self) -> list[DashboardIncidentResponse]:
-
         incidents = await self.incident_service.get_recent()
-
         _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
-
         results = []
 
         for incident in incidents:
@@ -59,20 +56,15 @@ class DashboardService:
                     duration_seconds=incident.duration_seconds,
                 )
             )
-
         return results
 
     async def get_recent_activity(self) -> list[DashboardActivityResponse]:
-
         results = await self.monitor_result_service.get_recent()
-
         _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
-
         activities = []
 
         for result in results:
             monitor = monitor_map.get(result.monitor_id)
-
             activities.append(
                 DashboardActivityResponse(
                     monitor_name=monitor.name if monitor else "Unknown",
@@ -83,12 +75,10 @@ class DashboardService:
                     is_slow=result.is_slow,
                 )
             )
-
         return activities
 
     async def get_response_history(self, monitor_id: str, days: int) -> ResponseHistoryResponse:
         monitor = await self.monitor_service.get_monitor(monitor_id)
-
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
 
@@ -106,9 +96,7 @@ class DashboardService:
         )
 
     async def get_uptime(self, monitor_id: str, days: int) -> UptimeResponse:
-        monitor = await self.monitor_service.get_monitor(
-            monitor_id
-        )
+        monitor = await self.monitor_service.get_monitor(monitor_id)
 
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)

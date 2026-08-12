@@ -1,32 +1,20 @@
 from __future__ import annotations
-
 import ipaddress
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 from app.shared.models.ping_monitor import PingMonitorModel
-
 
 class PingMonitorService:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.PING_MONITORS]
 
-    async def create_monitor(
-        self,
-        name: str,
-        host: str,
-        check_interval: int,
-        timeout: int,
-        expected_response_time_ms: int | None,
-        created_by: str | None = None,
-    ) -> PingMonitorModel:
+    async def create_monitor(self, name: str, host: str, check_interval: int, timeout: int, expected_response_time_ms: int | None, created_by: str | None = None) -> PingMonitorModel:
         now = datetime.now(timezone.utc)
         monitor = PingMonitorModel(
             name=name,
@@ -68,15 +56,7 @@ class PingMonitorService:
             monitors.append(PingMonitorModel(**document))
         return monitors
 
-    async def update_monitor(
-        self,
-        monitor_id: str,
-        name: str | None = None,
-        host: str | None = None,
-        check_interval: int | None = None,
-        timeout: int | None = None,
-        expected_response_time_ms: int | None = None,
-    ) -> PingMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, name: str | None = None, host: str | None = None, check_interval: int | None = None, timeout: int | None = None, expected_response_time_ms: int | None = None) -> PingMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -110,14 +90,7 @@ class PingMonitorService:
         result = await self.collection.delete_one({"_id": object_id})
         return result.deleted_count > 0
 
-    async def update_monitoring_result(
-        self,
-        monitor_id: str,
-        status: MonitorStatus,
-        status_code: int | None,
-        response_time_ms: int | None,
-        checked_at: datetime,
-    ) -> bool:
+    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(monitor_id)
         except InvalidId:

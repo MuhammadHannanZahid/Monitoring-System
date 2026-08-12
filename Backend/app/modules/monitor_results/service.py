@@ -1,28 +1,15 @@
 from __future__ import annotations
-
 from datetime import datetime, timedelta, timezone
-
 from odmantic import AIOEngine
-
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorStatus
 from app.shared.models.monitor_result import MonitorResultModel
-
 
 class MonitorResultService:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.MONITOR_RESULTS]
 
-    async def record_result(
-        self,
-        monitor_id: str,
-        monitor_type: str,
-        status: MonitorStatus,
-        status_code: int | None,
-        response_time_ms: int | None,
-        success: bool,
-        is_slow: bool = False,
-    ) -> MonitorResultModel:
+    async def record_result(self, monitor_id: str, monitor_type: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, success: bool, is_slow: bool = False) -> MonitorResultModel:
         result = MonitorResultModel(
             monitor_id=monitor_id,
             monitor_type=monitor_type,
@@ -57,11 +44,7 @@ class MonitorResultService:
             results.append(MonitorResultModel(**document))
         return results
 
-    async def get_response_history(
-        self,
-        monitor_id: str,
-        days: int = 7,
-    ) -> list[MonitorResultModel]:
+    async def get_response_history(self, monitor_id: str, days: int = 7) -> list[MonitorResultModel]:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
         cursor = self.collection.find(
             {
@@ -75,18 +58,10 @@ class MonitorResultService:
             results.append(MonitorResultModel(**document))
         return results
 
-    async def get_status_history(
-        self,
-        monitor_id: str,
-        days: int = 7,
-    ) -> list[MonitorResultModel]:
+    async def get_status_history(self, monitor_id: str, days: int = 7) -> list[MonitorResultModel]:
         return await self.get_response_history(monitor_id, days)
 
-    async def get_statistics(
-        self,
-        monitor_id: str,
-        days: int = 7,
-    ) -> dict[str, int]:
+    async def get_statistics(self, monitor_id: str, days: int = 7) -> dict[str, int]:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
         pipeline = [
             {

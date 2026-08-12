@@ -1,11 +1,8 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
 from app.core.logger import get_logger
 from app.core.security import PasswordService
 from app.shared.constants import Collections, Messages
@@ -14,18 +11,12 @@ from app.shared.models.auth_user import UserModel, UserRole
 
 logger = get_logger(__name__)
 
-
 class UserService:
     def __init__(self, engine: AIOEngine, password_service: PasswordService):
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
 
-    async def create_user(
-        self,
-        username: str,
-        password: str,
-        role: UserRole,
-    ) -> UserModel:
+    async def create_user(self, username: str, password: str, role: UserRole) -> UserModel:
         if await self.collection.find_one({"username": username}) is not None:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
         if role == UserRole.ADMIN:
@@ -47,11 +38,7 @@ class UserService:
         document.pop("id", None)
         result = await self.collection.insert_one(document)
         user.id = str(result.inserted_id)
-        logger.info(
-            "User '%s' created with role '%s'.",
-            user.username,
-            user.role.value,
-        )
+        logger.info("User '%s' created with role '%s'.", user.username, user.role.value)
         return user
 
     async def get_user(self, user_id: str) -> UserModel:
@@ -75,14 +62,7 @@ class UserService:
             users.append(UserModel(**document))
         return users
 
-    async def update_user(
-        self,
-        user_id: str,
-        username: str | None = None,
-        password: str | None = None,
-        role: UserRole | None = None,
-        is_active: bool | None = None,
-    ) -> UserModel:
+    async def update_user(self, user_id: str, username: str | None = None, password: str | None = None, role: UserRole | None = None, is_active: bool | None = None) -> UserModel:
         user = await self.get_user(user_id)
         update_data: dict[str, object] = {}
 
@@ -95,16 +75,11 @@ class UserService:
             update_data["username"] = username
 
         if password is not None:
-            update_data["password_hash"] = self.password_service.hash_password(
-                password
-            )
+            update_data["password_hash"] = self.password_service.hash_password(password)
 
         if role is not None:
             if user.role == UserRole.ADMIN and role != UserRole.ADMIN:
-                logger.warning(
-                    "Attempted role change for admin account '%s'.",
-                    user.username,
-                )
+                logger.warning("Attempted role change for admin account '%s'.", user.username)
                 raise AuthorizationError(Messages.ADMIN_ROLE_CHANGE_NOT_ALLOWED)
             update_data["role"] = role
 
@@ -115,24 +90,17 @@ class UserService:
             update_data["updated_at"] = datetime.now(timezone.utc)
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$set": update_data},
+                {"$set": update_data}
             )
 
         updated_user = await self.get_user(user_id)
-        logger.info(
-            "User '%s' updated. Fields changed: %s",
-            updated_user.username,
-            ", ".join(update_data.keys()),
-        )
+        logger.info("User '%s' updated. Fields changed: %s", updated_user.username, ", ".join(update_data.keys()))
         return updated_user
 
     async def delete_user(self, user_id: str) -> None:
         user = await self.get_user(user_id)
         if user.role == UserRole.ADMIN:
-            logger.warning(
-                "Attempted deletion of admin account '%s'.",
-                user.username,
-            )
+            logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
         await self.collection.delete_one({"_id": ObjectId(user_id)})
         logger.info("User '%s' deleted.", user.username)

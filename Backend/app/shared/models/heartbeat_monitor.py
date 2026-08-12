@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import Literal
-
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
-
 
 class HeartbeatMonitorModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -32,18 +30,15 @@ class HeartbeatMonitorModel(BaseModel):
     token_expires_at: datetime | None = None
     heartbeat_token: str | None = Field(default=None, exclude=True)
 
-
 class CreateHeartbeatMonitorRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     expected_heartbeat_interval: int = Field(..., gt=0)
     grace_period: int = Field(..., ge=0)
 
-
 class UpdateHeartbeatMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     expected_heartbeat_interval: int | None = Field(default=None, gt=0)
     grace_period: int | None = Field(default=None, ge=0)
-
 
 class HeartbeatMonitorResponse(BaseModel):
     id: str
@@ -57,15 +52,12 @@ class HeartbeatMonitorResponse(BaseModel):
     updated_at: str
     model_config = ConfigDict(from_attributes=True)
 
-
 class HeartbeatTokenResponse(BaseModel):
     heartbeat_token: str
     model_config = ConfigDict(from_attributes=True)
 
-
 class RegenerateHeartbeatTokenResponse(BaseModel):
     heartbeat_token: str
-
 
 class HeartbeatResponse(BaseModel):
     message: str

@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 import asyncio
 import os
-
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 from app.api.auth import router as auth_router
@@ -28,7 +27,7 @@ from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
 from app.modules.auth_profiles.service import AuthProfileService
 from app.modules.auth_profiles.token_manager import AccessTokenCookieManager
 import app.modules.auth_profiles.token_manager as auth_token_state
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 
 logger = get_logger(__name__)
 

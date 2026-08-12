@@ -30,7 +30,6 @@ class Messages:
 
     heartbeat_RECEIVED = "Heartbeat received."
 
-
 class Collections:
     USERS = "users"
     INCIDENTS = "incidents"

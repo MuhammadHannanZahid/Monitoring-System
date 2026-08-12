@@ -1,5 +1,4 @@
 from typing import Any, Generic, TypeVar
-
 from pydantic import BaseModel, Field
 
 T = TypeVar("T")
@@ -34,7 +33,6 @@ def error_response(message: str, errors: list[str] | None = None,) -> ErrorRespo
         message=message,
         errors=errors or [],
     )
-
 
 class ApiResponse(BaseModel, Generic[T]):
     success: bool

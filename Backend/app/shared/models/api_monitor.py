@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict, Field
-
 from app.shared.models.base_monitor import BaseMonitorModel, MonitorStatus, MonitorType
 
 class APIMonitorModel(BaseMonitorModel):
@@ -32,7 +30,6 @@ class CreateApiMonitorRequest(BaseModel):
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
 
-
 class UpdateApiMonitorRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     url: str | None = Field(default=None, max_length=500)
@@ -47,7 +44,6 @@ class UpdateApiMonitorRequest(BaseModel):
     is_active: bool | None = None
     expected_headers: dict[str, str] | None = None
     expected_content_type: str | None = None
-
 
 class ApiMonitorResponse(BaseModel):
     id: str

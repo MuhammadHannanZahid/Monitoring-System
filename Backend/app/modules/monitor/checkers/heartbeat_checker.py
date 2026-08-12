@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
-
 from app.core.logger import get_logger
 from app.shared.models.base_monitor import MonitorStatus
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 
 logger = get_logger(__name__)
-
 
 @dataclass(frozen=True)
 class HeartbeatCheckResult:
@@ -16,14 +14,10 @@ class HeartbeatCheckResult:
     response_time_ms: None = None
     is_slow: bool = False
 
-
 class HeartbeatChecker:
     async def check(self, monitor: HeartbeatMonitorModel) -> HeartbeatCheckResult:
         now = datetime.now(timezone.utc)
-        allowed_seconds = (
-            monitor.expected_heartbeat_interval
-            + monitor.grace_period
-        )
+        allowed_seconds = monitor.expected_heartbeat_interval + monitor.grace_period
 
         if monitor.last_heartbeat_at is None:
             return HeartbeatCheckResult(
@@ -36,10 +30,7 @@ class HeartbeatChecker:
         status = MonitorStatus.UP if success else MonitorStatus.DOWN
 
         if not success:
-            logger.warning(
-                "Heartbeat '%s' is DOWN",
-                monitor.name
-            )
+            logger.warning("Heartbeat '%s' is DOWN", monitor.name)
 
         return HeartbeatCheckResult(
             status=status,

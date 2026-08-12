@@ -1,37 +1,20 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
-import app.core.scheduler as scheduler_state
+import app.modules.monitor.scheduler as scheduler_state
 from app.modules.auth_profiles.service import AuthProfileService
 from app.shared.constants import Collections
-from app.shared.models.api_monitor import (
-    APIMonitorModel,
-    CreateApiMonitorRequest,
-    UpdateApiMonitorRequest,
-)
+from app.shared.models.api_monitor import APIMonitorModel, CreateApiMonitorRequest, UpdateApiMonitorRequest
 from app.shared.models.base_monitor import MonitorStatus
 
-
 class API_monitorService:
-    def __init__(
-        self,
-        engine: AIOEngine,
-        auth_profile_service: AuthProfileService | None = None,
-    ):
+    def __init__(self, engine: AIOEngine, auth_profile_service: AuthProfileService | None = None):
         self.collection = engine.database[Collections.API_MONITORS]
         self.auth_profile_service = auth_profile_service
 
-    async def create_monitor(
-        self,
-        request: CreateApiMonitorRequest,
-        expected_response_time_ms: int | None = None,
-        created_by: str | None = None,
-    ) -> APIMonitorModel:
+    async def create_monitor(self, request: CreateApiMonitorRequest, expected_response_time_ms: int | None = None, created_by: str | None = None) -> APIMonitorModel:
         if await self.collection.find_one({"name": request.name}) is not None:
             raise ValueError("API monitor with this name already exists.")
         if await self.collection.find_one({"url": request.url}) is not None:
@@ -89,12 +72,7 @@ class API_monitorService:
             monitors.append(APIMonitorModel(**document))
         return monitors
 
-    async def update_monitor(
-        self,
-        monitor_id: str,
-        request: UpdateApiMonitorRequest,
-        expected_response_time_ms: int,
-    ) -> APIMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, request: UpdateApiMonitorRequest, expected_response_time_ms: int) -> APIMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -129,14 +107,7 @@ class API_monitorService:
         result = await self.collection.delete_one({"_id": ObjectId(monitor_id)})
         return result.deleted_count > 0
 
-    async def update_monitoring_result(
-        self,
-        monitor_id: str,
-        status: MonitorStatus,
-        status_code: int | None,
-        response_time_ms: int | None,
-        checked_at: datetime,
-    ) -> bool:
+    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
             object_id = ObjectId(monitor_id)
         except InvalidId:

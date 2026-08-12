@@ -1,11 +1,8 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-
 from app.core.logger import get_logger
 from app.shared.constants import Collections
 from app.shared.models.base_monitor import MonitorType
@@ -13,17 +10,11 @@ from app.shared.models.incident import IncidentModel
 
 logger = get_logger(__name__)
 
-
 class IncidentService:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.INCIDENTS]
 
-    async def open_incident(
-        self,
-        monitor_id: str,
-        monitor_type: MonitorType,
-        reason: str | None = None,
-    ) -> None:
+    async def open_incident(self, monitor_id: str, monitor_type: MonitorType, reason: str | None = None) -> None:
         active = await self.get_active_incident(monitor_id, monitor_type)
         if active is not None:
             return
@@ -42,11 +33,7 @@ class IncidentService:
         incident.id = str(result.inserted_id)
         logger.info("Incident opened for monitor %s. Reason %s", monitor_id, reason)
 
-    async def resolve_incident(
-        self,
-        monitor_id: str,
-        monitor_type: MonitorType,
-    ) -> None:
+    async def resolve_incident(self, monitor_id: str, monitor_type: MonitorType) -> None:
         incident = await self.get_active_incident(monitor_id, monitor_type)
         if incident is None:
             return
@@ -69,11 +56,7 @@ class IncidentService:
             },
         )
 
-    async def get_active_incident(
-        self,
-        monitor_id: str,
-        monitor_type: MonitorType,
-    ) -> IncidentModel | None:
+    async def get_active_incident(self, monitor_id: str, monitor_type: MonitorType) -> IncidentModel | None:
         document = await self.collection.find_one(
             {
                 "monitor_id": monitor_id,

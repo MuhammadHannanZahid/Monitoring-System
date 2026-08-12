@@ -1,21 +1,18 @@
 import os
-
 from dotenv import load_dotenv
 from fastapi import Depends, Request, Response
 from odmantic import AIOEngine
 from app.core.database import get_engine
 from app.core.jwt import jwt_service
 from app.core.security import (password_service, refresh_token_service,)
-from app.modules.auth.dto import AuthTokens
 from app.modules.auth.service import AuthService
 from jose import JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from app.shared.models.auth_user import UserModel
+from app.shared.models.auth_user import AuthTokens, UserModel
 from app.shared.exceptions import AuthenticationError
 from app.shared.constants import Messages
 
 def get_auth_service(engine: AIOEngine = Depends(get_engine)) -> AuthService:
-
     return AuthService(
         engine=engine,
         password_service=password_service,
@@ -26,9 +23,7 @@ def get_auth_service(engine: AIOEngine = Depends(get_engine)) -> AuthService:
 ACCESS_TOKEN_COOKIE = "access_token"
 REFRESH_TOKEN_COOKIE = "refresh_token"
 AUTH_COOKIE_PATH = "/api"
-
 bearer_scheme = HTTPBearer(auto_error=False)
-
 
 def _cookie_secure() -> bool:
     load_dotenv()
@@ -37,7 +32,6 @@ def _cookie_secure() -> bool:
         "local",
         "test",
     }
-
 
 def set_auth_cookies(response: Response, tokens: AuthTokens) -> None:
     load_dotenv()
@@ -61,7 +55,6 @@ def set_auth_cookies(response: Response, tokens: AuthTokens) -> None:
         samesite="lax",
     )
 
-
 def clear_auth_cookies(response: Response) -> None:
     response.delete_cookie(
         ACCESS_TOKEN_COOKIE,
@@ -78,12 +71,7 @@ def clear_auth_cookies(response: Response) -> None:
         samesite="lax",
     )
 
-async def get_current_user(
-    request: Request,
-    response: Response,
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    service: AuthService = Depends(get_auth_service),
-) -> UserModel:
+async def get_current_user(request: Request, response: Response, credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme), service: AuthService = Depends(get_auth_service)) -> UserModel:
     candidate_tokens = []
     if credentials is not None:
         candidate_tokens.append(credentials.credentials)

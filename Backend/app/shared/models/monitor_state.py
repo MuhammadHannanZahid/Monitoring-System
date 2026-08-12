@@ -1,7 +1,12 @@
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel
-from app.modules.monitor_state.enums import MonitorTransition
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
+
+class MonitorTransition(str, Enum):
+    NONE = "none"
+    DOWN = "down"
+    UP = "up"
 
 class MonitorStateModel(BaseModel):
     id: str | None = None
@@ -13,7 +18,6 @@ class MonitorStateModel(BaseModel):
     last_checked_at: datetime | None = None
     last_status_code: int | None = None
     last_response_time_ms: int | None = None
-
 
 class MonitorStateResult(BaseModel):
     state: MonitorStateModel
