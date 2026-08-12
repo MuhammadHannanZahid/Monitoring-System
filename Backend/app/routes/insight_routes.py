@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, Query
 import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.modules.insight_manager.service import DashboardService
 from app.modules.monitoring_controller.service import MonitorService
-from app.service.authorization import require_viewer
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_insight_model import DashboardActivityResponse, DashboardIncidentResponse, DashboardSummaryResponse, ResponseHistoryResponse, StatusHistoryResponse, UptimeResponse
 from app.service.responses import SuccessResponse, success_response
@@ -23,7 +22,7 @@ def get_dashboard_service(
         incident_service=monitor_service.incident_service,
     )
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"], dependencies=[Depends(require_viewer())])
+router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 @router.get("/summary", response_model=SuccessResponse[DashboardSummaryResponse])
 async def get_summary(service: DashboardService = Depends(get_dashboard_service)):

@@ -90,6 +90,7 @@ async def update_monitor(heartbeat_monitor_id: str, request: UpdateHeartbeatMoni
         name=request.name,
         expected_heartbeat_interval=request.expected_heartbeat_interval,
         grace_period=request.grace_period,
+        is_active=request.is_active,
     )
 
     if monitor is None:

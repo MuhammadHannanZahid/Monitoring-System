@@ -96,7 +96,12 @@ class API_monitorService:
         )
         if result.matched_count == 0:
             return None
-        return await self.get_monitor(monitor_id)
+        updated_monitor = await self.get_monitor(monitor_id)
+        if updated_monitor is not None and scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor_id)
+            if updated_monitor.is_active:
+                await scheduler_state.scheduler.start_worker(updated_monitor)
+        return updated_monitor
 
     async def delete_monitor(self, monitor_id: str) -> bool:
         monitor = await self.get_monitor(monitor_id)

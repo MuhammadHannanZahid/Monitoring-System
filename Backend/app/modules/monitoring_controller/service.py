@@ -119,8 +119,9 @@ class MonitorService:
                 logger.warning("Incident opened for '%s'.", monitor.name)
 
         elif state_result.transition == MonitorTransition.UP:
-            await self.incident_service.resolve_incident(monitor.id, monitor.monitor_type)
-            logger.info("Incident resolved for '%s'.", monitor.name)
+            resolved = await self.incident_service.resolve_incident(monitor.id, monitor.monitor_type)
+            if resolved:
+                logger.info("Incident resolved for '%s'.", monitor.name)
 
     def _build_incident_reason(self, monitor: MonitorModel, result) -> str:
         if monitor.monitor_type == MonitorType.HEARTBEAT:

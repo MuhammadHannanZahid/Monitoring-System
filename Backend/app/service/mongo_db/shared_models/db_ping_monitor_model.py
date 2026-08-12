@@ -19,7 +19,7 @@ class UpdatePingMonitorRequest(BaseModel):
     host: str | None = Field(default=None, min_length=1, max_length=255)
     expected_response_time_ms: int | None = None
     check_interval: int | None = Field(default=None, ge=10, le=86400)
-    check_interval: int | None = Field(default=None, ge=10, le=86400)
+    timeout: int | None = Field(default=None, ge=1, le=300)
     is_active: bool | None = None
 
 class PingMonitorResponse(BaseModel):

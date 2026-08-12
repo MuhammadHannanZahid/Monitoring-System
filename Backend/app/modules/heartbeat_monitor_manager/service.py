@@ -60,7 +60,7 @@ class HeartbeatMonitorService:
             monitors.append(HeartbeatMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, monitor_id: str, name: str | None = None, expected_heartbeat_interval: int | None = None, grace_period: int | None = None) -> HeartbeatMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, name: str | None = None, expected_heartbeat_interval: int | None = None, grace_period: int | None = None, is_active: bool | None = None) -> HeartbeatMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -70,6 +70,8 @@ class HeartbeatMonitorService:
             monitor.expected_heartbeat_interval = expected_heartbeat_interval
         if grace_period is not None:
             monitor.grace_period = grace_period
+        if is_active is not None:
+            monitor.is_active = is_active
         monitor.updated_at = datetime.now(timezone.utc)
 
         update_data = monitor.model_dump(by_alias=True, exclude={"id"})
@@ -81,14 +83,10 @@ class HeartbeatMonitorService:
             },
         )
         updated = await self.get_monitor(monitor_id)
-        if (
-            updated is not None
-            and updated.is_active
-            and updated.last_heartbeat_at is not None
-            and scheduler_state.scheduler is not None
-        ):
+        if updated is not None and scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
-            await scheduler_state.scheduler.start_worker(updated)
+            if updated.is_active and updated.last_heartbeat_at is not None:
+                await scheduler_state.scheduler.start_worker(updated)
         return updated
 
     async def delete_monitor(self, monitor_id: str) -> bool:
