@@ -39,7 +39,9 @@ async def create_monitor(
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=service.to_token_response(monitor),
+        data=HeartbeatTokenResponse(
+            heartbeat_token=monitor.heartbeat_token,
+        ),
     )
 
 
@@ -55,7 +57,24 @@ async def list_monitors(
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response_list(monitors),
+        data=[
+            HeartbeatMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+                grace_period=monitor.grace_period,
+                status=monitor.status.value,
+                is_active=monitor.is_active,
+                last_heartbeat_at=(
+                    monitor.last_heartbeat_at.isoformat()
+                    if monitor.last_heartbeat_at
+                    else None
+                ),
+                created_at=monitor.created_at.isoformat(),
+                updated_at=monitor.updated_at.isoformat(),
+            )
+            for monitor in monitors
+        ],
     )
 
 
@@ -75,7 +94,21 @@ async def get_monitor(
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response(monitor),
+        data=HeartbeatMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+            grace_period=monitor.grace_period,
+            status=monitor.status.value,
+            is_active=monitor.is_active,
+            last_heartbeat_at=(
+                monitor.last_heartbeat_at.isoformat()
+                if monitor.last_heartbeat_at
+                else None
+            ),
+            created_at=monitor.created_at.isoformat(),
+            updated_at=monitor.updated_at.isoformat(),
+        ),
     )
 
 
@@ -101,7 +134,21 @@ async def update_monitor(
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=service.to_response(monitor),
+        data=HeartbeatMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+            grace_period=monitor.grace_period,
+            status=monitor.status.value,
+            is_active=monitor.is_active,
+            last_heartbeat_at=(
+                monitor.last_heartbeat_at.isoformat()
+                if monitor.last_heartbeat_at
+                else None
+            ),
+            created_at=monitor.created_at.isoformat(),
+            updated_at=monitor.updated_at.isoformat(),
+        ),
     )
 
 
@@ -171,7 +218,7 @@ async def regenerate_heartbeat_token(
 
     return success_response(
         message="Heartbeat token regenerated successfully.",
-        data=service.to_regenerated_token_response(
-            monitor
+        data=RegenerateHeartbeatTokenResponse(
+            heartbeat_token=monitor.heartbeat_token,
         ),
     )

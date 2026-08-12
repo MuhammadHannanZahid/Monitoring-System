@@ -33,7 +33,15 @@ async def create_profile(
     return ApiResponse(
         success=True,
         message="Auth profile created successfully.",
-        data=service.to_response(profile),
+        data=AuthProfileResponse(
+            id=profile.id,
+            name=profile.name,
+            login_url=profile.login_url,
+            method=profile.method,
+            credential_fields=sorted(profile.credentials),
+            created_at=profile.created_at,
+            updated_at=profile.updated_at,
+        ),
     )
 
 
@@ -45,7 +53,18 @@ async def list_profiles(
     return ApiResponse(
         success=True,
         message="Auth profiles retrieved successfully.",
-        data=[service.to_response(profile) for profile in profiles],
+        data=[
+            AuthProfileResponse(
+                id=profile.id,
+                name=profile.name,
+                login_url=profile.login_url,
+                method=profile.method,
+                credential_fields=sorted(profile.credentials),
+                created_at=profile.created_at,
+                updated_at=profile.updated_at,
+            )
+            for profile in profiles
+        ],
     )
 
 
@@ -60,7 +79,15 @@ async def get_profile(
     return ApiResponse(
         success=True,
         message="Auth profile retrieved successfully.",
-        data=service.to_response(profile),
+        data=AuthProfileResponse(
+            id=profile.id,
+            name=profile.name,
+            login_url=profile.login_url,
+            method=profile.method,
+            credential_fields=sorted(profile.credentials),
+            created_at=profile.created_at,
+            updated_at=profile.updated_at,
+        ),
     )
 
 
@@ -79,7 +106,15 @@ async def update_profile(
     return ApiResponse(
         success=True,
         message="Auth profile updated successfully.",
-        data=service.to_response(profile),
+        data=AuthProfileResponse(
+            id=profile.id,
+            name=profile.name,
+            login_url=profile.login_url,
+            method=profile.method,
+            credential_fields=sorted(profile.credentials),
+            created_at=profile.created_at,
+            updated_at=profile.updated_at,
+        ),
     )
 
 

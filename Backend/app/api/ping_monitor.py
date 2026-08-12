@@ -26,7 +26,22 @@ async def create_ping_monitor(request: CreatePingMonitorRequest, service: PingMo
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=service.to_response(monitor),
+        data=PingMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            host=monitor.host,
+            check_interval=monitor.check_interval,
+            timeout=monitor.timeout,
+            expected_response_time_ms=monitor.expected_response_time_ms,
+            is_active=monitor.is_active,
+            created_by=monitor.created_by,
+            created_at=monitor.created_at,
+            updated_at=monitor.updated_at,
+            last_checked_at=monitor.last_checked_at,
+            last_status_code=monitor.last_status_code,
+            last_response_time_ms=monitor.last_response_time_ms,
+            status=monitor.status,
+        ),
     )
 
 
@@ -36,7 +51,25 @@ async def list_monitors(service: PingMonitorService = Depends(get_ping_service))
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response_list(PING_monitors),
+        data=[
+            PingMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                host=monitor.host,
+                check_interval=monitor.check_interval,
+                timeout=monitor.timeout,
+                expected_response_time_ms=monitor.expected_response_time_ms,
+                is_active=monitor.is_active,
+                created_by=monitor.created_by,
+                created_at=monitor.created_at,
+                updated_at=monitor.updated_at,
+                last_checked_at=monitor.last_checked_at,
+                last_status_code=monitor.last_status_code,
+                last_response_time_ms=monitor.last_response_time_ms,
+                status=monitor.status,
+            )
+            for monitor in PING_monitors
+        ],
     )
 
 
@@ -46,7 +79,22 @@ async def get_ping_monitor(PING_monitor_id: str, service: PingMonitorService = D
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response(monitor),
+        data=PingMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            host=monitor.host,
+            check_interval=monitor.check_interval,
+            timeout=monitor.timeout,
+            expected_response_time_ms=monitor.expected_response_time_ms,
+            is_active=monitor.is_active,
+            created_by=monitor.created_by,
+            created_at=monitor.created_at,
+            updated_at=monitor.updated_at,
+            last_checked_at=monitor.last_checked_at,
+            last_status_code=monitor.last_status_code,
+            last_response_time_ms=monitor.last_response_time_ms,
+            status=monitor.status,
+        ),
     )
 
 
@@ -62,7 +110,22 @@ async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRe
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=service.to_response(PING_monitor),
+        data=PingMonitorResponse(
+            id=PING_monitor.id,
+            name=PING_monitor.name,
+            host=PING_monitor.host,
+            check_interval=PING_monitor.check_interval,
+            timeout=PING_monitor.timeout,
+            expected_response_time_ms=PING_monitor.expected_response_time_ms,
+            is_active=PING_monitor.is_active,
+            created_by=PING_monitor.created_by,
+            created_at=PING_monitor.created_at,
+            updated_at=PING_monitor.updated_at,
+            last_checked_at=PING_monitor.last_checked_at,
+            last_status_code=PING_monitor.last_status_code,
+            last_response_time_ms=PING_monitor.last_response_time_ms,
+            status=PING_monitor.status,
+        ),
     )
 
 

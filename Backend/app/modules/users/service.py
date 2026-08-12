@@ -13,7 +13,7 @@ from app.core.database import get_engine
 from app.core.security import PasswordService
 from app.shared.constants import Collections, Messages
 from app.shared.exceptions import ConflictError, NotFoundError, AuthorizationError
-from app.shared.models.auth_user import UserModel, UserResponse, UserRole
+from app.shared.models.auth_user import UserModel, UserRole
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -115,21 +115,6 @@ class UserService:
         user = await self.get_user(user_id)
         await self.repository.delete_user(user_id)
         logger.info("User '%s' deleted.", user.username)
-
-    def to_response(self, user: UserModel) -> UserResponse:
-        return UserResponse(
-            id=user.id,
-            username=user.username,
-            role=user.role,
-            is_active=user.is_active,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            last_login=user.last_login,
-        )
-
-    def to_response_list(self, users: list[UserModel]) -> list[UserResponse]:
-        return [self.to_response(user) for user in users]
-
 
 class UserRepository:
     def __init__(self, engine: AIOEngine):

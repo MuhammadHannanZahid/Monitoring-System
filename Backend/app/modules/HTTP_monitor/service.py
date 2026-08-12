@@ -4,13 +4,12 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends
 from odmantic import AIOEngine
-
 from app.core.database import get_engine
 from app.shared.constants import Collections
 from app.shared.constants import Messages
 from app.shared.models.base_monitor import MonitorStatus
 from app.shared.exceptions import ConflictError, NotFoundError
-from app.shared.models.HTTP_monitor import HTTPMonitorModel, HTTP_monitorResponse
+from app.shared.models.HTTP_monitor import HTTPMonitorModel
 from app.core.logger import get_logger
 import app.core.scheduler as scheduler_state
 
@@ -115,34 +114,6 @@ class HTTP_monitorService:
 
         await self.repository.delete_monitor(HTTP_monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", HTTP_monitor.name)
-
-    def to_response(self, http_monitor: HTTPMonitorModel) -> HTTP_monitorResponse:
-        return HTTP_monitorResponse(
-            id=http_monitor.id,
-            name=http_monitor.name,
-            url=http_monitor.url,
-            check_interval=http_monitor.check_interval,
-            timeout=http_monitor.timeout,
-            expected_status_code=http_monitor.expected_status_code,
-            is_active=http_monitor.is_active,
-            created_at=http_monitor.created_at,
-            updated_at=http_monitor.updated_at,
-            last_checked_at=http_monitor.last_checked_at,
-            last_status_code=http_monitor.last_status_code,
-            last_response_time_ms=http_monitor.last_response_time_ms,
-            status=http_monitor.status,
-            expected_response_time_ms = http_monitor.expected_response_time_ms,
-        )
-
-    def to_response_list(
-        self,
-        http_monitors: list[HTTPMonitorModel],
-    ) -> list[HTTP_monitorResponse]:
-        return [
-            self.to_response(http_monitor)
-            for http_monitor in http_monitors
-        ]
-
 
 class HTTP_monitorRepository:
     def __init__(self, engine: AIOEngine):

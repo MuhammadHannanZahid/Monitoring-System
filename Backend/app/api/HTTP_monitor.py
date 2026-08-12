@@ -27,7 +27,22 @@ async def create_HTTP_monitor(request: CreateHTTP_monitorRequest, service: HTTP_
 
     return success_response(
         message=Messages.monitor_CREATED,
-        data=service.to_response(HTTP_monitor),
+        data=HTTP_monitorResponse(
+            id=HTTP_monitor.id,
+            name=HTTP_monitor.name,
+            url=HTTP_monitor.url,
+            check_interval=HTTP_monitor.check_interval,
+            timeout=HTTP_monitor.timeout,
+            expected_status_code=HTTP_monitor.expected_status_code,
+            is_active=HTTP_monitor.is_active,
+            created_at=HTTP_monitor.created_at,
+            updated_at=HTTP_monitor.updated_at,
+            last_checked_at=HTTP_monitor.last_checked_at,
+            last_status_code=HTTP_monitor.last_status_code,
+            last_response_time_ms=HTTP_monitor.last_response_time_ms,
+            status=HTTP_monitor.status,
+            expected_response_time_ms=HTTP_monitor.expected_response_time_ms,
+        ),
     )
 
 
@@ -37,7 +52,25 @@ async def list_monitors(service: HTTP_monitorService = Depends(get_HTTP_monitor_
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response_list(HTTP_monitors),
+        data=[
+            HTTP_monitorResponse(
+                id=HTTP_monitor.id,
+                name=HTTP_monitor.name,
+                url=HTTP_monitor.url,
+                check_interval=HTTP_monitor.check_interval,
+                timeout=HTTP_monitor.timeout,
+                expected_status_code=HTTP_monitor.expected_status_code,
+                is_active=HTTP_monitor.is_active,
+                created_at=HTTP_monitor.created_at,
+                updated_at=HTTP_monitor.updated_at,
+                last_checked_at=HTTP_monitor.last_checked_at,
+                last_status_code=HTTP_monitor.last_status_code,
+                last_response_time_ms=HTTP_monitor.last_response_time_ms,
+                status=HTTP_monitor.status,
+                expected_response_time_ms=HTTP_monitor.expected_response_time_ms,
+            )
+            for HTTP_monitor in HTTP_monitors
+        ],
     )
 
 
@@ -47,7 +80,22 @@ async def get_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = 
 
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=service.to_response(HTTP_monitor),
+        data=HTTP_monitorResponse(
+            id=HTTP_monitor.id,
+            name=HTTP_monitor.name,
+            url=HTTP_monitor.url,
+            check_interval=HTTP_monitor.check_interval,
+            timeout=HTTP_monitor.timeout,
+            expected_status_code=HTTP_monitor.expected_status_code,
+            is_active=HTTP_monitor.is_active,
+            created_at=HTTP_monitor.created_at,
+            updated_at=HTTP_monitor.updated_at,
+            last_checked_at=HTTP_monitor.last_checked_at,
+            last_status_code=HTTP_monitor.last_status_code,
+            last_response_time_ms=HTTP_monitor.last_response_time_ms,
+            status=HTTP_monitor.status,
+            expected_response_time_ms=HTTP_monitor.expected_response_time_ms,
+        ),
     )
 
 
@@ -65,7 +113,22 @@ async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorR
 
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=service.to_response(HTTP_monitor),
+        data=HTTP_monitorResponse(
+            id=HTTP_monitor.id,
+            name=HTTP_monitor.name,
+            url=HTTP_monitor.url,
+            check_interval=HTTP_monitor.check_interval,
+            timeout=HTTP_monitor.timeout,
+            expected_status_code=HTTP_monitor.expected_status_code,
+            is_active=HTTP_monitor.is_active,
+            created_at=HTTP_monitor.created_at,
+            updated_at=HTTP_monitor.updated_at,
+            last_checked_at=HTTP_monitor.last_checked_at,
+            last_status_code=HTTP_monitor.last_status_code,
+            last_response_time_ms=HTTP_monitor.last_response_time_ms,
+            status=HTTP_monitor.status,
+            expected_response_time_ms=HTTP_monitor.expected_response_time_ms,
+        ),
     )
 
 

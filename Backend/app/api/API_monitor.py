@@ -28,7 +28,29 @@ async def create_monitor(request: CreateApiMonitorRequest, service: API_monitorS
         return ApiResponse(
             success=True,
             message="API monitor created successfully.",
-            data=service.to_response(monitor),
+            data=ApiMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                url=monitor.url,
+                method=monitor.method,
+                headers=monitor.headers,
+                request_body=monitor.request_body,
+                expected_status_code=monitor.expected_status_code,
+                expected_json=monitor.expected_json,
+                check_interval=monitor.check_interval,
+                timeout=monitor.timeout,
+                is_active=monitor.is_active,
+                created_by=monitor.created_by,
+                created_at=monitor.created_at,
+                updated_at=monitor.updated_at,
+                last_checked_at=monitor.last_checked_at,
+                last_status_code=monitor.last_status_code,
+                last_response_time_ms=monitor.last_response_time_ms,
+                status=monitor.status,
+                expected_response_time_ms=monitor.expected_response_time_ms,
+                expected_headers=monitor.expected_headers,
+                expected_content_type=monitor.expected_content_type,
+            ),
         )
 
     except ValueError as exc:
@@ -45,7 +67,32 @@ async def list_monitors(service: API_monitorService = Depends(get_API_monitor_se
     return ApiResponse(
         success=True,
         message="API monitors retrieved successfully.",
-        data=service.to_response_list(monitors),
+        data=[
+            ApiMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                url=monitor.url,
+                method=monitor.method,
+                headers=monitor.headers,
+                request_body=monitor.request_body,
+                expected_status_code=monitor.expected_status_code,
+                expected_json=monitor.expected_json,
+                check_interval=monitor.check_interval,
+                timeout=monitor.timeout,
+                is_active=monitor.is_active,
+                created_by=monitor.created_by,
+                created_at=monitor.created_at,
+                updated_at=monitor.updated_at,
+                last_checked_at=monitor.last_checked_at,
+                last_status_code=monitor.last_status_code,
+                last_response_time_ms=monitor.last_response_time_ms,
+                status=monitor.status,
+                expected_response_time_ms=monitor.expected_response_time_ms,
+                expected_headers=monitor.expected_headers,
+                expected_content_type=monitor.expected_content_type,
+            )
+            for monitor in monitors
+        ],
     )
 
 
@@ -62,7 +109,29 @@ async def get_monitor(monitor_id: str, service: API_monitorService = Depends(get
     return ApiResponse(
         success=True,
         message="API monitor retrieved successfully.",
-        data=service.to_response(monitor),
+        data=ApiMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            url=monitor.url,
+            method=monitor.method,
+            headers=monitor.headers,
+            request_body=monitor.request_body,
+            expected_status_code=monitor.expected_status_code,
+            expected_json=monitor.expected_json,
+            check_interval=monitor.check_interval,
+            timeout=monitor.timeout,
+            is_active=monitor.is_active,
+            created_by=monitor.created_by,
+            created_at=monitor.created_at,
+            updated_at=monitor.updated_at,
+            last_checked_at=monitor.last_checked_at,
+            last_status_code=monitor.last_status_code,
+            last_response_time_ms=monitor.last_response_time_ms,
+            status=monitor.status,
+            expected_response_time_ms=monitor.expected_response_time_ms,
+            expected_headers=monitor.expected_headers,
+            expected_content_type=monitor.expected_content_type,
+        ),
     )
 
 
@@ -84,7 +153,29 @@ async def update_monitor(monitor_id: str, request: UpdateApiMonitorRequest, serv
         return ApiResponse(
             success=True,
             message="API monitor updated successfully.",
-            data=service.to_response(monitor),
+            data=ApiMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                url=monitor.url,
+                method=monitor.method,
+                headers=monitor.headers,
+                request_body=monitor.request_body,
+                expected_status_code=monitor.expected_status_code,
+                expected_json=monitor.expected_json,
+                check_interval=monitor.check_interval,
+                timeout=monitor.timeout,
+                is_active=monitor.is_active,
+                created_by=monitor.created_by,
+                created_at=monitor.created_at,
+                updated_at=monitor.updated_at,
+                last_checked_at=monitor.last_checked_at,
+                last_status_code=monitor.last_status_code,
+                last_response_time_ms=monitor.last_response_time_ms,
+                status=monitor.status,
+                expected_response_time_ms=monitor.expected_response_time_ms,
+                expected_headers=monitor.expected_headers,
+                expected_content_type=monitor.expected_content_type,
+            ),
         )
 
     except ValueError as exc:

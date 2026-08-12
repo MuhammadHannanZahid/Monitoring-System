@@ -20,7 +20,15 @@ async def create_user(request: CreateUserRequest, service: UserService = Depends
 
     return success_response(
         message=Messages.USER_CREATED,
-        data=service.to_response(user)
+        data=UserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        ),
     )
 
 
@@ -30,7 +38,18 @@ async def list_users(service: UserService = Depends(get_user_service)):
 
     return success_response(
         message=Messages.USERS_FETCHED,
-        data=service.to_response_list(users)
+        data=[
+            UserResponse(
+                id=user.id,
+                username=user.username,
+                role=user.role,
+                is_active=user.is_active,
+                created_at=user.created_at,
+                updated_at=user.updated_at,
+                last_login=user.last_login,
+            )
+            for user in users
+        ],
     )
 
 
@@ -40,7 +59,15 @@ async def get_user(user_id: str, service: UserService = Depends(get_user_service
 
     return success_response(
         message=Messages.USER_FETCHED,
-        data=service.to_response(user),
+        data=UserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        ),
     )
 
 
@@ -56,7 +83,15 @@ async def update_user(user_id: str, request: UpdateUserRequest, service: UserSer
 
     return success_response(
         message=Messages.USER_UPDATED,
-        data=service.to_response(user),
+        data=UserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        ),
     )
 
 

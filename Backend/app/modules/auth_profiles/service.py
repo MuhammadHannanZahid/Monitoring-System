@@ -10,7 +10,6 @@ import app.modules.auth_profiles.token_manager as auth_token_state
 from app.shared.constants import Collections
 from app.shared.models.auth_profile import (
     AuthProfileModel,
-    AuthProfileResponse,
     CreateAuthProfileRequest,
     UpdateAuthProfileRequest,
 )
@@ -88,18 +87,6 @@ class AuthProfileService:
         if deleted:
             self._invalidate_token(profile_id)
         return deleted
-
-    @staticmethod
-    def to_response(profile: AuthProfileModel) -> AuthProfileResponse:
-        return AuthProfileResponse(
-            id=profile.id,
-            name=profile.name,
-            login_url=profile.login_url,
-            method=profile.method,
-            credential_fields=sorted(profile.credentials),
-            created_at=profile.created_at,
-            updated_at=profile.updated_at,
-        )
 
     @staticmethod
     def _invalidate_token(profile_id: str) -> None:
