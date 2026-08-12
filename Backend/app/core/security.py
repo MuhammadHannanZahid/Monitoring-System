@@ -1,4 +1,3 @@
-from secrets import token_urlsafe
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, VerificationError
 from app.core.logger import get_logger
@@ -21,9 +20,6 @@ class PasswordService:
 class RefreshTokenService:
     def __init__(self) -> None:
         self._hasher = PasswordHasher()
-
-    def generate_token(self) -> str:
-        return token_urlsafe(64)
 
     def hash_token(self, token: str) -> str:
         return self._hasher.hash(token)

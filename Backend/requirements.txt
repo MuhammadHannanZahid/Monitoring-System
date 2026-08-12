@@ -1,12 +1,11 @@
 fastapi
 uvicorn
-motor
+odmantic
 pymongo
 python-jose
 argon2-cffi
 python-multipart
 python-dotenv
-pydantic-settings
 pytest
 httpx
 black
