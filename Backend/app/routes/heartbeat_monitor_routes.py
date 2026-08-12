@@ -1,11 +1,18 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
-from app.modules.heartbeat_monitor_manager.dependencies import get_heartbeat_service
+from odmantic import AIOEngine
 from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import CreateHeartbeatMonitorRequest, HeartbeatMonitorResponse, HeartbeatResponse, HeartbeatTokenResponse, RegenerateHeartbeatTokenResponse, UpdateHeartbeatMonitorRequest
 from app.service.responses import SuccessResponse, success_response
+from app.service.mongo_db.mongo_controller import get_engine
+
+
+def get_heartbeat_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> HeartbeatMonitorService:
+    return HeartbeatMonitorService(engine)
 
 router = APIRouter(prefix="/heartbeat-monitors", tags=["Heartbeat Monitors"])
 

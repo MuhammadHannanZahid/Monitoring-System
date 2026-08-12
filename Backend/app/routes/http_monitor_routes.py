@@ -1,10 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.modules.http_monitor_manager.dependencies import get_HTTP_monitor_service
+from odmantic import AIOEngine
 from app.modules.http_monitor_manager.service import HTTP_monitorService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_http_monitor_model import CreateHTTP_monitorRequest, HTTP_monitorResponse, UpdateHTTP_monitorRequest
 from app.service.responses import SuccessResponse, success_response
+from app.service.mongo_db.mongo_controller import get_engine
+
+
+def get_HTTP_monitor_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> HTTP_monitorService:
+    return HTTP_monitorService(engine)
 
 router = APIRouter(prefix="/HTTP_monitors", tags=["HTTP_monitors"], dependencies=[Depends(require_admin())])
 

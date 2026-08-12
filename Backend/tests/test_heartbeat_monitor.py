@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from bson import ObjectId
 from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
 from app.modules.monitoring_controller.checkers.heartbeat_checker import HeartbeatChecker
