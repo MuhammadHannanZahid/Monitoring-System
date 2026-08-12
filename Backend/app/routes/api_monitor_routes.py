@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.modules.api_monitor_manager.dependencies import get_API_monitor_service
 from app.modules.api_monitor_manager.service import API_monitorService
 from app.service.authorization import require_admin
-from app.service.mongo_db.shared_models.models.api_monitor import ApiMonitorResponse, CreateApiMonitorRequest, UpdateApiMonitorRequest
+from app.service.mongo_db.shared_models.db_api_monitor_model import ApiMonitorResponse, CreateApiMonitorRequest, UpdateApiMonitorRequest
 from app.service.responses import ApiResponse
 
 router = APIRouter(prefix="/API_monitors", tags=["API Monitors"], dependencies=[Depends(require_admin())])

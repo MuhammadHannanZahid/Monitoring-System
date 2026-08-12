@@ -1,8 +1,8 @@
 import httpx
 import time
 from app.core.logger import get_logger
-from app.service.mongo_db.shared_models.models.base_monitor import HealthCheckResponse, MonitorStatus
-from app.service.mongo_db.shared_models.models.HTTP_monitor import HTTPMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import HealthCheckResponse, MonitorStatus
+from app.service.mongo_db.shared_models.db_http_monitor_model import HTTPMonitorModel
 
 logger = get_logger(__name__)
 

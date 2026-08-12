@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
 
 class DashboardSummaryResponse(BaseModel):
     total_monitors: int

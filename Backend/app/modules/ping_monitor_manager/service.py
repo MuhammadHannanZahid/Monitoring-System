@@ -5,10 +5,10 @@ from urllib.parse import urlparse
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.models.ping_monitor import PingMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_ping_monitor_model import PingMonitorModel
 
 class PingMonitorService:
     def __init__(self, engine: AIOEngine):

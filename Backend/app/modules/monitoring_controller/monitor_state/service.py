@@ -4,12 +4,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from odmantic import AIOEngine
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.models.monitor_state import (
-    MonitorStateModel,
-    MonitorStateResult,
-    MonitorTransition,
-)
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorStateModel, MonitorStateResult, MonitorTransition
 
 class MonitorStateService:
     def __init__(self, engine: AIOEngine):

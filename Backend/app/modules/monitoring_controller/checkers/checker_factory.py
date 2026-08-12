@@ -1,4 +1,4 @@
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
 from app.modules.monitoring_controller.checkers.http_checker import HTTPChecker
 from app.modules.monitoring_controller.checkers.api_checker import ApiChecker
 from app.modules.monitoring_controller.checkers.ping_checker import PingChecker

@@ -3,7 +3,7 @@ from app.modules.insight_manager.dependencies import get_dashboard_service
 from app.modules.insight_manager.service import DashboardService
 from app.service.authorization import require_viewer
 from app.service.constants import Messages
-from app.service.mongo_db.shared_models.models.dashboard import DashboardActivityResponse, DashboardIncidentResponse, DashboardSummaryResponse, ResponseHistoryResponse, StatusHistoryResponse, UptimeResponse
+from app.service.mongo_db.shared_models.db_insight_model import DashboardActivityResponse, DashboardIncidentResponse, DashboardSummaryResponse, ResponseHistoryResponse, StatusHistoryResponse, UptimeResponse
 from app.service.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"], dependencies=[Depends(require_viewer())])

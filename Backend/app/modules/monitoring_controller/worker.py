@@ -2,9 +2,9 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from app.core.logger import get_logger
 from app.modules.monitoring_controller.service import MonitorService
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorType
-from app.service.mongo_db.shared_models.models.base_monitor import BaseMonitorModel
-from app.service.mongo_db.shared_models.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 
 logger = get_logger(__name__)
 

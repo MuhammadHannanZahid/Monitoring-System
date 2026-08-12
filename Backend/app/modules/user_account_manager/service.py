@@ -7,7 +7,7 @@ from app.core.logger import get_logger
 from app.core.security import PasswordService
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthorizationError, ConflictError, NotFoundError
-from app.service.mongo_db.shared_models.models.auth_user import UserModel, UserRole
+from app.service.mongo_db.shared_models.db_user_account_model import UserModel, UserRole
 
 logger = get_logger(__name__)
 

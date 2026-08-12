@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from fastapi import Depends
 from app.modules.auth_manager.dependencies import get_current_user
-from app.service.mongo_db.shared_models.models.auth_user import UserModel
-from app.service.mongo_db.shared_models.models.auth_user import UserRole
+from app.service.mongo_db.shared_models.db_user_account_model import UserModel
+from app.service.mongo_db.shared_models.db_user_account_model import UserRole
 from app.service.exceptions import AuthorizationError
 
 def require_roles(*allowed_roles: UserRole) -> Callable:

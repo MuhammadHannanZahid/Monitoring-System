@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from app.core.logger import get_logger
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus
-from app.service.mongo_db.shared_models.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 
 logger = get_logger(__name__)
 

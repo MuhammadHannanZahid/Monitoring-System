@@ -9,7 +9,7 @@ from app.core.logger import get_logger
 from app.core.security import PasswordService, RefreshTokenService
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthenticationError, NotFoundError
-from app.service.mongo_db.shared_models.models.auth_user import AuthTokens, UserModel
+from app.service.mongo_db.shared_models.db_user_account_model import AuthTokens, UserModel
 
 logger = get_logger(__name__)
 

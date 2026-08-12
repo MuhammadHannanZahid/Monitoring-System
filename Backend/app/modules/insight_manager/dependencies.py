@@ -1,5 +1,5 @@
 from fastapi import Depends
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.modules.insight_manager.service import DashboardService
 from app.modules.monitoring_controller.service import MonitorService
 

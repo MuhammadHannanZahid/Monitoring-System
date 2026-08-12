@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
 
 class MonitorTransition(str, Enum):
     NONE = "none"

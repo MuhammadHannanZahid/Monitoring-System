@@ -8,7 +8,7 @@ from app.core.security import (password_service, refresh_token_service,)
 from app.modules.auth_manager.service import AuthService
 from jose import JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from app.service.mongo_db.shared_models.models.auth_user import AuthTokens, UserModel
+from app.service.mongo_db.shared_models.db_user_account_model import AuthTokens, UserModel
 from app.service.exceptions import AuthenticationError
 from app.service.constants import Messages
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
-from app.service.mongo_db.shared_models.models.base_monitor import BaseMonitorModel, MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel, MonitorStatus, MonitorType
 
 class APIMonitorModel(BaseMonitorModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)

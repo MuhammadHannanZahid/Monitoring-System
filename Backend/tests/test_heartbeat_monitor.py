@@ -10,10 +10,10 @@ from app.modules.monitoring_controller.scheduler import MonitorScheduler
 from app.modules.monitoring_controller.service import MonitorService
 from app.modules.monitoring_controller.worker import MonitorWorker
 from app.modules.monitoring_controller.monitor_state.service import MonitorStateService
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.models.base_monitor import BaseMonitorModel
-from app.service.mongo_db.shared_models.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.service.mongo_db.shared_models.models.monitor_state import MonitorStateModel, MonitorTransition
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorStateModel, MonitorTransition
 
 
 def make_monitor(**changes) -> HeartbeatMonitorModel:

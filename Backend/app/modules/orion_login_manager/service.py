@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-import app.modules.auth_profiles.token_manager as auth_token_state
+import app.modules.orion_login_manager.token_manager as auth_token_state
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.auth_profile import AuthProfileModel, CreateAuthProfileRequest, UpdateAuthProfileRequest
+from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileModel, CreateAuthProfileRequest, UpdateAuthProfileRequest
 
 class AuthProfileService:
     DEPRECATED_FIELDS = {

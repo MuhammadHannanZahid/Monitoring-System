@@ -3,7 +3,7 @@ from app.modules.user_account_manager.dependencies import get_user_service
 from app.modules.user_account_manager.service import UserService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
-from app.service.mongo_db.shared_models.models.auth_user import CreateUserRequest, UpdateUserRequest, UserResponse
+from app.service.mongo_db.shared_models.db_user_account_model import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.service.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(require_admin())])

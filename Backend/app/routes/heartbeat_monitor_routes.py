@@ -4,7 +4,7 @@ from app.modules.heartbeat_monitor_manager.dependencies import get_heartbeat_ser
 from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
-from app.service.mongo_db.shared_models.models.heartbeat_monitor import CreateHeartbeatMonitorRequest, HeartbeatMonitorResponse, HeartbeatResponse, HeartbeatTokenResponse, RegenerateHeartbeatTokenResponse, UpdateHeartbeatMonitorRequest
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import CreateHeartbeatMonitorRequest, HeartbeatMonitorResponse, HeartbeatResponse, HeartbeatTokenResponse, RegenerateHeartbeatTokenResponse, UpdateHeartbeatMonitorRequest
 from app.service.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/heartbeat-monitors", tags=["Heartbeat Monitors"])

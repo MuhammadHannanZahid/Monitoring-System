@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
 
 class HeartbeatMonitorModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)

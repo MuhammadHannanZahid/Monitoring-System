@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from dotenv import load_dotenv
 from jose import JWTError, jwt
-from app.service.mongo_db.shared_models.models.auth_user import TokenType, UserRole
+from app.service.mongo_db.shared_models.db_user_account_model import TokenType, UserRole
 
 class JWTService:
     def create_access_token(self, user_id: str, username: str, role: UserRole,) -> str:

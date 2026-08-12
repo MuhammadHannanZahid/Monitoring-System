@@ -16,7 +16,7 @@ from app.modules.auth_manager.dependencies import (
 )
 from app.modules.auth_manager.service import AuthService
 from app.service.exceptions import AuthenticationError
-from app.service.mongo_db.shared_models.models.auth_user import AuthTokens, TokenType, UserModel, UserRole
+from app.service.mongo_db.shared_models.db_orion_login_model import AuthTokens, TokenType, UserModel, UserRole
 
 
 USER_ID = "507f1f77bcf86cd799439011"

@@ -3,7 +3,7 @@ from app.modules.ping_monitor_manager.dependencies import get_ping_service
 from app.modules.ping_monitor_manager.service import PingMonitorService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
-from app.service.mongo_db.shared_models.models.ping_monitor import CreatePingMonitorRequest, PingMonitorResponse, UpdatePingMonitorRequest
+from app.service.mongo_db.shared_models.db_ping_monitor_model import CreatePingMonitorRequest, PingMonitorResponse, UpdatePingMonitorRequest
 from app.service.responses import SuccessResponse, success_response
 
 router = APIRouter(prefix="/ping-monitors", tags=["Ping Monitors"], dependencies=[Depends(require_admin())])

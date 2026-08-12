@@ -5,8 +5,8 @@ from bson.errors import InvalidId
 from odmantic import AIOEngine
 from app.core.logger import get_logger
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorType
-from app.service.mongo_db.shared_models.models.incident import IncidentModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
+from app.service.mongo_db.shared_models.db_incident_model import IncidentModel
 
 logger = get_logger(__name__)
 

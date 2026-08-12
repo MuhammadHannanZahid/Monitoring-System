@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.modules.orion_login_manager.dependencies import get_auth_profile_service
 from app.modules.orion_login_manager.service import AuthProfileService
 from app.service.authorization import require_admin
-from app.service.mongo_db.shared_models.models.auth_profile import AuthProfileResponse, CreateAuthProfileRequest, UpdateAuthProfileRequest
+from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileResponse, CreateAuthProfileRequest, UpdateAuthProfileRequest
 from app.service.responses import ApiResponse
 
 router = APIRouter(prefix="/auth-profiles", tags=["Auth Profiles"], dependencies=[Depends(require_admin())])

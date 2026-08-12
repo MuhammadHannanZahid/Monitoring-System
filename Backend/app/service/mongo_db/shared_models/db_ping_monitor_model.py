@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from app.service.mongo_db.shared_models.models.base_monitor import BaseMonitorModel, MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel, MonitorStatus, MonitorType
 
 class PingMonitorModel(BaseMonitorModel):
     host: str

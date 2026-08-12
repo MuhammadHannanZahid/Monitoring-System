@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.modules.orion_login_manager.service import AuthProfileService
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.api_monitor import APIMonitorModel, CreateApiMonitorRequest, UpdateApiMonitorRequest
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus
+from app.service.mongo_db.shared_models.db_api_monitor_model import APIMonitorModel, CreateApiMonitorRequest, UpdateApiMonitorRequest
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
 
 class API_monitorService:
     def __init__(self, engine: AIOEngine, auth_profile_service: AuthProfileService | None = None):

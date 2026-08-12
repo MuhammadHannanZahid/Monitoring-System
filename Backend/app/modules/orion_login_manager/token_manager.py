@@ -6,7 +6,7 @@ from http.cookies import SimpleCookie
 from typing import TYPE_CHECKING, Callable
 import httpx
 from app.core.logger import get_logger
-from app.service.mongo_db.shared_models.models.auth_profile import AuthProfileModel
+from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileModel
 
 if TYPE_CHECKING:
     from app.modules.orion_login_manager.service import AuthProfileService

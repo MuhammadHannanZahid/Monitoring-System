@@ -1,7 +1,7 @@
 import asyncio
 from app.core.logger import get_logger
-from app.service.mongo_db.shared_models.models.base_monitor import HealthCheckResponse, MonitorStatus
-from app.service.mongo_db.shared_models.models.ping_monitor import PingMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import HealthCheckResponse, MonitorStatus
+from app.service.mongo_db.shared_models.db_ping_monitor_model import PingMonitorModel
 import re
 
 logger = get_logger(__name__)

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorType
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
 
 class IncidentModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)

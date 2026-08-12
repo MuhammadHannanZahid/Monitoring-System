@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.service.constants import Collections
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 
 if TYPE_CHECKING:
     from app.modules.monitoring_controller.service import MonitorService

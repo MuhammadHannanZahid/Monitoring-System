@@ -3,12 +3,12 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
-import app.modules.monitor.scheduler as scheduler_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.core.logger import get_logger
 from app.service.constants import Collections, Messages
 from app.service.exceptions import ConflictError, NotFoundError
-from app.service.mongo_db.shared_models.models.HTTP_monitor import HTTPMonitorModel
-from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus
+from app.service.mongo_db.shared_models.db_http_monitor_model import HTTPMonitorModel
+from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
 
 logger = get_logger(__name__)
 
