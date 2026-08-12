@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, Response
-from app.modules.auth_manager.dependencies import clear_auth_cookies, get_auth_service, set_auth_cookies
 from app.modules.auth_manager.service import AuthService
-from app.service.authorization import require_admin, require_viewer
+from app.service.authorization import (
+    clear_auth_cookies,
+    get_auth_service,
+    require_admin,
+    require_viewer,
+    set_auth_cookies,
+)
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_user_account_model import CurrentUserResponse, LoginRequest, TokenResponse, UserModel
 from app.service.responses import SuccessResponse, success_response

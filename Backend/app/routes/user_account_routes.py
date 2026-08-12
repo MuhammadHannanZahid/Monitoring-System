@@ -1,10 +1,18 @@
 from fastapi import APIRouter, Depends
-from app.modules.user_account_manager.dependencies import get_user_service
+from odmantic import AIOEngine
+from app.core.security import password_service
 from app.modules.user_account_manager.service import UserService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_user_account_model import CreateUserRequest, UpdateUserRequest, UserResponse
 from app.service.responses import SuccessResponse, success_response
+from app.service.mongo_db.mongo_controller import get_engine
+
+
+def get_user_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> UserService:
+    return UserService(engine, password_service)
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(require_admin())])
 

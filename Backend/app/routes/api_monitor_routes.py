@@ -1,9 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.modules.api_monitor_manager.dependencies import get_API_monitor_service
+from odmantic import AIOEngine
 from app.modules.api_monitor_manager.service import API_monitorService
+from app.modules.orion_login_manager.service import AuthProfileService
 from app.service.authorization import require_admin
+from app.service.mongo_db.mongo_controller import get_engine
 from app.service.mongo_db.shared_models.db_api_monitor_model import ApiMonitorResponse, CreateApiMonitorRequest, UpdateApiMonitorRequest
 from app.service.responses import ApiResponse
+
+
+def get_API_monitor_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> API_monitorService:
+    return API_monitorService(engine, AuthProfileService(engine))
 
 router = APIRouter(prefix="/API_monitors", tags=["API Monitors"], dependencies=[Depends(require_admin())])
 

@@ -1,10 +1,17 @@
 from fastapi import APIRouter, Depends
-from app.modules.ping_monitor_manager.dependencies import get_ping_service
+from odmantic import AIOEngine
 from app.modules.ping_monitor_manager.service import PingMonitorService
 from app.service.authorization import require_admin
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_ping_monitor_model import CreatePingMonitorRequest, PingMonitorResponse, UpdatePingMonitorRequest
 from app.service.responses import SuccessResponse, success_response
+from app.service.mongo_db.mongo_controller import get_engine
+
+
+def get_ping_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> PingMonitorService:
+    return PingMonitorService(engine)
 
 router = APIRouter(prefix="/ping-monitors", tags=["Ping Monitors"], dependencies=[Depends(require_admin())])
 
