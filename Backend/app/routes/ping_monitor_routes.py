@@ -103,7 +103,9 @@ async def update_ping_monitor(PING_monitor_id: str, request: UpdatePingMonitorRe
         name=request.name,
         host=request.host,
         check_interval=request.check_interval,
+        timeout=request.timeout,
         expected_response_time_ms=request.expected_response_time_ms,
+        is_active=request.is_active,
     )
 
     return success_response(

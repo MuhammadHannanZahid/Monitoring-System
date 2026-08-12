@@ -56,7 +56,7 @@ class PingMonitorService:
             monitors.append(PingMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, monitor_id: str, name: str | None = None, host: str | None = None, check_interval: int | None = None, timeout: int | None = None, expected_response_time_ms: int | None = None) -> PingMonitorModel | None:
+    async def update_monitor(self, monitor_id: str, name: str | None = None, host: str | None = None, check_interval: int | None = None, timeout: int | None = None, expected_response_time_ms: int | None = None, is_active: bool | None = None) -> PingMonitorModel | None:
         monitor = await self.get_monitor(monitor_id)
         if monitor is None:
             return None
@@ -70,6 +70,8 @@ class PingMonitorService:
             monitor.timeout = timeout
         if expected_response_time_ms is not None:
             monitor.expected_response_time_ms = expected_response_time_ms
+        if is_active is not None:
+            monitor.is_active = is_active
         monitor.updated_at = datetime.now(timezone.utc)
 
         document = monitor.model_dump()
@@ -78,6 +80,10 @@ class PingMonitorService:
             {"_id": ObjectId(monitor_id)},
             document,
         )
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor_id)
+            if monitor.is_active:
+                await scheduler_state.scheduler.start_worker(monitor)
         return monitor
 
     async def delete_monitor(self, monitor_id: str) -> bool:

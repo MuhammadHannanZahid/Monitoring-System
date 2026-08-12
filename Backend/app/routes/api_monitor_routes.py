@@ -48,6 +48,7 @@ async def create_monitor(request: CreateApiMonitorRequest, service: API_monitorS
                 expected_response_time_ms=monitor.expected_response_time_ms,
                 expected_headers=monitor.expected_headers,
                 expected_content_type=monitor.expected_content_type,
+                auth_profile_id=monitor.auth_profile_id,
             ),
         )
 
@@ -87,6 +88,7 @@ async def list_monitors(service: API_monitorService = Depends(get_API_monitor_se
                 expected_response_time_ms=monitor.expected_response_time_ms,
                 expected_headers=monitor.expected_headers,
                 expected_content_type=monitor.expected_content_type,
+                auth_profile_id=monitor.auth_profile_id,
             )
             for monitor in monitors
         ],
@@ -127,6 +129,7 @@ async def get_monitor(monitor_id: str, service: API_monitorService = Depends(get
             expected_response_time_ms=monitor.expected_response_time_ms,
             expected_headers=monitor.expected_headers,
             expected_content_type=monitor.expected_content_type,
+            auth_profile_id=monitor.auth_profile_id,
         ),
     )
 
@@ -170,6 +173,7 @@ async def update_monitor(monitor_id: str, request: UpdateApiMonitorRequest, serv
                 expected_response_time_ms=monitor.expected_response_time_ms,
                 expected_headers=monitor.expected_headers,
                 expected_content_type=monitor.expected_content_type,
+                auth_profile_id=monitor.auth_profile_id,
             ),
         )
 

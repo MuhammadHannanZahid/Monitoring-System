@@ -70,7 +70,7 @@ class HTTP_monitorService:
         document["id"] = str(document.pop("_id"))
         return HTTPMonitorModel(**document)
 
-    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None, expected_response_time_ms: int) -> HTTPMonitorModel:
+    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None, expected_response_time_ms: int | None, is_active: bool | None = None) -> HTTPMonitorModel:
         monitor = await self.get_monitor(HTTP_monitor_id)
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
@@ -93,6 +93,8 @@ class HTTP_monitorService:
             update_data["expected_status_code"] = expected_status_code
         if expected_response_time_ms is not None and expected_response_time_ms != monitor.expected_response_time_ms:
             update_data["expected_response_time_ms"] = expected_response_time_ms
+        if is_active is not None and is_active != monitor.is_active:
+            update_data["is_active"] = is_active
 
         if not update_data:
             return monitor
@@ -103,9 +105,10 @@ class HTTP_monitorService:
             {"$set": update_data},
         )
         updated_monitor = await self.get_monitor(HTTP_monitor_id)
-        if updated_monitor.is_active and scheduler_state.scheduler is not None:
+        if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(updated_monitor.id)
-            await scheduler_state.scheduler.start_worker(updated_monitor)
+            if updated_monitor.is_active:
+                await scheduler_state.scheduler.start_worker(updated_monitor)
         logger.info("HTTP_monitor '%s' updated. Fields changed: %s", updated_monitor.name, ", ".join(update_data.keys()))
         return updated_monitor
 

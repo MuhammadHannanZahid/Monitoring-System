@@ -33,16 +33,16 @@ class IncidentService:
         incident.id = str(result.inserted_id)
         logger.info("Incident opened for monitor %s. Reason %s", monitor_id, reason)
 
-    async def resolve_incident(self, monitor_id: str, monitor_type: MonitorType) -> None:
+    async def resolve_incident(self, monitor_id: str, monitor_type: MonitorType) -> bool:
         incident = await self.get_active_incident(monitor_id, monitor_type)
         if incident is None:
-            return
+            return False
 
         try:
             object_id = ObjectId(incident.id)
         except InvalidId:
-            return
-        await self.collection.update_one(
+            return False
+        result = await self.collection.update_one(
             {
                 "_id": object_id,
                 "monitor_type": monitor_type,
@@ -55,6 +55,7 @@ class IncidentService:
                 }
             },
         )
+        return result.modified_count > 0
 
     async def get_active_incident(self, monitor_id: str, monitor_type: MonitorType) -> IncidentModel | None:
         document = await self.collection.find_one(

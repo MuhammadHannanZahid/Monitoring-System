@@ -109,6 +109,7 @@ async def update_HTTP_monitor(HTTP_monitor_id: str, request: UpdateHTTP_monitorR
         timeout=request.timeout,
         expected_status_code=request.expected_status_code,
         expected_response_time_ms=request.expected_response_time_ms,
+        is_active=request.is_active,
     )
 
     return success_response(
