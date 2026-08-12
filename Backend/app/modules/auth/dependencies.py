@@ -2,20 +2,22 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import Depends, Request, Response
+from odmantic import AIOEngine
+from app.core.database import get_engine
 from app.core.jwt import jwt_service
 from app.core.security import (password_service, refresh_token_service,)
 from app.modules.auth.dto import AuthTokens
-from app.modules.auth.service import AuthRepository, AuthService, get_auth_repository
+from app.modules.auth.service import AuthService
 from jose import JWTError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.shared.models.auth_user import UserModel
 from app.shared.exceptions import AuthenticationError
 from app.shared.constants import Messages
 
-def get_auth_service(repository: AuthRepository = Depends(get_auth_repository)) -> AuthService:
+def get_auth_service(engine: AIOEngine = Depends(get_engine)) -> AuthService:
 
     return AuthService(
-        repository=repository,
+        engine=engine,
         password_service=password_service,
         jwt_service=jwt_service,
         refresh_token_service=refresh_token_service,

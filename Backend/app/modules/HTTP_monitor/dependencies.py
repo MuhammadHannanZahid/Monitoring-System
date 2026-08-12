@@ -1,9 +1,11 @@
 from fastapi import Depends
-from app.modules.HTTP_monitor.service import (
-    HTTP_monitorRepository,
-    HTTP_monitorService,
-    get_HTTP_monitor_repository,
-)
+from odmantic import AIOEngine
 
-def get_HTTP_monitor_service(repository: HTTP_monitorRepository = Depends(get_HTTP_monitor_repository)) -> HTTP_monitorService:
-    return HTTP_monitorService(repository)
+from app.core.database import get_engine
+from app.modules.HTTP_monitor.service import HTTP_monitorService
+
+
+def get_HTTP_monitor_service(
+    engine: AIOEngine = Depends(get_engine),
+) -> HTTP_monitorService:
+    return HTTP_monitorService(engine)

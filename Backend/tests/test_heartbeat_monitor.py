@@ -1,7 +1,9 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import app.core.scheduler as scheduler_state
+from bson import ObjectId
 from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
 from app.modules.monitor.checkers.heartbeat_checker import HeartbeatChecker
 from app.modules.monitor.scheduler import MonitorScheduler
@@ -89,20 +91,12 @@ def test_scheduler_does_not_start_worker_before_first_heartbeat():
     assert scheduler._workers == {}
 
 
-class FakeHeartbeatLookupRepository:
+class FakeHeartbeatLookupService:
     def __init__(self, monitor):
         self.monitor = monitor
 
-    async def get_by_id(self, monitor_id):
+    async def get_monitor(self, monitor_id):
         return self.monitor
-
-
-class FakeRepositoryFactory:
-    def __init__(self, monitor):
-        self.repository = FakeHeartbeatLookupRepository(monitor)
-
-    def get_repository(self, monitor_type):
-        return self.repository
 
 
 class FailingCheckerFactory:
@@ -117,8 +111,12 @@ class FailingCheckerFactory:
 def test_monitor_service_does_not_record_or_check_unarmed_heartbeat():
     monitor = make_monitor(last_heartbeat_at=None, status=MonitorStatus.UNKNOWN)
     checker_factory = FailingCheckerFactory()
+    heartbeat_service = FakeHeartbeatLookupService(monitor)
     service = MonitorService(
-        repository_factory=FakeRepositoryFactory(monitor),
+        http_monitor_service=object(),
+        api_monitor_service=object(),
+        ping_monitor_service=object(),
+        heartbeat_monitor_service=heartbeat_service,
         incident_service=object(),
         monitor_result_service=object(),
         monitor_state_service=object(),
@@ -131,40 +129,52 @@ def test_monitor_service_does_not_record_or_check_unarmed_heartbeat():
     assert monitor.status == MonitorStatus.UNKNOWN
 
 
-class FakeHeartbeatRepository:
+class FakeHeartbeatCollection:
     def __init__(self):
         self.monitor = None
 
-    async def create(self, monitor):
-        self.monitor = monitor.model_copy(deep=True)
+    async def insert_one(self, document):
+        self.monitor = HeartbeatMonitorModel(**document)
         self.monitor.id = "507f1f77bcf86cd799439011"
-        return self.monitor.id
+        return SimpleNamespace(inserted_id=ObjectId(self.monitor.id))
 
-    async def get_by_id(self, monitor_id):
-        if self.monitor is None or self.monitor.id != monitor_id:
+    async def find_one(self, query):
+        if self.monitor is None:
             return None
-        return self.monitor.model_copy(deep=True)
-
-    async def get_by_token_hash(self, token_hash):
-        if self.monitor is None or self.monitor.heartbeat_token_hash != token_hash:
+        if "_id" in query and str(query["_id"]) != self.monitor.id:
             return None
-        return self.monitor.model_copy(deep=True)
+        if (
+            "heartbeat_token_hash" in query
+            and query["heartbeat_token_hash"] != self.monitor.heartbeat_token_hash
+        ):
+            return None
+        document = self.monitor.model_dump(by_alias=True, exclude={"id"})
+        document["_id"] = ObjectId(self.monitor.id)
+        return document
 
-    async def update_last_heartbeat(self, monitor_id, received_at=None):
-        self.monitor.last_heartbeat_at = received_at or datetime.now(timezone.utc)
-        self.monitor.heartbeat_count += 1
-        return True
+    async def update_one(self, query, update):
+        if await self.find_one(query) is None:
+            return SimpleNamespace(modified_count=0)
+        for field, value in update.get("$set", {}).items():
+            setattr(self.monitor, field, value)
+        for field, value in update.get("$inc", {}).items():
+            setattr(self.monitor, field, getattr(self.monitor, field) + value)
+        return SimpleNamespace(modified_count=1)
+
+
+class FakeHeartbeatEngine:
+    def __init__(self, collection):
+        self.database = {"heartbeat_monitors": collection}
 
 
 class FakeMonitorService:
-    def __init__(self, repository):
-        self.repository = repository
+    def __init__(self, collection):
+        self.collection = collection
 
     async def process_heartbeat(self, monitor):
         now = datetime.now(timezone.utc)
-        await self.repository.update_last_heartbeat(monitor.id, now)
-        self.repository.monitor.status = MonitorStatus.UP
-        self.repository.monitor.last_checked_at = now
+        self.collection.monitor.status = MonitorStatus.UP
+        self.collection.monitor.last_checked_at = now
 
 
 class FakeScheduler:
@@ -177,9 +187,12 @@ class FakeScheduler:
 
 
 def test_service_creates_and_receives_client_heartbeat():
-    repository = FakeHeartbeatRepository()
-    monitor_service = FakeMonitorService(repository)
-    service = HeartbeatMonitorService(repository, monitor_service)
+    collection = FakeHeartbeatCollection()
+    monitor_service = FakeMonitorService(collection)
+    service = HeartbeatMonitorService(
+        FakeHeartbeatEngine(collection),
+        monitor_service,
+    )
     fake_scheduler = FakeScheduler(monitor_service)
     previous_scheduler = scheduler_state.scheduler
     scheduler_state.scheduler = fake_scheduler
@@ -221,40 +234,33 @@ def test_received_heartbeat_timing_log_message_is_reachable():
     )
 
 
-class FakeMonitorStateRepository:
+class FakeMonitorStateCollection:
     def __init__(self):
         self.state = None
 
-    async def get_by_monitor_id(self, monitor_id, monitor_type):
-        return self.state
+    async def find_one(self, query):
+        if self.state is None:
+            return None
+        return self.state.model_dump()
 
-    async def create(self, monitor_id, monitor_type):
-        self.state = MonitorStateModel(
-            monitor_id=monitor_id,
-            monitor_type=monitor_type,
-        )
-        return self.state
+    async def insert_one(self, document):
+        self.state = MonitorStateModel(**document)
+        return SimpleNamespace(inserted_id=ObjectId())
 
-    async def update_state(
-        self,
-        monitor_id,
-        monitor_type,
-        status,
-        failures,
-        successes,
-        status_code,
-        response_time_ms,
-        checked_at,
-    ):
-        self.state.status = status
-        self.state.consecutive_failures = failures
-        self.state.consecutive_successes = successes
-        self.state.last_checked_at = checked_at
+    async def update_one(self, query, update):
+        for field, value in update["$set"].items():
+            setattr(self.state, field, value)
+        return SimpleNamespace(modified_count=1)
+
+
+class FakeMonitorStateEngine:
+    def __init__(self, collection):
+        self.database = {"monitor_states": collection}
 
 
 def test_heartbeat_state_changes_immediately_on_received_or_missed_beat():
-    repository = FakeMonitorStateRepository()
-    service = MonitorStateService(repository)
+    collection = FakeMonitorStateCollection()
+    service = MonitorStateService(FakeMonitorStateEngine(collection))
     now = datetime.now(timezone.utc)
 
     up = asyncio.run(

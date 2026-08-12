@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.modules.HTTP_monitor.dependencies import get_HTTP_monitor_service
 from app.modules.HTTP_monitor.service import HTTP_monitorService
@@ -77,6 +77,8 @@ async def list_monitors(service: HTTP_monitorService = Depends(get_HTTP_monitor_
 @router.get("/{HTTP_monitor_id}/get_one", response_model=SuccessResponse[HTTP_monitorResponse])
 async def get_HTTP_monitor(HTTP_monitor_id: str, service: HTTP_monitorService = Depends(get_HTTP_monitor_service)):
     HTTP_monitor = await service.get_monitor(HTTP_monitor_id)
+    if HTTP_monitor is None:
+        raise HTTPException(status_code=404, detail=Messages.monitor_NOT_FOUND)
 
     return success_response(
         message=Messages.monitor_FETCHED,

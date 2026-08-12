@@ -12,7 +12,7 @@ from app.core.logger import get_logger
 from app.shared.models.auth_profile import AuthProfileModel
 
 if TYPE_CHECKING:
-    from app.modules.auth_profiles.service import AuthProfileRepository
+    from app.modules.auth_profiles.service import AuthProfileService
 
 logger = get_logger(__name__)
 
@@ -33,11 +33,11 @@ class CachedAccessToken:
 class AccessTokenCookieManager:
     def __init__(
         self,
-        repository: AuthProfileRepository,
+        auth_profile_service: AuthProfileService,
         client: httpx.AsyncClient | None = None,
         clock: Callable[[], float] = time.monotonic,
     ):
-        self.repository = repository
+        self.auth_profile_service = auth_profile_service
         self.client = client or httpx.AsyncClient(follow_redirects=True)
         self.clock = clock
         self._owns_client = client is None
@@ -60,7 +60,7 @@ class AccessTokenCookieManager:
             if not force_refresh and self._is_valid(cached):
                 return cached.value
 
-            profile = await self.repository.get_by_id(profile_id)
+            profile = await self.auth_profile_service.get_profile(profile_id)
             if profile is None:
                 raise AuthTokenError(f"Auth profile '{profile_id}' was not found.")
 

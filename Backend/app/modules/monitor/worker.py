@@ -60,7 +60,10 @@ class MonitorWorker:
         while self._running:
             start = asyncio.get_running_loop().time()
             try:
-                monitor = await self.monitor_service.get_monitor(self.monitor.id)
+                monitor = await self.monitor_service.get_monitor(
+                    self.monitor.id,
+                    self.monitor.monitor_type,
+                )
                 if monitor is None:
                     logger.info("Monitor '%s' removed. Worker stopping.", self.monitor.id)
                     break
@@ -85,7 +88,10 @@ class MonitorWorker:
     async def _run_heartbeat(self) -> None:
         while self._running:
             try:
-                monitor = await self.monitor_service.get_monitor(self.monitor.id)
+                monitor = await self.monitor_service.get_monitor(
+                    self.monitor.id,
+                    self.monitor.monitor_type,
+                )
                 if monitor is None:
                     logger.info(
                         "Heartbeat monitor '%s' removed. Worker stopping.",

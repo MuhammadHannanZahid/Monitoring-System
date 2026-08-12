@@ -4,15 +4,15 @@ from app.shared.models.dashboard import (DashboardSummaryResponse, DashboardInci
     StatusHistoryPoint)
 from app.shared.exceptions import NotFoundError
 from app.shared.constants import Messages
-from app.modules.monitor_results.service import MonitorResultRepository
-from app.modules.incident.service import IncidentRepository
+from app.modules.monitor_results.service import MonitorResultService
+from app.modules.incident.service import IncidentService
 from app.modules.monitor.service import MonitorService
 
 class DashboardService:
-    def __init__(self, monitor_service: MonitorService, monitor_result_repository: MonitorResultRepository, incident_repository: IncidentRepository):
+    def __init__(self, monitor_service: MonitorService, monitor_result_service: MonitorResultService, incident_service: IncidentService):
         self.monitor_service = monitor_service
-        self.monitor_result_repository = monitor_result_repository
-        self.incident_repository = incident_repository
+        self.monitor_result_service = monitor_result_service
+        self.incident_service = incident_service
 
     async def get_summary(self) -> DashboardSummaryResponse:
         monitors, _ = await self.monitor_service.get_monitors_with_lookup()
@@ -23,8 +23,8 @@ class DashboardService:
         monitors_down = sum(1 for monitor in monitors if monitor.status == MonitorStatus.DOWN)
         monitors_unknown = sum(1 for monitor in monitors if monitor.status == MonitorStatus.UNKNOWN)
         slow_monitors = sum(1 for monitor in monitors if getattr(monitor, "is_slow", False))
-        open_incidents = await self.incident_repository.count_open()
-        average_response_time = await self.monitor_result_repository.average_response_time()
+        open_incidents = await self.incident_service.count_open()
+        average_response_time = await self.monitor_result_service.average_response_time()
 
         return DashboardSummaryResponse(
             total_monitors=total_monitors,
@@ -40,7 +40,7 @@ class DashboardService:
 
     async def get_recent_incidents(self) -> list[DashboardIncidentResponse]:
 
-        incidents = await self.incident_repository.get_recent()
+        incidents = await self.incident_service.get_recent()
 
         _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
 
@@ -64,7 +64,7 @@ class DashboardService:
 
     async def get_recent_activity(self) -> list[DashboardActivityResponse]:
 
-        results = await self.monitor_result_repository.get_recent()
+        results = await self.monitor_result_service.get_recent()
 
         _, monitor_map = await self.monitor_service.get_monitors_with_lookup()
 
@@ -92,7 +92,7 @@ class DashboardService:
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
 
-        history = await self.monitor_result_repository.get_response_history(monitor_id=monitor_id, days=days)
+        history = await self.monitor_result_service.get_response_history(monitor_id=monitor_id, days=days)
 
         return ResponseHistoryResponse(
             monitor_id=monitor_id,
@@ -113,12 +113,12 @@ class DashboardService:
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
 
-        stats = await self.monitor_result_repository.get_statistics(monitor_id=monitor_id, days=days)
+        stats = await self.monitor_result_service.get_statistics(monitor_id=monitor_id, days=days)
         total = stats["total"]
         successful = stats["successful"]
         failed = total - successful
         uptime = (round(successful / total * 100, 2) if total > 0 else 0.0)
-        slow = await self.monitor_result_repository.count_slow_checks(monitor_id)
+        slow = await self.monitor_result_service.count_slow_checks(monitor_id)
 
         return UptimeResponse(
             monitor_id=monitor_id,
@@ -135,7 +135,7 @@ class DashboardService:
         if monitor is None:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
 
-        history = await self.monitor_result_repository.get_status_history(monitor_id=monitor_id, days=days)
+        history = await self.monitor_result_service.get_status_history(monitor_id=monitor_id, days=days)
 
         return StatusHistoryResponse(
             monitor_id=monitor_id,

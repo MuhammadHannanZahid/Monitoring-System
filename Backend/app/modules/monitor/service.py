@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
 from app.core.logger import get_logger
 from app.modules.incident.service import IncidentService
 from app.modules.monitor.checkers.checker_factory import CheckerFactory
-from app.modules.monitor.repository_factory import MonitorRepositoryFactory
 from app.modules.monitor_state.enums import MonitorTransition
 from app.modules.monitor_state.service import MonitorStateService
 from app.modules.monitor_results.service import MonitorResultService
@@ -10,26 +13,55 @@ from app.shared.models.base_monitor import BaseMonitorModel
 from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
 from app.shared.models.base_monitor import MonitorStatus, MonitorType
 
+if TYPE_CHECKING:
+    from app.modules.API_monitor.service import API_monitorService
+    from app.modules.HTTP_monitor.service import HTTP_monitorService
+    from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
+    from app.modules.ping_monitor.service import PingMonitorService
+
 logger = get_logger(__name__)
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 
 
 class MonitorService:
-    def __init__(self, repository_factory: MonitorRepositoryFactory, incident_service: IncidentService, monitor_result_service: MonitorResultService, monitor_state_service: MonitorStateService, checker_factory: CheckerFactory):
-        self.repository_factory = repository_factory
+    def __init__(
+        self,
+        http_monitor_service: HTTP_monitorService,
+        api_monitor_service: API_monitorService,
+        ping_monitor_service: PingMonitorService,
+        heartbeat_monitor_service: HeartbeatMonitorService,
+        incident_service: IncidentService,
+        monitor_result_service: MonitorResultService,
+        monitor_state_service: MonitorStateService,
+        checker_factory: CheckerFactory,
+    ):
+        self.http_monitor_service = http_monitor_service
+        self.api_monitor_service = api_monitor_service
+        self.ping_monitor_service = ping_monitor_service
+        self.heartbeat_monitor_service = heartbeat_monitor_service
         self.incident_service = incident_service
         self.monitor_result_service = monitor_result_service
         self.monitor_state_service = monitor_state_service
         self.checker_factory = checker_factory
+        self._monitor_services = {
+            MonitorType.HTTP: http_monitor_service,
+            MonitorType.API: api_monitor_service,
+            MonitorType.PING: ping_monitor_service,
+            MonitorType.HEARTBEAT: heartbeat_monitor_service,
+        }
 
     async def list_active_monitors(self):
-        return await self.repository_factory.list_active_monitors()
+        return [
+            monitor
+            for monitor in await self.list_monitors()
+            if monitor.is_active
+        ]
 
     async def check_and_update(self, monitor: MonitorModel) -> None:
         try:
-            repository = self.repository_factory.get_repository(monitor.monitor_type)
-            latest_monitor = await repository.get_by_id(monitor.id)
+            service = self._get_monitor_service(monitor.monitor_type)
+            latest_monitor = await service.get_monitor(monitor.id)
             if latest_monitor is None:
                 logger.warning("Monitor '%s' no longer exists. Skipping check.", monitor.id)
                 return
@@ -66,8 +98,7 @@ class MonitorService:
                 checked_at=checked_at,
             )
 
-            await self.repository_factory.update_monitoring_result(
-                monitor_type=monitor.monitor_type,
+            await service.update_monitoring_result(
                 monitor_id=monitor.id,
                 status=state_result.current_status,
                 status_code=result.status_code,
@@ -131,8 +162,20 @@ class MonitorService:
             return "Health check failed."
         return "Monitor is unreachable."
 
-    async def get_monitor(self, monitor_id: str) -> MonitorModel | None:
-        return await self.repository_factory.get_monitor(monitor_id)
+    async def get_monitor(
+        self,
+        monitor_id: str,
+        monitor_type: MonitorType | None = None,
+    ) -> MonitorModel | None:
+        if monitor_type is not None:
+            return await self._get_monitor_service(monitor_type).get_monitor(
+                monitor_id
+            )
+        for service in self._monitor_services.values():
+            monitor = await service.get_monitor(monitor_id)
+            if monitor is not None:
+                return monitor
+        return None
 
     async def get_monitors_with_lookup(self) -> tuple[list[object], dict[str, object]]:
         monitors = await self.list_monitors()
@@ -146,13 +189,19 @@ class MonitorService:
         )
 
     async def list_monitors(self) -> list[MonitorModel]:
-        return await self.repository_factory.list_monitors()
+        http_monitors = await self.http_monitor_service.list_monitors()
+        api_monitors = await self.api_monitor_service.list_monitors()
+        ping_monitors = await self.ping_monitor_service.list_monitors()
+        heartbeat_monitors = await self.heartbeat_monitor_service.list_monitors()
+        return [
+            *http_monitors,
+            *api_monitors,
+            *ping_monitors,
+            *heartbeat_monitors,
+        ]
 
     async def process_heartbeat(self, monitor: HeartbeatMonitorModel) -> None:
-        repository = self.repository_factory.get_repository(monitor.monitor_type)
-
         checked_at = datetime.now(timezone.utc)
-        await repository.update_last_heartbeat(monitor.id, checked_at)
         await self.monitor_result_service.record_result(
             monitor_id=monitor.id,
             monitor_type=monitor.monitor_type,
@@ -172,8 +221,7 @@ class MonitorService:
             checked_at=checked_at,
         )
 
-        await self.repository_factory.update_monitoring_result(
-            monitor_type=monitor.monitor_type,
+        await self.heartbeat_monitor_service.update_monitoring_result(
             monitor_id=monitor.id,
             status=state_result.current_status,
             status_code=None,
@@ -188,14 +236,19 @@ class MonitorService:
             self._heartbeat_timing_message(monitor, checked_at),
         )
 
-        class HeartbeatResult:
-            status_code = None
-
         await self._handle_incident_transition(
             monitor,
-            HeartbeatResult(),
+            None,
             state_result,
         )
+
+    def _get_monitor_service(self, monitor_type: MonitorType):
+        try:
+            return self._monitor_services[monitor_type]
+        except KeyError as exc:
+            raise ValueError(
+                f"Unsupported monitor type: {monitor_type}"
+            ) from exc
 
     @staticmethod
     def _heartbeat_timing_message(

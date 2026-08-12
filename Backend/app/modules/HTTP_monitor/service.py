@@ -1,40 +1,55 @@
 from __future__ import annotations
+
 from datetime import datetime, timezone
+
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import Depends
 from odmantic import AIOEngine
-from app.core.database import get_engine
-from app.shared.constants import Collections
-from app.shared.constants import Messages
-from app.shared.models.base_monitor import MonitorStatus
+
+import app.core.scheduler as scheduler_state
+from app.core.logger import get_logger
+from app.shared.constants import Collections, Messages
 from app.shared.exceptions import ConflictError, NotFoundError
 from app.shared.models.HTTP_monitor import HTTPMonitorModel
-from app.core.logger import get_logger
-import app.core.scheduler as scheduler_state
+from app.shared.models.base_monitor import MonitorStatus
 
 logger = get_logger(__name__)
 
-class HTTP_monitorService:
-    def __init__(self, repository: HTTP_monitorRepository):
-        self.repository = repository
 
-    async def create_monitor(self, name: str, url: str, check_interval: int, timeout: int, expected_status_code: int, expected_response_time_ms:int) -> HTTPMonitorModel:
-        existing_url = await self.repository.get_by_url(url)
-        if existing_url is not None:
-            logger.warning("Attempted to create HTTP_monitor with existing URL '%s'.", url)
+class HTTP_monitorService:
+    def __init__(self, engine: AIOEngine):
+        self.collection = engine.database[Collections.HTTP_MONITORS]
+
+    async def create_monitor(
+        self,
+        name: str,
+        url: str,
+        check_interval: int,
+        timeout: int,
+        expected_status_code: int,
+        expected_response_time_ms: int,
+    ) -> HTTPMonitorModel:
+        if await self.collection.find_one({"url": url}) is not None:
+            logger.warning(
+                "Attempted to create HTTP_monitor with existing URL '%s'.",
+                url,
+            )
             raise ConflictError(Messages.monitor_ALREADY_EXISTS)
 
-        count = await self.repository.count_similar_names(name)
+        count = await self.collection.count_documents(
+            {"name": {"$regex": f"^{name}( \\d+)?$"}}
+        )
         final_name = name
-
         if count > 0:
             final_name = f"{name} {count}"
-            logger.info("HTTP_monitor name '%s' already exists. Assigned new name '%s'.", name, final_name)
+            logger.info(
+                "HTTP_monitor name '%s' already exists. Assigned new name '%s'.",
+                name,
+                final_name,
+            )
 
         now = datetime.now(timezone.utc)
-
-        HTTP_monitor = HTTPMonitorModel(
+        monitor = HTTPMonitorModel(
             name=final_name,
             url=url,
             check_interval=check_interval,
@@ -47,147 +62,120 @@ class HTTP_monitorService:
             last_checked_at=None,
             expected_response_time_ms=expected_response_time_ms,
         )
-
-        HTTP_monitor.id = await self.repository.create(HTTP_monitor)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.start_worker(HTTP_monitor)
-        logger.info("HTTP_monitor '%s' created. URL: %s", HTTP_monitor.name, HTTP_monitor.url)
-        return HTTP_monitor
-
-    async def list_monitors(self) -> list[HTTPMonitorModel]:
-        return await self.repository.list_monitors()
-
-    async def get_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel:
-        HTTP_monitor = await self.repository.get_by_id(HTTP_monitor_id)
-        if HTTP_monitor is None:
-            logger.warning("Requested HTTP_monitor '%s' was not found.", HTTP_monitor_id)
-            raise NotFoundError(Messages.monitor_NOT_FOUND)
-        return HTTP_monitor
-
-    async def update_monitor(self, HTTP_monitor_id: str, name: str | None, url: str | None, check_interval: int | None, timeout: int | None, expected_status_code: int | None, expected_response_time_ms:int) -> HTTPMonitorModel:
-        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
-        update_data = {}
-        if name is not None and name != HTTP_monitor.name:
-            count = await self.repository.count_similar_names(name)
-            if count > 0:
-                final_name = f"{name} {count}"
-                logger.info("HTTP_monitor name '%s' already exists. Assigned new name '%s' during update for HTTP_monitor ID %s.", name, final_name, HTTP_monitor_id)
-                update_data["name"] = final_name
-            else:
-                update_data["name"] = name
-
-        if url is not None and url != HTTP_monitor.url:
-            existing_url = await self.repository.get_by_url(url)
-            if existing_url is not None and str(existing_url.id) != str(HTTP_monitor_id):
-                logger.warning("Attempted to update HTTP_monitor '%s' with existing URL '%s'.", HTTP_monitor.name, url)
-                raise ConflictError(Messages.monitor_ALREADY_EXISTS)
-            update_data["url"] = url
-
-        if check_interval is not None and check_interval != HTTP_monitor.check_interval:
-            update_data["check_interval"] = check_interval
-
-        if timeout is not None and timeout != HTTP_monitor.timeout:
-            update_data["timeout"] = timeout
-
-        if expected_status_code is not None and expected_status_code != HTTP_monitor.expected_status_code:
-            update_data["expected_status_code"] = expected_status_code
-
-        if expected_response_time_ms is not None and expected_response_time_ms != HTTP_monitor.expected_response_time_ms:
-            update_data["expected_response_time_ms"] = expected_response_time_ms
-
-        if update_data:
-            await self.repository.update_monitor(HTTP_monitor_id, update_data)
-            updated_HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
-
-            if updated_HTTP_monitor.is_active and scheduler_state.scheduler is not None:
-                await scheduler_state.scheduler.stop_worker(updated_HTTP_monitor.id)
-                await scheduler_state.scheduler.start_worker(updated_HTTP_monitor)
-            logger.info("HTTP_monitor '%s' updated. Fields changed: %s", updated_HTTP_monitor.name, ", ".join(update_data.keys()))
-            return updated_HTTP_monitor
-
-        return HTTP_monitor
-
-    async def delete_monitor(self, HTTP_monitor_id: str) -> None:
-        HTTP_monitor = await self.get_monitor(HTTP_monitor_id)
-        if scheduler_state.scheduler is not None:
-            await scheduler_state.scheduler.stop_worker(HTTP_monitor.id)
-
-        await self.repository.delete_monitor(HTTP_monitor.id)
-        logger.info("HTTP_monitor '%s' deleted.", HTTP_monitor.name)
-
-class HTTP_monitorRepository:
-    def __init__(self, engine: AIOEngine):
-        self.engine = engine
-        self.collection = engine.database[Collections.HTTP_MONITORS]
-        self.model = HTTPMonitorModel
-
-    async def create(self, entity: HTTPMonitorModel) -> str:
-        document = entity.model_dump()
+        document = monitor.model_dump()
         document.pop("id", None)
-
         result = await self.collection.insert_one(document)
-        return str(result.inserted_id)
+        monitor.id = str(result.inserted_id)
 
-    async def get_by_id(self, monitor_id: str) -> HTTPMonitorModel | None:
-        try:
-            object_id = ObjectId(monitor_id)
-        except InvalidId:
-            return None
-
-        document = await self.collection.find_one({"_id": object_id})
-        if document is None:
-            return None
-
-        document["id"] = str(document.pop("_id"))
-        return HTTPMonitorModel(**document)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.start_worker(monitor)
+        logger.info("HTTP_monitor '%s' created. URL: %s", monitor.name, monitor.url)
+        return monitor
 
     async def list_monitors(self) -> list[HTTPMonitorModel]:
         cursor = self.collection.find().sort("created_at", -1)
-
         monitors = []
-
         async for document in cursor:
             document["id"] = str(document.pop("_id"))
             monitors.append(HTTPMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, monitor_id: str, update_data: dict) -> bool:
+    async def get_monitor(self, HTTP_monitor_id: str) -> HTTPMonitorModel | None:
         try:
-            object_id = ObjectId(monitor_id)
+            object_id = ObjectId(HTTP_monitor_id)
         except InvalidId:
-            return False
-
-        update_data["updated_at"] = datetime.now(timezone.utc)
-        result = await self.collection.update_one({"_id": object_id}, {"$set": update_data})
-        return result.modified_count > 0
-
-    async def delete_monitor(self, monitor_id: str) -> bool:
-        try:
-            object_id = ObjectId(monitor_id)
-        except InvalidId:
-            return False
-
-        result = await self.collection.delete_one({"_id": object_id})
-        return result.deleted_count > 0
-
-    async def get_by_url(self, url: str) -> HTTPMonitorModel | None:
-        document = await self.collection.find_one({"url": url})
+            return None
+        document = await self.collection.find_one({"_id": object_id})
         if document is None:
             return None
-
         document["id"] = str(document.pop("_id"))
         return HTTPMonitorModel(**document)
 
-    async def count_similar_names(self, base_name: str) -> int:
-        return await self.collection.count_documents({"name": {"$regex": f"^{base_name}( \\d+)?$"}})
+    async def update_monitor(
+        self,
+        HTTP_monitor_id: str,
+        name: str | None,
+        url: str | None,
+        check_interval: int | None,
+        timeout: int | None,
+        expected_status_code: int | None,
+        expected_response_time_ms: int,
+    ) -> HTTPMonitorModel:
+        monitor = await self.get_monitor(HTTP_monitor_id)
+        if monitor is None:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
+        update_data = {}
 
-    async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
+        if name is not None and name != monitor.name:
+            count = await self.collection.count_documents(
+                {"name": {"$regex": f"^{name}( \\d+)?$"}}
+            )
+            update_data["name"] = f"{name} {count}" if count > 0 else name
+        if url is not None and url != monitor.url:
+            existing = await self.collection.find_one({"url": url})
+            if existing is not None and str(existing["_id"]) != HTTP_monitor_id:
+                logger.warning(
+                    "Attempted to update HTTP_monitor '%s' with existing URL '%s'.",
+                    monitor.name,
+                    url,
+                )
+                raise ConflictError(Messages.monitor_ALREADY_EXISTS)
+            update_data["url"] = url
+        if check_interval is not None and check_interval != monitor.check_interval:
+            update_data["check_interval"] = check_interval
+        if timeout is not None and timeout != monitor.timeout:
+            update_data["timeout"] = timeout
+        if (
+            expected_status_code is not None
+            and expected_status_code != monitor.expected_status_code
+        ):
+            update_data["expected_status_code"] = expected_status_code
+        if (
+            expected_response_time_ms is not None
+            and expected_response_time_ms != monitor.expected_response_time_ms
+        ):
+            update_data["expected_response_time_ms"] = expected_response_time_ms
+
+        if not update_data:
+            return monitor
+
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        await self.collection.update_one(
+            {"_id": ObjectId(HTTP_monitor_id)},
+            {"$set": update_data},
+        )
+        updated_monitor = await self.get_monitor(HTTP_monitor_id)
+        if updated_monitor.is_active and scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(updated_monitor.id)
+            await scheduler_state.scheduler.start_worker(updated_monitor)
+        logger.info(
+            "HTTP_monitor '%s' updated. Fields changed: %s",
+            updated_monitor.name,
+            ", ".join(update_data.keys()),
+        )
+        return updated_monitor
+
+    async def delete_monitor(self, HTTP_monitor_id: str) -> None:
+        monitor = await self.get_monitor(HTTP_monitor_id)
+        if monitor is None:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.stop_worker(monitor.id)
+        await self.collection.delete_one({"_id": ObjectId(monitor.id)})
+        logger.info("HTTP_monitor '%s' deleted.", monitor.name)
+
+    async def update_monitoring_result(
+        self,
+        monitor_id: str,
+        status: MonitorStatus,
+        status_code: int | None,
+        response_time_ms: int | None,
+        checked_at: datetime,
+    ) -> bool:
         try:
             object_id = ObjectId(monitor_id)
-
         except InvalidId:
             return False
-
         result = await self.collection.update_one(
             {"_id": object_id},
             {
@@ -201,17 +189,3 @@ class HTTP_monitorRepository:
             },
         )
         return result.modified_count > 0
-
-    async def list_active_monitors(self) -> list[HTTPMonitorModel]:
-        cursor = self.collection.find({"is_active": True})
-        monitors = []
-
-        async for document in cursor:
-            document["id"] = str(document.pop("_id"))
-            monitors.append(HTTPMonitorModel(**document))
-        return monitors
-
-def get_HTTP_monitor_repository(
-    engine: AIOEngine = Depends(get_engine),
-) -> HTTP_monitorRepository:
-    return HTTP_monitorRepository(engine)

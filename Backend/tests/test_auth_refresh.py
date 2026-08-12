@@ -1,7 +1,9 @@
 import asyncio
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
+from bson import ObjectId
 from fastapi import Request, Response
 
 from app.core.jwt import JWTService
@@ -21,50 +23,38 @@ from app.shared.models.auth_user import TokenType, UserModel, UserRole
 USER_ID = "507f1f77bcf86cd799439011"
 
 
-class FakeAuthRepository:
+class FakeAuthCollection:
     def __init__(self, user: UserModel):
         self.user = user
 
-    async def get_by_id(self, user_id: str) -> UserModel | None:
-        if user_id != self.user.id:
+    async def find_one(self, query: dict) -> dict | None:
+        if "username" in query and query["username"] != self.user.username:
             return None
-        return self.user.model_copy(deep=True)
-
-    async def get_by_username(self, username: str) -> UserModel | None:
-        if username != self.user.username:
+        if "_id" in query and str(query["_id"]) != self.user.id:
             return None
-        return self.user.model_copy(deep=True)
-
-    async def update_refresh_token(
-        self,
-        user_id: str,
-        refresh_token_hash: str,
-        refresh_token_expires_at: datetime,
-    ) -> bool:
-        if user_id != self.user.id:
-            return False
-        self.user.refresh_token_hash = refresh_token_hash
-        self.user.refresh_token_expires_at = refresh_token_expires_at
-        return True
-
-    async def update_last_login(self, user_id: str) -> bool:
-        return user_id == self.user.id
-
-    async def rotate_refresh_token(
-        self,
-        user_id: str,
-        current_refresh_token_hash: str,
-        new_refresh_token_hash: str,
-        refresh_token_expires_at: datetime,
-    ) -> bool:
         if (
-            user_id != self.user.id
-            or current_refresh_token_hash != self.user.refresh_token_hash
+            "refresh_token_hash" in query
+            and query["refresh_token_hash"] != self.user.refresh_token_hash
         ):
-            return False
-        self.user.refresh_token_hash = new_refresh_token_hash
-        self.user.refresh_token_expires_at = refresh_token_expires_at
-        return True
+            return None
+        document = self.user.model_dump()
+        document.pop("id", None)
+        document["_id"] = ObjectId(self.user.id)
+        return document
+
+    async def update_one(self, query: dict, update: dict):
+        if (
+            await self.find_one(query) is None
+        ):
+            return SimpleNamespace(matched_count=0, modified_count=0)
+        for field, value in update["$set"].items():
+            setattr(self.user, field, value)
+        return SimpleNamespace(matched_count=1, modified_count=1)
+
+
+class FakeAuthEngine:
+    def __init__(self, collection: FakeAuthCollection):
+        self.database = {"users": collection}
 
 
 def make_user() -> UserModel:
@@ -80,9 +70,9 @@ def make_user() -> UserModel:
     )
 
 
-def make_auth_service(repository: FakeAuthRepository) -> AuthService:
+def make_auth_service(collection: FakeAuthCollection) -> AuthService:
     return AuthService(
-        repository=repository,
+        engine=FakeAuthEngine(collection),
         password_service=PasswordService(),
         jwt_service=JWTService(),
         refresh_token_service=RefreshTokenService(),
@@ -109,23 +99,23 @@ def test_refresh_token_uses_configured_lifetime(monkeypatch):
 def test_login_stores_an_expiring_refresh_token(monkeypatch):
     monkeypatch.setenv("REFRESH_TOKEN_EXPIRE_DAYS", "14")
     user = make_user()
-    repository = FakeAuthRepository(user)
-    service = make_auth_service(repository)
+    collection = FakeAuthCollection(user)
+    service = make_auth_service(collection)
     user.password_hash = service.password_service.hash_password("password123")
 
     tokens = asyncio.run(service.login(user.username, "password123"))
     payload = service.jwt_service.verify_refresh_token(tokens.refresh_token)
 
-    assert repository.user.refresh_token_hash is not None
-    assert repository.user.refresh_token_expires_at is not None
+    assert collection.user.refresh_token_hash is not None
+    assert collection.user.refresh_token_expires_at is not None
     assert payload["exp"] - payload["iat"] == 14 * 24 * 60 * 60
 
 
 def test_refresh_rotates_token_and_rejects_replay(monkeypatch):
     monkeypatch.setenv("REFRESH_TOKEN_EXPIRE_DAYS", "30")
     user = make_user()
-    repository = FakeAuthRepository(user)
-    service = make_auth_service(repository)
+    collection = FakeAuthCollection(user)
+    service = make_auth_service(collection)
 
     refresh_token, expires_at = service.jwt_service.create_refresh_token(
         user_id=user.id,
@@ -178,8 +168,8 @@ def test_protected_request_automatically_refreshes_from_cookie(monkeypatch):
     monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15")
     monkeypatch.setenv("REFRESH_TOKEN_EXPIRE_DAYS", "30")
     user = make_user()
-    repository = FakeAuthRepository(user)
-    service = make_auth_service(repository)
+    collection = FakeAuthCollection(user)
+    service = make_auth_service(collection)
     refresh_token, expires_at = service.jwt_service.create_refresh_token(
         user_id=user.id,
         username=user.username,
