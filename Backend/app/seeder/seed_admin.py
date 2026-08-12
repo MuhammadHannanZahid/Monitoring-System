@@ -2,10 +2,10 @@ import os
 
 from dotenv import load_dotenv
 
-from app.core.database import db_manager
+from app.service.mongo_db.mongo_controller import db_manager
 from app.core.logger import get_logger
 from app.core.security import password_service
-from app.modules.users.service import UserService
+from app.modules.user_account_manager.service import UserService
 
 from .base import BaseSeeder
 

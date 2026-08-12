@@ -1,8 +1,8 @@
 from fastapi.routing import APIRoute
 
-from app.api.API_monitor import router as api_monitor_router
-from app.modules.auth.dependencies import get_current_user
-from app.api.heartbeat_monitor import router as heartbeat_monitor_router
+from app.routes.api_monitor_routes import router as api_monitor_router
+from app.modules.auth_manager.dependencies import get_current_user
+from app.routes.heartbeat_monitor_routes import router as heartbeat_monitor_router
 from app.main import app
 
 

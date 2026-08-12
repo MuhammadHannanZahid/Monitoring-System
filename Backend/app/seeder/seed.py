@@ -1,6 +1,6 @@
 import asyncio
 
-from app.core.database import db_manager
+from app.service.mongo_db.mongo_controller import db_manager
 from app.core.logger import get_logger
 
 from app.seeder.seed_admin import AdminSeeder

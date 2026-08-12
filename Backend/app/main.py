@@ -3,31 +3,31 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
-from app.api.auth import router as auth_router
-from app.api.users import router as users_router
-from app.api.HTTP_monitor import router as HTTP_monitor_router
-from app.api.dashboard import router as dashboard_router
-from app.api.API_monitor import router as api_monitor_router
-from app.api.ping_monitor import router as ping_router
-from app.api.heartbeat_monitor import router as heartbeat_router
-from app.api.auth_profiles import router as auth_profiles_router
-from app.core.database import db_manager
+from app.routes.auth_routes import router as auth_router
+from app.routes.user_account_routes import router as users_router
+from app.routes.http_monitor_routes import router as HTTP_monitor_router
+from app.routes.insight_routes import router as dashboard_router
+from app.routes.api_monitor_routes import router as api_monitor_router
+from app.routes.ping_monitor_routes import router as ping_router
+from app.routes.heartbeat_monitor_routes import router as heartbeat_router
+from app.routes.orion_login_routes import router as auth_profiles_router
+from app.service.mongo_db.mongo_controller import db_manager
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
-from app.modules.monitor.scheduler import MonitorScheduler
-from app.modules.monitor.service import MonitorService
-from app.modules.HTTP_monitor.service import HTTP_monitorService
-from app.modules.API_monitor.service import API_monitorService
-from app.modules.incident.service import IncidentService
-from app.modules.monitor_results.service import MonitorResultService
-from app.modules.monitor_state.service import MonitorStateService
-from app.modules.monitor.checkers.checker_factory import CheckerFactory
-from app.modules.ping_monitor.service import PingMonitorService
-from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
-from app.modules.auth_profiles.service import AuthProfileService
-from app.modules.auth_profiles.token_manager import AccessTokenCookieManager
-import app.modules.auth_profiles.token_manager as auth_token_state
-import app.modules.monitor.scheduler as scheduler_state
+from app.modules.monitoring_controller.scheduler import MonitorScheduler
+from app.modules.monitoring_controller.service import MonitorService
+from app.modules.http_monitor_manager.service import HTTP_monitorService
+from app.modules.api_monitor_manager.service import API_monitorService
+from app.modules.incident_manager.service import IncidentService
+from app.modules.monitoring_controller.monitor_results.service import MonitorResultService
+from app.modules.monitoring_controller.monitor_state.service import MonitorStateService
+from app.modules.monitoring_controller.checkers.checker_factory import CheckerFactory
+from app.modules.ping_monitor_manager.service import PingMonitorService
+from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
+from app.modules.orion_login_manager.service import AuthProfileService
+from app.modules.orion_login_manager.token_manager import AccessTokenCookieManager
+import app.modules.orion_login_manager.token_manager as auth_token_state
+import app.modules.monitoring_controller.scheduler as scheduler_state
 
 logger = get_logger(__name__)
 

@@ -4,16 +4,16 @@ from types import SimpleNamespace
 
 import app.modules.monitor.scheduler as scheduler_state
 from bson import ObjectId
-from app.modules.heartbeat_monitor.service import HeartbeatMonitorService
-from app.modules.monitor.checkers.heartbeat_checker import HeartbeatChecker
-from app.modules.monitor.scheduler import MonitorScheduler
-from app.modules.monitor.service import MonitorService
-from app.modules.monitor.worker import MonitorWorker
-from app.modules.monitor_state.service import MonitorStateService
-from app.shared.models.base_monitor import MonitorStatus, MonitorType
-from app.shared.models.base_monitor import BaseMonitorModel
-from app.shared.models.heartbeat_monitor import HeartbeatMonitorModel
-from app.shared.models.monitor_state import MonitorStateModel, MonitorTransition
+from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
+from app.modules.monitoring_controller.checkers.heartbeat_checker import HeartbeatChecker
+from app.modules.monitoring_controller.scheduler import MonitorScheduler
+from app.modules.monitoring_controller.service import MonitorService
+from app.modules.monitoring_controller.worker import MonitorWorker
+from app.modules.monitoring_controller.monitor_state.service import MonitorStateService
+from app.service.mongo_db.shared_models.models.base_monitor import MonitorStatus, MonitorType
+from app.service.mongo_db.shared_models.models.base_monitor import BaseMonitorModel
+from app.service.mongo_db.shared_models.models.heartbeat_monitor import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.models.monitor_state import MonitorStateModel, MonitorTransition
 
 
 def make_monitor(**changes) -> HeartbeatMonitorModel:

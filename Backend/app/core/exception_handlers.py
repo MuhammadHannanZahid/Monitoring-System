@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from app.core.logger import get_logger
-from app.shared.exceptions import AppException
-from app.shared.responses import error_response
+from app.service.exceptions import AppException
+from app.service.responses import error_response
 
 logger = get_logger(__name__)
 
