@@ -1,0 +1,51 @@
+<header>
+  <p class="eyebrow">Administration</p>
+  <h1 class="page-title">Register user</h1>
+  <p class="page-description">
+    Create an administrator or a read-only viewer account. This action uses the backend's protected
+    user creation endpoint.
+  </p>
+</header>
+
+<div class="registration-layout">
+  <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-heading"><span>New account</span><span>01 / 01</span></div>
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p class="form-success notice" [class.leaving]="noticeLeaving()" role="status">
+        {{ success() }}
+      </p>
+    }
+    <div class="field">
+      <label for="new-username">Username</label
+      ><input
+        id="new-username"
+        formControlName="username"
+        autocomplete="off"
+        placeholder="3–50 characters"
+      />
+    </div>
+    <div class="field">
+      <label for="new-password">Password</label
+      ><input
+        id="new-password"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+        placeholder="minimum 8 characters"
+      />
+    </div>
+    <div class="field">
+      <label for="role">Role</label
+      ><select id="role" formControlName="role">
+        <option value="viewer">Viewer</option>
+        <option value="admin">Administrator</option>
+      </select>
+    </div>
+    <button class="button" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Registering…' : 'Register account' }}
+    </button>
+  </form>
+</div>

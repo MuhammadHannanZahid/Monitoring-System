@@ -36,6 +36,21 @@ class MonitorResultManager:
             return 0.0
         return round(result[0]["avg"], 2)
 
+    async def get_first_check_times(self, monitor_ids: list[str]) -> dict[str, datetime]:
+        if not monitor_ids:
+            return {}
+        pipeline = [
+            {
+                "$match": {
+                    "monitor_id": {"$in": monitor_ids},
+                    "status": {"$ne": MonitorStatus.UNKNOWN},
+                }
+            },
+            {"$group": {"_id": "$monitor_id", "checked_at": {"$min": "$checked_at"}}},
+        ]
+        results = await self.collection.aggregate(pipeline).to_list(None)
+        return {result["_id"]: result["checked_at"] for result in results}
+
     async def get_recent(self, limit: int = 20) -> list[MonitorResultModel]:
         cursor = self.collection.find().sort("checked_at", -1).limit(limit)
         results = []
@@ -90,3 +105,6 @@ class MonitorResultManager:
         return await self.collection.count_documents(
             {"monitor_id": monitor_id, "is_slow": True}
         )
+
+    async def delete_for_monitor(self, monitor_id: str) -> None:
+        await self.collection.delete_many({"monitor_id": monitor_id})

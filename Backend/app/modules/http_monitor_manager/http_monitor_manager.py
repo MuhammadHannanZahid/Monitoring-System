@@ -133,6 +133,8 @@ class HTTP_monitorManager:
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor.id)
         await self.collection.delete_one({"_id": ObjectId(monitor.id)})
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.monitor_service.delete_monitor_history(monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", monitor.name)
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:

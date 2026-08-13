@@ -4,7 +4,7 @@ from app.modules.insight_manager.insight_manager import DashboardManager
 from app.modules.monitoring_controller.monitoring_controller import MonitorManager
 from app.service.authorization import require_viewer
 from app.service.constants import Messages
-from app.service.mongo_db.shared_models.db_insight_model import DashboardActivityResponse, DashboardIncidentResponse, DashboardSummaryResponse, ResponseHistoryResponse, StatusHistoryResponse, UptimeResponse
+from app.service.mongo_db.shared_models.db_insight_model import DashboardActivityResponse, DashboardIncidentResponse, DashboardSummaryResponse, MonitorDetailResponse, MonitorOverviewResponse, ResponseHistoryResponse, StatusHistoryResponse, UptimeResponse
 from app.service.responses import SuccessResponse, success_response
 
 
@@ -44,6 +44,20 @@ async def get_dashboard_activity(service: DashboardManager = Depends(get_dashboa
     return success_response(
         message=Messages.DASHBOARD_FETCHED,
         data=await service.get_recent_activity(),
+    )
+
+@router.get("/monitor-overviews", response_model=SuccessResponse[list[MonitorOverviewResponse]])
+async def get_monitor_overviews(service: DashboardManager = Depends(get_dashboard_service)):
+    return success_response(
+        message=Messages.DASHBOARD_FETCHED,
+        data=await service.get_monitor_overviews(),
+    )
+
+@router.get("/monitors/{monitor_id}", response_model=SuccessResponse[MonitorDetailResponse])
+async def get_monitor_detail(monitor_id: str, service: DashboardManager = Depends(get_dashboard_service)):
+    return success_response(
+        message=Messages.DASHBOARD_FETCHED,
+        data=await service.get_monitor_detail(monitor_id),
     )
 
 @router.get("/response-history/{monitor_id}", response_model=SuccessResponse[ResponseHistoryResponse])

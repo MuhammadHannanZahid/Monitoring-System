@@ -70,16 +70,6 @@ class MonitorManager:
             result = await checker.check(latest_monitor)
             checked_at = datetime.now(timezone.utc)
 
-            await self.monitor_result_service.record_result(
-                monitor_id=monitor.id,
-                monitor_type=monitor.monitor_type,
-                status=result.status,
-                status_code=result.status_code,
-                response_time_ms=result.response_time_ms,
-                success=result.success,
-                is_slow=result.is_slow,
-            )
-
             state_result = await self.monitor_state_service.process_result(
                 monitor_id=monitor.id,
                 monitor_type=monitor.monitor_type,
@@ -87,6 +77,16 @@ class MonitorManager:
                 status_code=result.status_code,
                 response_time_ms=result.response_time_ms,
                 checked_at=checked_at,
+            )
+
+            await self.monitor_result_service.record_result(
+                monitor_id=monitor.id,
+                monitor_type=monitor.monitor_type,
+                status=state_result.current_status,
+                status_code=result.status_code,
+                response_time_ms=result.response_time_ms,
+                success=state_result.current_status == MonitorStatus.UP,
+                is_slow=result.is_slow,
             )
 
             await service.update_monitoring_result(
@@ -181,6 +181,11 @@ class MonitorManager:
             *ping_monitors,
             *heartbeat_monitors,
         ]
+
+    async def delete_monitor_history(self, monitor_id: str) -> None:
+        await self.monitor_result_service.delete_for_monitor(monitor_id)
+        await self.incident_service.delete_for_monitor(monitor_id)
+        await self.monitor_state_service.delete_for_monitor(monitor_id)
 
     async def process_heartbeat(self, monitor: HeartbeatMonitorModel) -> None:
         checked_at = datetime.now(timezone.utc)

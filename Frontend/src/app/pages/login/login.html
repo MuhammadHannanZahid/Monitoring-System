@@ -1,0 +1,49 @@
+<main class="login-page">
+  <section class="intro" aria-label="Product introduction">
+    <a class="brand" href="/login"><span>M</span> MONO MONITOR</a>
+    <div>
+      <p class="eyebrow">Monitoring, reduced</p>
+      <h1>Know when<br />it matters.</h1>
+      <p class="lead">A quiet control room for HTTP, API, ping, and heartbeat monitors.</p>
+    </div>
+    <p class="footnote">FastAPI · MongoDB · Angular</p>
+  </section>
+
+  <section class="form-side">
+    <form (ngSubmit)="submit()" [formGroup]="form">
+      <p class="eyebrow">Welcome back</p>
+      <h2>Sign in</h2>
+      <p class="subtext">Use the account provided by your administrator.</p>
+
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          formControlName="username"
+          autocomplete="username"
+          placeholder="your username"
+        />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="minimum 8 characters"
+        />
+      </div>
+      <button class="button" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+      <p class="registration-note">
+        <strong>Need an account?</strong> Registration is managed by an administrator for security.
+      </p>
+    </form>
+  </section>
+</main>

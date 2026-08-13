@@ -144,6 +144,8 @@ class HeartbeatMonitorManager:
         result = await self.collection.delete_one({"_id": object_id})
         if result.deleted_count == 0:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.monitor_service.delete_monitor_history(monitor_id)
 
     async def regenerate_token(self, monitor_id: str) -> RegenerateHeartbeatTokenResponse:
         monitor = await self.get_monitor_model(monitor_id)
