@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from odmantic import AIOEngine
-from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
+from app.modules.heartbeat_monitor_manager.heartbeat_monitor_manager import HeartbeatMonitorManager
 from app.service.authorization import require_admin
 from app.service.constants import Messages
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import CreateHeartbeatMonitorRequest, HeartbeatMonitorResponse, HeartbeatResponse, HeartbeatTokenResponse, RegenerateHeartbeatTokenResponse, UpdateHeartbeatMonitorRequest
@@ -11,116 +10,52 @@ from app.service.mongo_db.mongo_controller import get_engine
 
 def get_heartbeat_service(
     engine: AIOEngine = Depends(get_engine),
-) -> HeartbeatMonitorService:
-    return HeartbeatMonitorService(engine)
+) -> HeartbeatMonitorManager:
+    return HeartbeatMonitorManager(engine)
 
 router = APIRouter(prefix="/heartbeat-monitors", tags=["Heartbeat Monitors"])
 
 @router.post("/create", response_model=SuccessResponse[HeartbeatTokenResponse], dependencies=[Depends(require_admin())])
-async def create_monitor(request: CreateHeartbeatMonitorRequest, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitor = await service.create_monitor(
-        name=request.name,
-        expected_heartbeat_interval=request.expected_heartbeat_interval,
-        grace_period=request.grace_period,
-    )
-
+async def create_monitor(request: CreateHeartbeatMonitorRequest, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message=Messages.monitor_CREATED,
-        data=HeartbeatTokenResponse(
-            heartbeat_token=monitor.heartbeat_token,
+        data=await service.create_monitor(
+            name=request.name,
+            expected_heartbeat_interval=request.expected_heartbeat_interval,
+            grace_period=request.grace_period,
         ),
     )
 
 @router.get("/list_all", response_model=SuccessResponse[list[HeartbeatMonitorResponse]], dependencies=[Depends(require_admin())])
-async def list_monitors(service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitors = await service.list_monitors()
-
+async def list_monitors(service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=[
-            HeartbeatMonitorResponse(
-                id=monitor.id,
-                name=monitor.name,
-                expected_heartbeat_interval=monitor.expected_heartbeat_interval,
-                grace_period=monitor.grace_period,
-                status=monitor.status.value,
-                is_active=monitor.is_active,
-                last_heartbeat_at=(
-                    monitor.last_heartbeat_at.isoformat()
-                    if monitor.last_heartbeat_at
-                    else None
-                ),
-                created_at=monitor.created_at.isoformat(),
-                updated_at=monitor.updated_at.isoformat(),
-            )
-            for monitor in monitors
-        ],
+        data=await service.list_monitors(),
     )
 
 @router.get("/{heartbeat_monitor_id}/get_one", response_model=SuccessResponse[HeartbeatMonitorResponse], dependencies=[Depends(require_admin())])
-async def get_monitor(heartbeat_monitor_id: str, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitor = await service.get_monitor(heartbeat_monitor_id)
-
-    if monitor is None:
-        raise HTTPException(404)
-
+async def get_monitor(heartbeat_monitor_id: str, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message=Messages.monitor_FETCHED,
-        data=HeartbeatMonitorResponse(
-            id=monitor.id,
-            name=monitor.name,
-            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
-            grace_period=monitor.grace_period,
-            status=monitor.status.value,
-            is_active=monitor.is_active,
-            last_heartbeat_at=(
-                monitor.last_heartbeat_at.isoformat()
-                if monitor.last_heartbeat_at
-                else None
-            ),
-            created_at=monitor.created_at.isoformat(),
-            updated_at=monitor.updated_at.isoformat(),
-        ),
+        data=await service.get_monitor(heartbeat_monitor_id),
     )
 
 @router.put("/{heartbeat_monitor_id}/update", response_model=SuccessResponse[HeartbeatMonitorResponse], dependencies=[Depends(require_admin())])
-async def update_monitor(heartbeat_monitor_id: str, request: UpdateHeartbeatMonitorRequest, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitor = await service.update_monitor(
-        heartbeat_monitor_id,
-        name=request.name,
-        expected_heartbeat_interval=request.expected_heartbeat_interval,
-        grace_period=request.grace_period,
-        is_active=request.is_active,
-    )
-
-    if monitor is None:
-        raise HTTPException(404)
-
+async def update_monitor(heartbeat_monitor_id: str, request: UpdateHeartbeatMonitorRequest, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message=Messages.monitor_UPDATED,
-        data=HeartbeatMonitorResponse(
-            id=monitor.id,
-            name=monitor.name,
-            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
-            grace_period=monitor.grace_period,
-            status=monitor.status.value,
-            is_active=monitor.is_active,
-            last_heartbeat_at=(
-                monitor.last_heartbeat_at.isoformat()
-                if monitor.last_heartbeat_at
-                else None
-            ),
-            created_at=monitor.created_at.isoformat(),
-            updated_at=monitor.updated_at.isoformat(),
+        data=await service.update_monitor(
+            heartbeat_monitor_id,
+            name=request.name,
+            expected_heartbeat_interval=request.expected_heartbeat_interval,
+            grace_period=request.grace_period,
+            is_active=request.is_active,
         ),
     )
 
 @router.delete("/{heartbeat_monitor_id}/delete", response_model=SuccessResponse[None], dependencies=[Depends(require_admin())])
-async def delete_monitor(heartbeat_monitor_id: str, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    deleted = await service.delete_monitor(heartbeat_monitor_id)
-
-    if not deleted:
-        raise HTTPException(404)
+async def delete_monitor(heartbeat_monitor_id: str, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
+    await service.delete_monitor(heartbeat_monitor_id)
 
     return success_response(
         message=Messages.monitor_DELETED,
@@ -128,35 +63,15 @@ async def delete_monitor(heartbeat_monitor_id: str, service: HeartbeatMonitorSer
     )
 
 @router.post("/heartbeat/{token}", response_model=SuccessResponse[HeartbeatResponse], include_in_schema=False)
-async def receive_heartbeat(token: str, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitor = await service.receive_heartbeat(token)
-
-    if monitor is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Invalid heartbeat token.",
-        )
-
+async def receive_heartbeat(token: str, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message=Messages.heartbeat_RECEIVED,
-        data=HeartbeatResponse(
-            message=Messages.heartbeat_RECEIVED,
-            expected_next_heartbeat_in=monitor.expected_heartbeat_interval,
-            server_time=datetime.now(timezone.utc),
-            token_rotation_required=False,
-        ),
+        data=await service.receive_heartbeat(token),
     )
 
 @router.patch("/{heartbeat_monitor_id}/regenerate-token", response_model=SuccessResponse[RegenerateHeartbeatTokenResponse], dependencies=[Depends(require_admin())])
-async def regenerate_heartbeat_token(heartbeat_monitor_id: str, service: HeartbeatMonitorService = Depends(get_heartbeat_service)):
-    monitor = await service.regenerate_token(heartbeat_monitor_id)
-
-    if monitor is None:
-        raise HTTPException(404)
-
+async def regenerate_heartbeat_token(heartbeat_monitor_id: str, service: HeartbeatMonitorManager = Depends(get_heartbeat_service)):
     return success_response(
         message="Heartbeat token regenerated successfully.",
-        data=RegenerateHeartbeatTokenResponse(
-            heartbeat_token=monitor.heartbeat_token
-        )
+        data=await service.regenerate_token(heartbeat_monitor_id),
     )

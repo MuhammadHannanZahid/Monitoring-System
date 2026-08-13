@@ -4,12 +4,12 @@ from app.service.mongo_db.shared_models.db_insight_model import (DashboardSummar
     StatusHistoryPoint)
 from app.service.exceptions import NotFoundError
 from app.service.constants import Messages
-from app.modules.monitoring_controller.monitor_results.service import MonitorResultService
-from app.modules.incident_manager.service import IncidentService
-from app.modules.monitoring_controller.service import MonitorService
+from app.modules.monitoring_controller.monitor_results_manager.monitor_results_manager import MonitorResultManager
+from app.modules.incident_manager.incident_manager import IncidentManager
+from app.modules.monitoring_controller.monitoring_controller import MonitorManager
 
-class DashboardService:
-    def __init__(self, monitor_service: MonitorService, monitor_result_service: MonitorResultService, incident_service: IncidentService):
+class DashboardManager:
+    def __init__(self, monitor_service: MonitorManager, monitor_result_service: MonitorResultManager, incident_service: IncidentManager):
         self.monitor_service = monitor_service
         self.monitor_result_service = monitor_result_service
         self.incident_service = incident_service

@@ -3,7 +3,7 @@ from app.modules.monitoring_controller.checkers.http_checker import HTTPChecker
 from app.modules.monitoring_controller.checkers.api_checker import ApiChecker
 from app.modules.monitoring_controller.checkers.ping_checker import PingChecker
 from app.modules.monitoring_controller.checkers.heartbeat_checker import HeartbeatChecker
-from app.modules.orion_login_manager.token_manager import AccessTokenCookieManager
+from app.modules.orion_login_manager.orion_token_manager import AccessTokenCookieManager
 
 class CheckerFactory:
     def __init__(self, token_manager: AccessTokenCookieManager | None = None):

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from jose import JWTError, jwt
 from app.service.mongo_db.shared_models.db_user_account_model import TokenType, UserRole
 
-class JWTService:
+class app_dependency:
     def create_access_token(self, user_id: str, username: str, role: UserRole,) -> str:
         load_dotenv()
         expire = datetime.now(timezone.utc) + timedelta(minutes=int(os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]))
@@ -55,4 +55,4 @@ class JWTService:
             raise JWTError("Invalid token type.")
         return payload
 
-jwt_service = JWTService()
+app_dependency = app_dependency()

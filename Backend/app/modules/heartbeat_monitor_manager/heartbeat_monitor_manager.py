@@ -7,19 +7,20 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
 import app.modules.monitoring_controller.scheduler as scheduler_state
-from app.service.constants import Collections
+from app.service.constants import Collections, Messages
+from app.service.exceptions import NotFoundError
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
+from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel, HeartbeatMonitorResponse, HeartbeatResponse, HeartbeatTokenResponse, RegenerateHeartbeatTokenResponse
 
 if TYPE_CHECKING:
-    from app.modules.monitoring_controller.service import MonitorService
+    from app.modules.monitoring_controller.monitoring_controller import MonitorManager
 
-class HeartbeatMonitorService:
-    def __init__(self, engine: AIOEngine, monitor_service: MonitorService | None = None):
+class HeartbeatMonitorManager:
+    def __init__(self, engine: AIOEngine, monitor_service: MonitorManager | None = None):
         self.collection = engine.database[Collections.HEARTBEAT_MONITORS]
         self.monitor_service = monitor_service
 
-    async def create_monitor(self, name: str, expected_heartbeat_interval: int, grace_period: int, created_by: str | None = None) -> HeartbeatMonitorModel:
+    async def create_monitor(self, name: str, expected_heartbeat_interval: int, grace_period: int, created_by: str | None = None) -> HeartbeatTokenResponse:
         token = uuid.uuid4().hex
         now = datetime.now(timezone.utc)
         monitor = HeartbeatMonitorModel(
@@ -40,9 +41,9 @@ class HeartbeatMonitorService:
         result = await self.collection.insert_one(document)
         monitor.id = str(result.inserted_id)
         monitor.heartbeat_token = token
-        return monitor
+        return HeartbeatTokenResponse(heartbeat_token=monitor.heartbeat_token)
 
-    async def get_monitor(self, monitor_id: str) -> HeartbeatMonitorModel | None:
+    async def get_monitor_model(self, monitor_id: str) -> HeartbeatMonitorModel | None:
         try:
             object_id = ObjectId(monitor_id)
         except (InvalidId, TypeError):
@@ -53,17 +54,49 @@ class HeartbeatMonitorService:
         document["id"] = str(document.pop("_id"))
         return HeartbeatMonitorModel(**document)
 
-    async def list_monitors(self) -> list[HeartbeatMonitorModel]:
+    async def list_monitor_models(self) -> list[HeartbeatMonitorModel]:
         monitors = []
         async for document in self.collection.find().sort("created_at", -1):
             document["id"] = str(document.pop("_id"))
             monitors.append(HeartbeatMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, monitor_id: str, name: str | None = None, expected_heartbeat_interval: int | None = None, grace_period: int | None = None, is_active: bool | None = None) -> HeartbeatMonitorModel | None:
-        monitor = await self.get_monitor(monitor_id)
+    async def get_monitor(self, monitor_id: str) -> HeartbeatMonitorResponse:
+        monitor = await self.get_monitor_model(monitor_id)
         if monitor is None:
-            return None
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
+        return HeartbeatMonitorResponse(
+            id=monitor.id,
+            name=monitor.name,
+            expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+            grace_period=monitor.grace_period,
+            status=monitor.status.value,
+            is_active=monitor.is_active,
+            last_heartbeat_at=monitor.last_heartbeat_at.isoformat() if monitor.last_heartbeat_at else None,
+            created_at=monitor.created_at.isoformat(),
+            updated_at=monitor.updated_at.isoformat(),
+        )
+
+    async def list_monitors(self) -> list[HeartbeatMonitorResponse]:
+        return [
+            HeartbeatMonitorResponse(
+                id=monitor.id,
+                name=monitor.name,
+                expected_heartbeat_interval=monitor.expected_heartbeat_interval,
+                grace_period=monitor.grace_period,
+                status=monitor.status.value,
+                is_active=monitor.is_active,
+                last_heartbeat_at=monitor.last_heartbeat_at.isoformat() if monitor.last_heartbeat_at else None,
+                created_at=monitor.created_at.isoformat(),
+                updated_at=monitor.updated_at.isoformat(),
+            )
+            for monitor in await self.list_monitor_models()
+        ]
+
+    async def update_monitor(self, monitor_id: str, name: str | None = None, expected_heartbeat_interval: int | None = None, grace_period: int | None = None, is_active: bool | None = None) -> HeartbeatMonitorResponse:
+        monitor = await self.get_monitor_model(monitor_id)
+        if monitor is None:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         if name is not None:
             monitor.name = name
         if expected_heartbeat_interval is not None:
@@ -82,27 +115,40 @@ class HeartbeatMonitorService:
                 "$unset": {"check_interval": ""},
             },
         )
-        updated = await self.get_monitor(monitor_id)
-        if updated is not None and scheduler_state.scheduler is not None:
+        updated = await self.get_monitor_model(monitor_id)
+        if updated is None:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
+        if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
             if updated.is_active and updated.last_heartbeat_at is not None:
                 await scheduler_state.scheduler.start_worker(updated)
-        return updated
+        return HeartbeatMonitorResponse(
+            id=updated.id,
+            name=updated.name,
+            expected_heartbeat_interval=updated.expected_heartbeat_interval,
+            grace_period=updated.grace_period,
+            status=updated.status.value,
+            is_active=updated.is_active,
+            last_heartbeat_at=updated.last_heartbeat_at.isoformat() if updated.last_heartbeat_at else None,
+            created_at=updated.created_at.isoformat(),
+            updated_at=updated.updated_at.isoformat(),
+        )
 
-    async def delete_monitor(self, monitor_id: str) -> bool:
+    async def delete_monitor(self, monitor_id: str) -> None:
         try:
             object_id = ObjectId(monitor_id)
         except (InvalidId, TypeError):
-            return False
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
         result = await self.collection.delete_one({"_id": object_id})
-        return result.deleted_count > 0
+        if result.deleted_count == 0:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
 
-    async def regenerate_token(self, monitor_id: str) -> HeartbeatMonitorModel | None:
-        monitor = await self.get_monitor(monitor_id)
+    async def regenerate_token(self, monitor_id: str) -> RegenerateHeartbeatTokenResponse:
+        monitor = await self.get_monitor_model(monitor_id)
         if monitor is None:
-            return None
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         new_token = uuid.uuid4().hex
         now = datetime.now(timezone.utc)
         monitor.heartbeat_token_hash = hashlib.sha256(new_token.encode()).hexdigest()
@@ -119,22 +165,22 @@ class HeartbeatMonitorService:
             },
         )
         monitor.heartbeat_token = new_token
-        return monitor
+        return RegenerateHeartbeatTokenResponse(heartbeat_token=monitor.heartbeat_token)
 
-    async def receive_heartbeat(self, token: str) -> HeartbeatMonitorModel | None:
+    async def receive_heartbeat(self, token: str) -> HeartbeatResponse:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         document = await self.collection.find_one(
             {"heartbeat_token_hash": token_hash}
         )
         if document is None:
-            return None
+            raise NotFoundError("Invalid heartbeat token.")
         document["id"] = str(document.pop("_id"))
         monitor = HeartbeatMonitorModel(**document)
         now = datetime.now(timezone.utc)
         if not monitor.is_active:
-            return None
+            raise NotFoundError("Invalid heartbeat token.")
         if monitor.token_expires_at is not None and now > monitor.token_expires_at:
-            return None
+            raise NotFoundError("Invalid heartbeat token.")
 
         await self.collection.update_one(
             {"_id": ObjectId(monitor.id)},
@@ -147,10 +193,15 @@ class HeartbeatMonitorService:
             },
         )
         await self._get_monitor_service().process_heartbeat(monitor)
-        updated = await self.get_monitor(monitor.id)
+        updated = await self.get_monitor_model(monitor.id)
         if updated is not None and scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(updated)
-        return updated
+        return HeartbeatResponse(
+            message=Messages.heartbeat_RECEIVED,
+            expected_next_heartbeat_in=monitor.expected_heartbeat_interval,
+            server_time=now,
+            token_rotation_required=False,
+        )
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:
@@ -169,7 +220,7 @@ class HeartbeatMonitorService:
         )
         return result.modified_count > 0
 
-    def _get_monitor_service(self) -> MonitorService:
+    def _get_monitor_service(self) -> MonitorManager:
         if self.monitor_service is not None:
             return self.monitor_service
         if scheduler_state.scheduler is None:

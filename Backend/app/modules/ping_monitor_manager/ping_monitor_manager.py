@@ -6,15 +6,16 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
 import app.modules.monitoring_controller.scheduler as scheduler_state
-from app.service.constants import Collections
+from app.service.constants import Collections, Messages
+from app.service.exceptions import NotFoundError
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
-from app.service.mongo_db.shared_models.db_ping_monitor_model import PingMonitorModel
+from app.service.mongo_db.shared_models.db_ping_monitor_model import PingMonitorModel, PingMonitorResponse
 
-class PingMonitorService:
+class PingMonitorManager:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.PING_MONITORS]
 
-    async def create_monitor(self, name: str, host: str, check_interval: int, timeout: int, expected_response_time_ms: int | None, created_by: str | None = None) -> PingMonitorModel:
+    async def create_monitor(self, name: str, host: str, check_interval: int, timeout: int, expected_response_time_ms: int | None, created_by: str | None = None) -> PingMonitorResponse:
         now = datetime.now(timezone.utc)
         monitor = PingMonitorModel(
             name=name,
@@ -36,9 +37,9 @@ class PingMonitorService:
 
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(monitor)
-        return monitor
+        return PingMonitorResponse(**monitor.model_dump())
 
-    async def get_monitor(self, monitor_id: str) -> PingMonitorModel | None:
+    async def get_monitor_model(self, monitor_id: str) -> PingMonitorModel | None:
         try:
             object_id = ObjectId(monitor_id)
         except InvalidId:
@@ -49,17 +50,29 @@ class PingMonitorService:
         document["id"] = str(document.pop("_id"))
         return PingMonitorModel(**document)
 
-    async def list_monitors(self) -> list[PingMonitorModel]:
+    async def list_monitor_models(self) -> list[PingMonitorModel]:
         monitors = []
         async for document in self.collection.find():
             document["id"] = str(document.pop("_id"))
             monitors.append(PingMonitorModel(**document))
         return monitors
 
-    async def update_monitor(self, monitor_id: str, name: str | None = None, host: str | None = None, check_interval: int | None = None, timeout: int | None = None, expected_response_time_ms: int | None = None, is_active: bool | None = None) -> PingMonitorModel | None:
-        monitor = await self.get_monitor(monitor_id)
+    async def get_monitor(self, monitor_id: str) -> PingMonitorResponse:
+        monitor = await self.get_monitor_model(monitor_id)
         if monitor is None:
-            return None
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
+        return PingMonitorResponse(**monitor.model_dump())
+
+    async def list_monitors(self) -> list[PingMonitorResponse]:
+        return [
+            PingMonitorResponse(**monitor.model_dump())
+            for monitor in await self.list_monitor_models()
+        ]
+
+    async def update_monitor(self, monitor_id: str, name: str | None = None, host: str | None = None, check_interval: int | None = None, timeout: int | None = None, expected_response_time_ms: int | None = None, is_active: bool | None = None) -> PingMonitorResponse:
+        monitor = await self.get_monitor_model(monitor_id)
+        if monitor is None:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         if name is not None:
             monitor.name = name
         if host is not None:
@@ -84,17 +97,18 @@ class PingMonitorService:
             await scheduler_state.scheduler.stop_worker(monitor_id)
             if monitor.is_active:
                 await scheduler_state.scheduler.start_worker(monitor)
-        return monitor
+        return PingMonitorResponse(**monitor.model_dump())
 
-    async def delete_monitor(self, monitor_id: str) -> bool:
+    async def delete_monitor(self, monitor_id: str) -> None:
         try:
             object_id = ObjectId(monitor_id)
         except InvalidId:
-            return False
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor_id)
         result = await self.collection.delete_one({"_id": object_id})
-        return result.deleted_count > 0
+        if result.deleted_count == 0:
+            raise NotFoundError(Messages.monitor_NOT_FOUND)
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:

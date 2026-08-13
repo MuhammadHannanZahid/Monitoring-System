@@ -4,19 +4,19 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from odmantic import AIOEngine
 from app.core.logger import get_logger
-from app.core.security import PasswordService
+from app.modules.auth_manager.auth_manager import PasswordManager
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthorizationError, ConflictError, NotFoundError
-from app.service.mongo_db.shared_models.db_user_account_model import UserModel, UserRole
+from app.service.mongo_db.shared_models.db_user_account_model import UserModel, UserResponse, UserRole
 
 logger = get_logger(__name__)
 
-class UserService:
-    def __init__(self, engine: AIOEngine, password_service: PasswordService):
+class UserManager:
+    def __init__(self, engine: AIOEngine, password_service: PasswordManager):
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
 
-    async def create_user(self, username: str, password: str, role: UserRole) -> UserModel:
+    async def create_user(self, username: str, password: str, role: UserRole) -> UserResponse:
         if await self.collection.find_one({"username": username}) is not None:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
         if role == UserRole.ADMIN:
@@ -39,9 +39,9 @@ class UserService:
         result = await self.collection.insert_one(document)
         user.id = str(result.inserted_id)
         logger.info("User '%s' created with role '%s'.", user.username, user.role.value)
-        return user
+        return UserResponse(**user.model_dump())
 
-    async def get_user(self, user_id: str) -> UserModel:
+    async def get_user_model(self, user_id: str) -> UserModel:
         try:
             object_id = ObjectId(user_id)
         except InvalidId as exc:
@@ -54,7 +54,7 @@ class UserService:
         document["id"] = str(document.pop("_id"))
         return UserModel(**document)
 
-    async def list_users(self) -> list[UserModel]:
+    async def list_user_models(self) -> list[UserModel]:
         cursor = self.collection.find().sort("created_at", -1)
         users = []
         async for document in cursor:
@@ -62,8 +62,17 @@ class UserService:
             users.append(UserModel(**document))
         return users
 
-    async def update_user(self, user_id: str, username: str | None = None, password: str | None = None, role: UserRole | None = None, is_active: bool | None = None) -> UserModel:
-        user = await self.get_user(user_id)
+    async def get_user(self, user_id: str) -> UserResponse:
+        return UserResponse(**(await self.get_user_model(user_id)).model_dump())
+
+    async def list_users(self) -> list[UserResponse]:
+        return [
+            UserResponse(**user.model_dump())
+            for user in await self.list_user_models()
+        ]
+
+    async def update_user(self, user_id: str, username: str | None = None, password: str | None = None, role: UserRole | None = None, is_active: bool | None = None) -> UserResponse:
+        user = await self.get_user_model(user_id)
         update_data: dict[str, object] = {}
 
         if username is not None and username != user.username:
@@ -93,12 +102,12 @@ class UserService:
                 {"$set": update_data}
             )
 
-        updated_user = await self.get_user(user_id)
+        updated_user = await self.get_user_model(user_id)
         logger.info("User '%s' updated. Fields changed: %s", updated_user.username, ", ".join(update_data.keys()))
-        return updated_user
+        return UserResponse(**updated_user.model_dump())
 
     async def delete_user(self, user_id: str) -> None:
-        user = await self.get_user(user_id)
+        user = await self.get_user_model(user_id)
         if user.role == UserRole.ADMIN:
             logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)

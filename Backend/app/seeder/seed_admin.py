@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 from app.service.mongo_db.mongo_controller import db_manager
 from app.core.logger import get_logger
-from app.core.security import password_service
-from app.modules.user_account_manager.service import UserService
+from app.modules.auth_manager.auth_manager import password_service
+from app.modules.user_account_manager.user_account_manager import UserManager
 
 from .base import BaseSeeder
 
@@ -17,7 +17,7 @@ class AdminSeeder(BaseSeeder):
         load_dotenv()
         default_admin_username = os.environ["DEFAULT_ADMIN_USERNAME"]
         default_admin_password = os.environ["DEFAULT_ADMIN_PASSWORD"]
-        service = UserService(db_manager.get_engine(), password_service)
+        service = UserManager(db_manager.get_engine(), password_service)
         created = await service.ensure_default_admin(
             default_admin_username,
             default_admin_password,

@@ -3,7 +3,7 @@ import httpx
 from app.core.logger import get_logger
 from app.modules.api_monitor_manager.json_matcher import json_matches
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import HealthCheckResponse, MonitorStatus
-from app.modules.orion_login_manager.token_manager import ACCESS_TOKEN_COOKIE_NAME, AccessTokenCookieManager, AuthTokenError
+from app.modules.orion_login_manager.orion_token_manager import ACCESS_TOKEN_COOKIE_NAME, AccessTokenCookieManager, AuthTokenError
 
 logger = get_logger(__name__)
 

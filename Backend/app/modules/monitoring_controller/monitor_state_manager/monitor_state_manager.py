@@ -7,7 +7,7 @@ from app.service.constants import Collections
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
 from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorStateModel, MonitorStateResult, MonitorTransition
 
-class MonitorStateService:
+class MonitorStateManager:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.MONITOR_STATES]
 

@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 from app.core.logger import get_logger
-from app.modules.monitoring_controller.service import MonitorService
+from app.modules.monitoring_controller.monitoring_controller import MonitorManager
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 
 class MonitorWorker:
-    def __init__(self, monitor: MonitorModel, monitor_service: MonitorService):
+    def __init__(self, monitor: MonitorModel, monitor_service: MonitorManager):
         self.monitor = monitor
         self.monitor_service = monitor_service
 
