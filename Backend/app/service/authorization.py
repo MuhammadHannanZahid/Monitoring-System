@@ -7,15 +7,15 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from odmantic import AIOEngine
 
-from app.core.jwt import jwt_service
-from app.core.security import password_service, refresh_token_service
-from app.modules.auth_manager.service import AuthService
+from app.core.app_dependency import app_dependency
+from app.modules.auth_manager.auth_manager import AuthManager, password_service, refresh_token_service
 from app.service.constants import Messages
 from app.service.exceptions import AuthenticationError, AuthorizationError
 from app.service.mongo_db.mongo_controller import get_engine
 from app.service.mongo_db.shared_models.db_user_account_model import (
     AuthTokens,
-    UserModel,
+    CurrentUserResponse,
+    TokenResponse,
     UserRole,
 )
 
@@ -28,11 +28,11 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 def get_auth_service(
     engine: AIOEngine = Depends(get_engine),
-) -> AuthService:
-    return AuthService(
+) -> AuthManager:
+    return AuthManager(
         engine=engine,
         password_service=password_service,
-        jwt_service=jwt_service,
+        jwt_service=app_dependency,
         refresh_token_service=refresh_token_service,
     )
 
@@ -46,7 +46,7 @@ def _cookie_secure() -> bool:
     }
 
 
-def set_auth_cookies(response: Response, tokens: AuthTokens) -> None:
+def set_auth_cookies(response: Response, tokens: AuthTokens | TokenResponse) -> None:
     load_dotenv()
     secure = _cookie_secure()
     response.set_cookie(
@@ -90,8 +90,8 @@ async def get_current_user(
     request: Request,
     response: Response,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    service: AuthService = Depends(get_auth_service),
-) -> UserModel:
+    service: AuthManager = Depends(get_auth_service),
+) -> CurrentUserResponse:
     candidate_tokens = []
     if credentials is not None:
         candidate_tokens.append(credentials.credentials)
@@ -116,16 +116,13 @@ async def get_current_user(
         response.headers["X-Access-Token-Refreshed"] = "true"
         payload = service.jwt_service.verify_access_token(tokens.access_token)
 
-    user = await service.get_current_user(payload["sub"])
-    if not user.is_active:
-        raise AuthenticationError("User account is disabled.")
-    return user
+    return await service.get_current_user(payload["sub"])
 
 
 def require_roles(*allowed_roles: UserRole) -> Callable:
     async def dependency(
-        current_user: UserModel = Depends(get_current_user),
-    ) -> UserModel:
+        current_user: CurrentUserResponse = Depends(get_current_user),
+    ) -> CurrentUserResponse:
         if current_user.role not in allowed_roles:
             raise AuthorizationError()
         return current_user

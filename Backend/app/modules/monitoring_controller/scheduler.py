@@ -1,12 +1,12 @@
 from app.core.logger import get_logger
-from app.modules.monitoring_controller.service import MonitorService
+from app.modules.monitoring_controller.monitoring_controller import MonitorManager
 from app.modules.monitoring_controller.worker import MonitorWorker
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorType
 
 logger = get_logger(__name__)
 
 class MonitorScheduler:
-    def __init__(self, monitor_service: MonitorService):
+    def __init__(self, monitor_service: MonitorManager):
         self.monitor_service = monitor_service
         self._running = False
         self._workers: dict[str, MonitorWorker] = {}

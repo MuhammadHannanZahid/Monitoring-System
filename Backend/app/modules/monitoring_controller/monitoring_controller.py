@@ -2,39 +2,39 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from app.core.logger import get_logger
-from app.modules.incident_manager.service import IncidentService
+from app.modules.incident_manager.incident_manager import IncidentManager
 from app.modules.monitoring_controller.checkers.checker_factory import CheckerFactory
-from app.modules.monitoring_controller.monitor_state.service import MonitorStateService
-from app.modules.monitoring_controller.monitor_results.service import MonitorResultService
+from app.modules.monitoring_controller.monitor_state_manager.monitor_state_manager import MonitorStateManager
+from app.modules.monitoring_controller.monitor_results_manager.monitor_results_manager import MonitorResultManager
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import BaseMonitorModel
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorTransition
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
 
 if TYPE_CHECKING:
-    from app.modules.api_monitor_manager.service import API_monitorService
-    from app.modules.http_monitor_manager.service import HTTP_monitorService
-    from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
-    from app.modules.ping_monitor_manager.service import PingMonitorService
+    from app.modules.api_monitor_manager.api_monitor_manager import API_monitorManager
+    from app.modules.http_monitor_manager.http_monitor_manager import HTTP_monitorManager
+    from app.modules.heartbeat_monitor_manager.heartbeat_monitor_manager import HeartbeatMonitorManager
+    from app.modules.ping_monitor_manager.ping_monitor_manager import PingMonitorManager
 
 logger = get_logger(__name__)
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 
-class MonitorService:
+class MonitorManager:
     def __init__(
         self,
-        http_monitor_service: HTTP_monitorService,
-        api_monitor_service: API_monitorService,
-        ping_monitor_service: PingMonitorService,
-        heartbeat_monitor_service: HeartbeatMonitorService,
-        incident_service: IncidentService,
-        monitor_result_service: MonitorResultService,
-        monitor_state_service: MonitorStateService,
+        http_monitor_service: HTTP_monitorManager,
+        api_monitor_manager: API_monitorManager,
+        ping_monitor_service: PingMonitorManager,
+        heartbeat_monitor_service: HeartbeatMonitorManager,
+        incident_service: IncidentManager,
+        monitor_result_service: MonitorResultManager,
+        monitor_state_service: MonitorStateManager,
         checker_factory: CheckerFactory,
     ):
         self.http_monitor_service = http_monitor_service
-        self.api_monitor_service = api_monitor_service
+        self.api_monitor_service = api_monitor_manager
         self.ping_monitor_service = ping_monitor_service
         self.heartbeat_monitor_service = heartbeat_monitor_service
         self.incident_service = incident_service
@@ -43,7 +43,7 @@ class MonitorService:
         self.checker_factory = checker_factory
         self._monitor_services = {
             MonitorType.HTTP: http_monitor_service,
-            MonitorType.API: api_monitor_service,
+            MonitorType.API: api_monitor_manager,
             MonitorType.PING: ping_monitor_service,
             MonitorType.HEARTBEAT: heartbeat_monitor_service,
         }
@@ -58,7 +58,7 @@ class MonitorService:
     async def check_and_update(self, monitor: MonitorModel) -> None:
         try:
             service = self._get_monitor_service(monitor.monitor_type)
-            latest_monitor = await service.get_monitor(monitor.id)
+            latest_monitor = await service.get_monitor_model(monitor.id)
             if latest_monitor is None:
                 logger.warning("Monitor '%s' no longer exists. Skipping check.", monitor.id)
                 return
@@ -152,9 +152,9 @@ class MonitorService:
 
     async def get_monitor(self, monitor_id: str, monitor_type: MonitorType | None = None) -> MonitorModel | None:
         if monitor_type is not None:
-            return await self._get_monitor_service(monitor_type).get_monitor(monitor_id)
+            return await self._get_monitor_service(monitor_type).get_monitor_model(monitor_id)
         for service in self._monitor_services.values():
-            monitor = await service.get_monitor(monitor_id)
+            monitor = await service.get_monitor_model(monitor_id)
             if monitor is not None:
                 return monitor
         return None
@@ -171,10 +171,10 @@ class MonitorService:
         )
 
     async def list_monitors(self) -> list[MonitorModel]:
-        http_monitors = await self.http_monitor_service.list_monitors()
-        api_monitors = await self.api_monitor_service.list_monitors()
-        ping_monitors = await self.ping_monitor_service.list_monitors()
-        heartbeat_monitors = await self.heartbeat_monitor_service.list_monitors()
+        http_monitors = await self.http_monitor_service.list_monitor_models()
+        api_monitors = await self.api_monitor_service.list_monitor_models()
+        ping_monitors = await self.ping_monitor_service.list_monitor_models()
+        heartbeat_monitors = await self.heartbeat_monitor_service.list_monitor_models()
         return [
             *http_monitors,
             *api_monitors,

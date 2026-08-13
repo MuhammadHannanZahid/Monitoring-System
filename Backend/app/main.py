@@ -15,18 +15,18 @@ from app.service.mongo_db.mongo_controller import db_manager
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
 from app.modules.monitoring_controller.scheduler import MonitorScheduler
-from app.modules.monitoring_controller.service import MonitorService
-from app.modules.http_monitor_manager.service import HTTP_monitorService
-from app.modules.api_monitor_manager.service import API_monitorService
-from app.modules.incident_manager.service import IncidentService
-from app.modules.monitoring_controller.monitor_results.service import MonitorResultService
-from app.modules.monitoring_controller.monitor_state.service import MonitorStateService
+from app.modules.monitoring_controller.monitoring_controller import MonitorManager
+from app.modules.http_monitor_manager.http_monitor_manager import HTTP_monitorManager
+from app.modules.api_monitor_manager.api_monitor_manager import API_monitorManager
+from app.modules.incident_manager.incident_manager import IncidentManager
+from app.modules.monitoring_controller.monitor_results_manager.monitor_results_manager import MonitorResultManager
+from app.modules.monitoring_controller.monitor_state_manager.monitor_state_manager import MonitorStateManager
 from app.modules.monitoring_controller.checkers.checker_factory import CheckerFactory
-from app.modules.ping_monitor_manager.service import PingMonitorService
-from app.modules.heartbeat_monitor_manager.service import HeartbeatMonitorService
-from app.modules.orion_login_manager.service import AuthProfileService
-from app.modules.orion_login_manager.token_manager import AccessTokenCookieManager
-import app.modules.orion_login_manager.token_manager as auth_token_state
+from app.modules.ping_monitor_manager.ping_monitor_manager import PingMonitorManager
+from app.modules.heartbeat_monitor_manager.heartbeat_monitor_manager import HeartbeatMonitorManager
+from app.modules.orion_login_manager.orion_login_manager import AuthProfileManager
+from app.modules.orion_login_manager.orion_token_manager import AccessTokenCookieManager
+import app.modules.orion_login_manager.orion_token_manager as auth_token_state
 import app.modules.monitoring_controller.scheduler as scheduler_state
 
 logger = get_logger(__name__)
@@ -49,22 +49,22 @@ async def lifespan(app: FastAPI):
 
     engine = db_manager.engine
 
-    auth_profile_service = AuthProfileService(engine)
+    auth_profile_service = AuthProfileManager(engine)
     await auth_profile_service.create_indexes()
-    http_monitor_service = HTTP_monitorService(engine)
-    api_monitor_service = API_monitorService(engine, auth_profile_service)
-    ping_monitor_service = PingMonitorService(engine)
-    heartbeat_monitor_service = HeartbeatMonitorService(engine)
-    incident_service = IncidentService(engine)
-    monitor_result_service = MonitorResultService(engine)
-    monitor_state_service = MonitorStateService(engine)
+    http_monitor_service = HTTP_monitorManager(engine)
+    api_monitor_manager = API_monitorManager(engine, auth_profile_service)
+    ping_monitor_service = PingMonitorManager(engine)
+    heartbeat_monitor_service = HeartbeatMonitorManager(engine)
+    incident_service = IncidentManager(engine)
+    monitor_result_service = MonitorResultManager(engine)
+    monitor_state_service = MonitorStateManager(engine)
 
     auth_token_state.token_manager = AccessTokenCookieManager(auth_profile_service)
     checker_factory = CheckerFactory(token_manager=auth_token_state.token_manager)
 
-    monitor_service = MonitorService(
+    monitor_service = MonitorManager(
         http_monitor_service=http_monitor_service,
-        api_monitor_service=api_monitor_service,
+        api_monitor_manager=api_monitor_manager,
         ping_monitor_service=ping_monitor_service,
         heartbeat_monitor_service=heartbeat_monitor_service,
         incident_service=incident_service,

@@ -2,25 +2,55 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError
 from jose import JWTError
 from odmantic import AIOEngine
-from app.core.jwt import JWTService
+from app.core.app_dependency import app_dependency
 from app.core.logger import get_logger
-from app.core.security import PasswordService, RefreshTokenService
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthenticationError, NotFoundError
-from app.service.mongo_db.shared_models.db_user_account_model import AuthTokens, UserModel
+from app.service.mongo_db.shared_models.db_user_account_model import AuthTokens, CurrentUserResponse, TokenResponse, UserModel
 
 logger = get_logger(__name__)
 
-class AuthService:
-    def __init__(self, engine: AIOEngine, password_service: PasswordService, jwt_service: JWTService, refresh_token_service: RefreshTokenService) -> None:
+class PasswordManager:
+    def __init__(self) -> None:
+        self._hasher = PasswordHasher()
+
+    def hash_password(self, password: str) -> str:
+        return self._hasher.hash(password)
+
+    def verify_password(self, password: str, hashed_password: str,) -> bool:
+        try:
+            return self._hasher.verify(hashed_password, password)
+        except (VerifyMismatchError, VerificationError):
+            return False
+
+class RefreshTokenManager:
+    def __init__(self) -> None:
+        self._hasher = PasswordHasher()
+
+    def hash_token(self, token: str) -> str:
+        return self._hasher.hash(token)
+
+    def verify_token(self, token: str, hashed_token: str,) -> bool:
+        try:
+            return self._hasher.verify(hashed_token, token)
+        except (VerifyMismatchError, VerificationError):
+            return False
+
+password_service = PasswordManager()
+refresh_token_service = RefreshTokenManager()
+
+class AuthManager:
+    def __init__(self, engine: AIOEngine, password_service: PasswordManager, jwt_service: app_dependency, refresh_token_service: RefreshTokenManager) -> None:
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
         self.jwt_service = jwt_service
         self.refresh_token_service = refresh_token_service
 
-    async def login(self, username: str, password: str) -> AuthTokens:
+    async def login(self, username: str, password: str) -> TokenResponse:
         document = await self.collection.find_one({"username": username})
         if document is None:
             logger.warning("Failed login attempt for username '%s'. User does not exist.", username)
@@ -63,7 +93,7 @@ class AuthService:
             role=user.role,
         )
         logger.info("User '%s' logged in successfully.", user.username)
-        return AuthTokens(
+        return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
         )
@@ -140,7 +170,7 @@ class AuthService:
             refresh_token=new_refresh_token,
         )
 
-    async def get_current_user(self, user_id: str) -> UserModel:
+    async def get_current_user(self, user_id: str) -> CurrentUserResponse:
         try:
             object_id = ObjectId(user_id)
         except InvalidId as exc:
@@ -151,7 +181,14 @@ class AuthService:
             logger.warning("Requested current user '%s' was not found.", user_id)
             raise NotFoundError(Messages.USER_NOT_FOUND)
         document["id"] = str(document.pop("_id"))
-        return UserModel(**document)
+        user = UserModel(**document)
+        if not user.is_active:
+            raise AuthenticationError("User account is disabled.")
+        return CurrentUserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+        )
 
     async def logout(self, user_id: str) -> None:
         try:

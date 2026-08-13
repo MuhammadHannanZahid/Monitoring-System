@@ -9,7 +9,7 @@ from app.core.logger import get_logger
 from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileModel
 
 if TYPE_CHECKING:
-    from app.modules.orion_login_manager.service import AuthProfileService
+    from app.modules.orion_login_manager.orion_login_manager import AuthProfileManager
 
 logger = get_logger(__name__)
 
@@ -25,7 +25,7 @@ class CachedAccessToken:
     expires_at: float
 
 class AccessTokenCookieManager:
-    def __init__(self, auth_profile_service: AuthProfileService, client: httpx.AsyncClient | None = None, clock: Callable[[], float] = time.monotonic):
+    def __init__(self, auth_profile_service: AuthProfileManager, client: httpx.AsyncClient | None = None, clock: Callable[[], float] = time.monotonic):
         self.auth_profile_service = auth_profile_service
         self.client = client or httpx.AsyncClient(follow_redirects=True)
         self.clock = clock
@@ -44,7 +44,7 @@ class AccessTokenCookieManager:
             if not force_refresh and self._is_valid(cached):
                 return cached.value
 
-            profile = await self.auth_profile_service.get_profile(profile_id)
+            profile = await self.auth_profile_service.get_profile_model(profile_id)
             if profile is None:
                 raise AuthTokenError(f"Auth profile '{profile_id}' was not found.")
 

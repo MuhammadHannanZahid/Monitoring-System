@@ -10,7 +10,7 @@ from app.service.mongo_db.shared_models.db_incident_model import IncidentModel
 
 logger = get_logger(__name__)
 
-class IncidentService:
+class IncidentManager:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.INCIDENTS]
 
