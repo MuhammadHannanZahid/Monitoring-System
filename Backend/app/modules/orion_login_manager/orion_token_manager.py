@@ -17,7 +17,9 @@ ACCESS_TOKEN_COOKIE_NAME = "access_token"
 TOKEN_CACHE_TTL_SECONDS = 14 * 60
 
 class AuthTokenError(RuntimeError):
-    pass
+    def __init__(self, message: str, status_code: int | None = None):
+        self.status_code = status_code
+        super().__init__(message)
 
 @dataclass(frozen=True)
 class CachedAccessToken:
@@ -48,12 +50,44 @@ class AccessTokenCookieManager:
             if profile is None:
                 raise AuthTokenError(f"Auth profile '{profile_id}' was not found.")
 
-            token = await self._fetch_token(profile)
-            self._cache[profile_id] = CachedAccessToken(
-                value=token,
-                expires_at=self.clock() + TOKEN_CACHE_TTL_SECONDS,
-            )
+            token, _ = await self.authenticate_profile(profile)
+            self.cache_token(profile_id, token)
             return token
+
+    async def authenticate_profile(self, profile: AuthProfileModel) -> tuple[str, int]:
+        try:
+            response = await self.client.post(
+                url=profile.login_url,
+                headers=profile.headers,
+                data=profile.credentials,
+            )
+        except httpx.RequestError as exc:
+            raise AuthTokenError(
+                f"Login request failed for profile '{profile.name}': {exc}"
+            ) from exc
+
+        if not response.is_success:
+            raise AuthTokenError(
+                f"Login returned HTTP {response.status_code}. Auth profile was not created.",
+                status_code=response.status_code,
+            )
+
+        token = self._extract_access_token_cookie(response)
+        if token is None:
+            raise AuthTokenError(
+                f"Login returned HTTP {response.status_code}, but the "
+                f"'{ACCESS_TOKEN_COOKIE_NAME}' cookie was missing. Auth profile was not created.",
+                status_code=response.status_code,
+            )
+
+        logger.info("Access-token cookie refreshed for auth profile '%s'.", profile.name)
+        return token, response.status_code
+
+    def cache_token(self, profile_id: str, token: str) -> None:
+        self._cache[profile_id] = CachedAccessToken(
+            value=token,
+            expires_at=self.clock() + TOKEN_CACHE_TTL_SECONDS,
+        )
 
     def invalidate(self, profile_id: str) -> None:
         self._cache.pop(profile_id, None)
@@ -68,28 +102,6 @@ class AccessTokenCookieManager:
 
     def _is_valid(self, cached: CachedAccessToken | None) -> bool:
         return cached is not None and self.clock() < cached.expires_at
-
-    async def _fetch_token(self, profile: AuthProfileModel) -> str:
-        try:
-            response = await self.client.request(
-                method=profile.method,
-                url=profile.login_url,
-                headers=profile.headers,
-                data=profile.credentials,
-            )
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise AuthTokenError(f"Authentication failed for profile '{profile.name}': {exc}") from exc
-
-        token = self._extract_access_token_cookie(response)
-        if token is None:
-            raise AuthTokenError(
-                f"The '{ACCESS_TOKEN_COOKIE_NAME}' cookie was missing from the "
-                f"login response for profile '{profile.name}'."
-            )
-
-        logger.info("Access-token cookie refreshed for auth profile '%s'.", profile.name)
-        return token
 
     @staticmethod
     def _extract_access_token_cookie(response: httpx.Response) -> str | None:

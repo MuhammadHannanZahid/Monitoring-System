@@ -9,24 +9,6 @@ form {
   gap: 22px;
   padding: 25px;
 }
-.notice {
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease;
-  animation: notice-in 260ms ease both;
-}
-.notice.leaving {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-@keyframes notice-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
 .form-heading {
   display: flex;
   justify-content: space-between;

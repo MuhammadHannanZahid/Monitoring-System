@@ -105,9 +105,24 @@
         </dl>
         <a class="details-link" [routerLink]="[detailBase(), record.id]">View incidents →</a>
       } @else {
-        <div class="profile-meta">
-          <span>Created on</span><strong>{{ record.created_at | date: 'MMM d, y' }}</strong>
-        </div>
+        <dl class="profile-details">
+          <div>
+            <dt>Method</dt>
+            <dd>{{ record.method || 'POST' }}</dd>
+          </div>
+          <div>
+            <dt>Login URL</dt>
+            <dd>{{ record.login_url }}</dd>
+          </div>
+          <div>
+            <dt>Credential fields</dt>
+            <dd>{{ record.credential_fields?.join(', ') || 'Configured' }}</dd>
+          </div>
+          <div>
+            <dt>Created on</dt>
+            <dd>{{ record.created_at | date: 'MMM d, y' }}</dd>
+          </div>
+        </dl>
       }
     </article>
   } @empty {

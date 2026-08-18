@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, merge, of, Subject, switchMap, timer } from 'rxjs';
@@ -11,6 +11,12 @@ import {
   StatusHistory,
   StatusHistoryPoint,
 } from '../../core/models';
+
+interface ChartPoint<T> {
+  data: T;
+  x: number;
+  y: number;
+}
 
 @Component({
   selector: 'app-monitor-detail-page',
@@ -37,6 +43,17 @@ export class MonitorDetailPage {
   readonly responseDays = signal(7);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly statusChartPoints = computed(() =>
+    this.chartPoints(this.statusHistory(), (point) => this.statusY(point.status)),
+  );
+  readonly responseChartPoints = computed(() => {
+    const points = this.responseHistory().filter(
+      (point): point is ResponseHistoryPoint & { response_time_ms: number } =>
+        point.response_time_ms !== null,
+    );
+    const maximum = Math.max(...points.map((point) => point.response_time_ms), 1);
+    return this.chartPoints(points, (point) => 125 - (point.response_time_ms / maximum) * 105);
+  });
 
   constructor() {
     merge(timer(0, 5000), this.refresh)
@@ -81,20 +98,15 @@ export class MonitorDetailPage {
   }
 
   statusPolyline(): string {
-    return this.polyline(this.statusHistory(), (point) => {
-      if (point.status === 'up') return 20;
-      if (point.status === 'down') return 120;
-      return 70;
-    });
+    return this.statusChartPoints()
+      .map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+      .join(' ');
   }
 
   responsePolyline(): string {
-    const points = this.responseHistory().filter(
-      (point): point is ResponseHistoryPoint & { response_time_ms: number } =>
-        point.response_time_ms !== null,
-    );
-    const maximum = Math.max(...points.map((point) => point.response_time_ms), 1);
-    return this.polyline(points, (point) => 125 - (point.response_time_ms / maximum) * 105);
+    return this.responseChartPoints()
+      .map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+      .join(' ');
   }
 
   maximumResponseTime(): number {
@@ -117,14 +129,17 @@ export class MonitorDetailPage {
     return `${Math.floor(totalSeconds / 86400)}d ${Math.floor((totalSeconds % 86400) / 3600)}h`;
   }
 
-  private polyline<T>(points: T[], yValue: (point: T) => number): string {
-    if (!points.length) return '';
+  private statusY(status: StatusHistoryPoint['status']): number {
+    if (status === 'up') return 20;
+    if (status === 'down') return 120;
+    return 70;
+  }
+
+  private chartPoints<T>(points: T[], yValue: (point: T) => number): ChartPoint<T>[] {
     const width = 760;
-    return points
-      .map((point, index) => {
-        const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width;
-        return `${x.toFixed(1)},${yValue(point).toFixed(1)}`;
-      })
-      .join(' ');
+    return points.map((point, index) => {
+      const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width;
+      return { data: point, x, y: yValue(point) };
+    });
   }
 }

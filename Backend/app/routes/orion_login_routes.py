@@ -16,10 +16,11 @@ router = APIRouter(prefix="/auth-profiles", tags=["Auth Profiles"], dependencies
 
 @router.post("/create", response_model=ApiResponse[AuthProfileResponse], status_code=status.HTTP_201_CREATED)
 async def create_profile(request: CreateAuthProfileRequest, service: AuthProfileManager = Depends(get_auth_profile_service)):
+    profile = await service.create_profile(request)
     return ApiResponse(
         success=True,
-        message="Auth profile created successfully.",
-        data=await service.create_profile(request),
+        message=f"Login returned HTTP {profile.login_status_code}. Auth profile created successfully.",
+        data=profile,
     )
 
 @router.get("/list_all", response_model=ApiResponse[list[AuthProfileResponse]])

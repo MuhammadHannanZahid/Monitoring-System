@@ -49,9 +49,6 @@ export class NewResourcePage {
   });
 
   constructor() {
-    if (this.kind === 'auth-profile') {
-      this.form.controls.method.setValue('POST');
-    }
     if (this.kind === 'api') {
       this.api.get<AuthProfileOption[]>('/auth-profiles/list_all').subscribe({
         next: (response) => this.authProfiles.set(response.data),
@@ -140,7 +137,6 @@ export class NewResourcePage {
           body: {
             name,
             login_url: this.required(value.login_url, 'Login URL'),
-            method: value.method,
             credentials: this.jsonObject(value.credentials, 'Credentials', true),
             headers: this.jsonObject(value.headers, 'Headers', true),
           },

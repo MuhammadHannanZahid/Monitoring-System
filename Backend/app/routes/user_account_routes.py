@@ -23,7 +23,6 @@ async def create_user(request: CreateUserRequest, service: UserManager = Depends
         data=await service.create_user(
             username=request.username,
             password=request.password,
-            role=request.role,
         ),
     )
 

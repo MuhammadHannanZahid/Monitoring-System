@@ -53,25 +53,25 @@ export class ResourceListPage {
           this.updatePath.set(String(data['updatePath'] ?? ''));
           const endpoint = String(data['endpoint']);
           const includeOverviews = Boolean(data['detailBase']);
+          const loadResources = () =>
+            forkJoin({
+              records: this.api.get<ResourceRecord[]>(endpoint),
+              overviews: includeOverviews
+                ? this.api
+                    .get<MonitorOverview[]>('/dashboard/monitor-overviews')
+                    .pipe(map((response) => response.data))
+                : of([] as MonitorOverview[]),
+            }).pipe(
+              catchError((error: unknown) => {
+                this.error.set(ApiService.errorMessage(error));
+                this.loading.set(false);
+                return of(null);
+              }),
+            );
 
-          return timer(0, 5000).pipe(
-            switchMap(() =>
-              forkJoin({
-                records: this.api.get<ResourceRecord[]>(endpoint),
-                overviews: includeOverviews
-                  ? this.api
-                      .get<MonitorOverview[]>('/dashboard/monitor-overviews')
-                      .pipe(map((response) => response.data))
-                  : of([] as MonitorOverview[]),
-              }).pipe(
-                catchError((error: unknown) => {
-                  this.error.set(ApiService.errorMessage(error));
-                  this.loading.set(false);
-                  return of(null);
-                }),
-              ),
-            ),
-          );
+          return includeOverviews
+            ? timer(0, 5000).pipe(switchMap(() => loadResources()))
+            : loadResources();
         }),
         takeUntilDestroyed(this.destroyRef),
       )

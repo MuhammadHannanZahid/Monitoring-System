@@ -7,6 +7,7 @@ import { NewResourcePage } from './pages/new-resource/new-resource';
 import { MonitorDetailPage } from './pages/monitor-detail/monitor-detail';
 import { RegisterUserPage } from './pages/register-user/register-user';
 import { ResourceListPage } from './pages/resource-list/resource-list';
+import { UserListPage } from './pages/user-list/user-list';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage, title: 'Login · Monochrome' },
@@ -148,11 +149,18 @@ export const routes: Routes = [
         },
       },
       {
-        path: 'register',
+        path: 'users/new',
         component: RegisterUserPage,
         canActivate: [adminGuard],
         title: 'Register user · Monochrome',
       },
+      {
+        path: 'users',
+        component: UserListPage,
+        canActivate: [adminGuard],
+        title: 'Registered users · Monochrome',
+      },
+      { path: 'register', pathMatch: 'full', redirectTo: 'users/new' },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },

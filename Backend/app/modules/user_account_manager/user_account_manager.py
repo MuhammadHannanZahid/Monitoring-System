@@ -16,18 +16,15 @@ class UserManager:
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
 
-    async def create_user(self, username: str, password: str, role: UserRole) -> UserResponse:
+    async def create_user(self, username: str, password: str) -> UserResponse:
         if await self.collection.find_one({"username": username}) is not None:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
-        if role == UserRole.ADMIN:
-            logger.warning("Attempted creation of another admin account.")
-            raise AuthorizationError(Messages.ADMIN_CREATION_NOT_ALLOWED)
 
         now = datetime.now(timezone.utc)
         user = UserModel(
             username=username,
             password_hash=self.password_service.hash_password(password),
-            role=role,
+            role=UserRole.VIEWER,
             is_active=True,
             refresh_token_hash=None,
             created_at=now,
@@ -55,7 +52,7 @@ class UserManager:
         return UserModel(**document)
 
     async def list_user_models(self) -> list[UserModel]:
-        cursor = self.collection.find().sort("created_at", -1)
+        cursor = self.collection.find({"role": UserRole.VIEWER}).sort("created_at", -1)
         users = []
         async for document in cursor:
             document["id"] = str(document.pop("_id"))

@@ -26,7 +26,6 @@ export interface TokenResponse {
 export interface CreateUserRequest {
   username: string;
   password: string;
-  role: UserRole;
 }
 
 export interface UserResponse extends CurrentUser {
@@ -81,6 +80,7 @@ export interface ResourceRecord {
   host?: string;
   login_url?: string;
   method?: string;
+  credential_fields?: string[];
   expected_heartbeat_interval?: number;
   last_checked_at?: string | null;
   last_heartbeat_at?: string | null;

@@ -1,0 +1,73 @@
+<header>
+  <div>
+    <p class="eyebrow">Administration</p>
+    <h1 class="page-title">Registered users</h1>
+    <p class="page-description">View, activate, deactivate, or remove viewer accounts.</p>
+  </div>
+  <div class="header-actions">
+    <span>{{ users().length }} registered</span>
+    <a routerLink="/users/new">+ New</a>
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+}
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}
+@if (message()) {
+  <p class="form-success notice" [class.leaving]="noticeLeaving()" role="status">
+    {{ message() }}
+  </p>
+}
+
+<section class="user-grid">
+  @for (user of users(); track user.id) {
+    <article class="panel user-card">
+      <div class="card-heading">
+        <div class="identity">
+          <span>{{ user.username.charAt(0).toUpperCase() }}</span>
+          <div>
+            <strong>{{ user.username }}</strong
+            ><small>{{ user.role }}</small>
+          </div>
+        </div>
+        @if (user.role === 'viewer') {
+          <div class="actions">
+            <button
+              type="button"
+              (click)="toggleActive(user)"
+              [disabled]="updatingId() === user.id"
+            >
+              {{
+                updatingId() === user.id ? 'Updating…' : user.is_active ? 'Deactivate' : 'Activate'
+              }}
+            </button>
+            <button type="button" (click)="deleteUser(user)" [disabled]="deletingId() === user.id">
+              {{ deletingId() === user.id ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        }
+      </div>
+      <dl>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ user.is_active ? 'Active' : 'Disabled' }}</dd>
+        </div>
+        <div>
+          <dt>Created on</dt>
+          <dd>{{ user.created_at | date: 'MMM d, y, h:mm a' }}</dd>
+        </div>
+        <div>
+          <dt>Last login</dt>
+          <dd>{{ user.last_login ? (user.last_login | date: 'MMM d, y, h:mm a') : 'Never' }}</dd>
+        </div>
+      </dl>
+    </article>
+  } @empty {
+    @if (!loading() && !error()) {
+      <div class="empty-state panel">No registered users were found.</div>
+    }
+  }
+</section>

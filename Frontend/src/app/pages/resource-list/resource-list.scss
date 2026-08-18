@@ -83,17 +83,21 @@ header {
 }
 .resource-card {
   display: grid;
+  min-width: 0;
+  overflow: hidden;
   gap: 20px;
   padding: 20px;
 }
 .card-top {
   display: flex;
+  min-width: 0;
   align-items: start;
   justify-content: space-between;
   gap: 14px;
 }
 .identity {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   align-items: center;
   gap: 12px;
@@ -116,13 +120,12 @@ header {
   font-size: 12px;
 }
 .identity p {
-  overflow: hidden;
   margin: 5px 0 0;
   color: var(--muted);
   font-family: ui-monospace, monospace;
   font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
 }
 .card-actions {
   display: flex;
@@ -219,15 +222,35 @@ header {
   font-weight: 700;
   text-decoration: none;
 }
-.profile-meta {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 15px;
-  border-top: 1px solid var(--line);
-  font-size: 10px;
+.profile-details {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
 }
-.profile-meta span {
+.profile-details div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.profile-details div:last-child {
+  border-bottom: 0;
+}
+.profile-details dt {
   color: var(--muted);
+  font-size: 9px;
+}
+.profile-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  text-align: right;
 }
 .empty-state {
   grid-column: 1 / -1;

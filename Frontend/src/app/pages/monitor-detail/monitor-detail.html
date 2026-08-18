@@ -83,6 +83,16 @@
             <line x1="0" y1="70" x2="760" y2="70" />
             <line x1="0" y1="120" x2="760" y2="120" />
             <polyline [attr.points]="statusPolyline()" />
+            @for (point of statusChartPoints(); track point.data.checked_at + $index) {
+              <g class="chart-point" tabindex="0">
+                <title>
+                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Status:
+                  {{ point.data.status }}
+                </title>
+                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+              </g>
+            }
           </svg>
         </div>
         <div class="chart-dates">
@@ -125,6 +135,16 @@
             <line x1="0" y1="70" x2="760" y2="70" />
             <line x1="0" y1="125" x2="760" y2="125" />
             <polyline [attr.points]="responsePolyline()" />
+            @for (point of responseChartPoints(); track point.data.checked_at + $index) {
+              <g class="chart-point" tabindex="0">
+                <title>
+                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Response:
+                  {{ point.data.response_time_ms | number: '1.0-0' }} ms
+                </title>
+                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+              </g>
+            }
           </svg>
         </div>
         <div class="chart-dates">

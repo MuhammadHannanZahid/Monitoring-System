@@ -14,7 +14,11 @@
 
   <div class="field form-span">
     <label for="name">Name</label
-    ><input id="name" formControlName="name" placeholder="Monitor name" />
+    ><input
+      id="name"
+      formControlName="name"
+      [placeholder]="kind === 'auth-profile' ? 'Profile name' : 'Monitor name'"
+    />
   </div>
 
   @switch (kind) {
@@ -72,15 +76,6 @@
           placeholder="https://example.com/api/login"
         />
       </div>
-      <div class="field">
-        <label for="method">Method</label
-        ><select id="method" formControlName="method">
-          <option>POST</option>
-          <option>PUT</option>
-          <option>PATCH</option>
-        </select>
-      </div>
-      <div></div>
       <div class="field">
         <label for="credentials">Credentials (JSON)</label
         ><textarea id="credentials" formControlName="credentials"></textarea>
