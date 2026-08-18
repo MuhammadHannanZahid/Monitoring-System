@@ -10,6 +10,7 @@ from app.service.mongo_db.shared_models.db_monitoring_controller_model import Ba
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorTransition
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.realtime import realtime_broker
 
 if TYPE_CHECKING:
     from app.modules.api_monitor_manager.api_monitor_manager import API_monitorManager
@@ -107,6 +108,7 @@ class MonitorManager:
                 state_result.state.consecutive_failures,
             )
             await self._handle_incident_transition(monitor, result, state_result)
+            realtime_broker.notify("monitor", monitor.id)
         except Exception:
             logger.exception("Failed to process monitor '%s'.", monitor.name)
 
@@ -223,6 +225,7 @@ class MonitorManager:
             None,
             state_result,
         )
+        realtime_broker.notify("monitor", monitor.id)
 
     def _get_monitor_service(self, monitor_type: MonitorType):
         try:

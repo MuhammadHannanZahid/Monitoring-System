@@ -84,19 +84,19 @@
             <dt>Up percentage</dt>
             <dd>
               {{
-                stats.uptime_percentage === null
+                uptimePercentage(stats) === null
                   ? '—'
-                  : (stats.uptime_percentage | number: '1.0-2') + '%'
+                  : (uptimePercentage(stats) | number: '1.0-2') + '%'
               }}
             </dd>
           </div>
           <div>
             <dt>Total uptime</dt>
-            <dd>{{ formatDuration(stats.current_uptime_seconds) }}</dd>
+            <dd>{{ formatDuration(uptimeSeconds(stats)) }}</dd>
           </div>
           <div>
             <dt>Total downtime</dt>
-            <dd>{{ formatDuration(stats.latest_downtime_seconds) }}</dd>
+            <dd>{{ formatDuration(downtimeSeconds(stats)) }}</dd>
           </div>
           <div>
             <dt>Created on</dt>

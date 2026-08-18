@@ -22,7 +22,7 @@
 @if (summary(); as data) {
   <section class="health-strip" aria-label="Overall monitor health">
     <div class="health-score">
-      <strong>{{ data.overall_uptime_percentage | number: '1.0-2' }}%</strong>
+      <strong>{{ overallUptime() | number: '1.0-2' }}%</strong>
       <span>average uptime · 7 days</span>
     </div>
     <div class="health-bar" aria-hidden="true">
@@ -123,7 +123,7 @@
               <strong>{{ incident.monitor_name }}</strong>
               <p>
                 {{ incident.resolved_at ? 'Resolved' : 'Open' }} ·
-                {{ formatDuration(incident.duration_seconds) }}
+                {{ incidentDuration(incident) }}
               </p>
             </div>
             <time>{{ incident.started_at | date: 'MMM d' }}</time>

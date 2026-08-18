@@ -7,6 +7,7 @@ import app.modules.orion_login_manager.orion_token_manager as auth_token_state
 from app.service.constants import Collections
 from app.service.exceptions import ConflictError, NotFoundError, ValidationError
 from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileModel, AuthProfileResponse, CreateAuthProfileRequest, UpdateAuthProfileRequest
+from app.service.realtime import realtime_broker
 
 class AuthProfileManager:
     DEPRECATED_FIELDS = {
@@ -42,6 +43,7 @@ class AuthProfileManager:
         result = await self.collection.insert_one(document)
         profile.id = str(result.inserted_id)
         token_manager.cache_token(profile.id, token)
+        realtime_broker.notify("auth_profile", profile.id)
         return AuthProfileResponse(
             id=profile.id,
             name=profile.name,
@@ -134,6 +136,7 @@ class AuthProfileManager:
         updated = await self.get_profile_model(profile_id)
         if updated is None:
             raise NotFoundError("Auth profile not found.")
+        realtime_broker.notify("auth_profile", updated.id)
         return AuthProfileResponse(
             id=updated.id,
             name=updated.name,
@@ -155,6 +158,7 @@ class AuthProfileManager:
         if not deleted:
             raise NotFoundError("Auth profile not found.")
         self._invalidate_token(profile_id)
+        realtime_broker.notify("auth_profile", profile_id)
 
     async def create_indexes(self) -> None:
         await self.collection.update_many(

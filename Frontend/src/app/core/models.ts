@@ -60,9 +60,11 @@ export interface DashboardIncident {
   started_at: string;
   resolved_at: string | null;
   duration_seconds: number | null;
+  reason: string;
 }
 
 export interface DashboardActivity {
+  monitor_id: string;
   monitor_name: string;
   status: 'up' | 'down' | 'unknown';
   status_code: number | null;
@@ -98,6 +100,9 @@ export interface MonitorOverview {
   uptime_percentage: number | null;
   current_uptime_seconds: number;
   latest_downtime_seconds: number;
+  measurement_seconds: number;
+  downtime_seconds: number;
+  snapshot_at: string;
 }
 
 export interface MonitorIncident {
@@ -131,6 +136,34 @@ export interface ResponseHistoryPoint {
 export interface ResponseHistory {
   monitor_id: string;
   points: ResponseHistoryPoint[];
+}
+
+export type MonitorResourceType = 'HTTP' | 'API' | 'ping' | 'heartbeat';
+
+export interface RealtimeChange {
+  kind: 'monitor' | 'auth_profile' | 'user';
+  entity_id: string | null;
+}
+
+export interface RealtimeResources {
+  HTTP: ResourceRecord[];
+  API: ResourceRecord[];
+  ping: ResourceRecord[];
+  heartbeat: ResourceRecord[];
+  auth_profiles: ResourceRecord[];
+  users: UserResponse[];
+}
+
+export interface RealtimeSnapshot {
+  revision: number;
+  generated_at: string;
+  changed: RealtimeChange[];
+  summary: DashboardSummary;
+  incidents: DashboardIncident[];
+  activity: DashboardActivity[];
+  overviews: MonitorOverview[];
+  changed_monitor_details: Record<string, MonitorDetail>;
+  resources?: RealtimeResources;
 }
 
 export interface ApiErrorBody {

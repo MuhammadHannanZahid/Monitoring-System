@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+hypercorn
 odmantic
 pymongo
 python-jose

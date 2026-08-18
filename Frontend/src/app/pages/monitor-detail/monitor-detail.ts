@@ -2,15 +2,19 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, forkJoin, merge, of, Subject, switchMap, timer } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import {
   MonitorDetail,
+  MonitorIncident,
+  MonitorOverview,
+  RealtimeSnapshot,
   ResponseHistory,
   ResponseHistoryPoint,
   StatusHistory,
   StatusHistoryPoint,
 } from '../../core/models';
+import { RealtimeService } from '../../core/realtime.service';
 
 interface ChartPoint<T> {
   data: T;
@@ -27,8 +31,8 @@ interface ChartPoint<T> {
 export class MonitorDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly refresh = new Subject<void>();
   private readonly monitorId = this.route.snapshot.paramMap.get('id') ?? '';
   readonly backUrl = String(this.route.snapshot.data['backUrl']);
   readonly ranges = [
@@ -56,32 +60,40 @@ export class MonitorDetailPage {
   });
 
   constructor() {
-    merge(timer(0, 5000), this.refresh)
+    this.realtime.connect();
+    this.loadInitialData();
+    this.realtime.snapshots$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((snapshot) => this.applySnapshot(snapshot));
+  }
+
+  private loadInitialData(): void {
+    forkJoin({
+      detail: this.api.get<MonitorDetail>(`/dashboard/monitors/${this.monitorId}`),
+      status: this.api.get<StatusHistory>(
+        `/dashboard/status-history/${this.monitorId}?days=${this.statusDays()}`,
+      ),
+      response: this.api.get<ResponseHistory>(
+        `/dashboard/response-history/${this.monitorId}?days=${this.responseDays()}`,
+      ),
+    })
       .pipe(
-        switchMap(() =>
-          forkJoin({
-            detail: this.api.get<MonitorDetail>(`/dashboard/monitors/${this.monitorId}`),
-            status: this.api.get<StatusHistory>(
-              `/dashboard/status-history/${this.monitorId}?days=${this.statusDays()}`,
-            ),
-            response: this.api.get<ResponseHistory>(
-              `/dashboard/response-history/${this.monitorId}?days=${this.responseDays()}`,
-            ),
-          }).pipe(
-            catchError((error: unknown) => {
-              this.error.set(ApiService.errorMessage(error));
-              this.loading.set(false);
-              return of(null);
-            }),
-          ),
-        ),
+        catchError((error: unknown) => {
+          this.error.set(ApiService.errorMessage(error));
+          this.loading.set(false);
+          return of(null);
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((result) => {
         if (result === null) return;
         this.detail.set(result.detail.data);
-        this.statusHistory.set(result.status.data.history);
-        this.responseHistory.set(result.response.data.points);
+        this.statusHistory.set(
+          this.mergeStatusPoints(this.statusHistory(), result.status.data.history),
+        );
+        this.responseHistory.set(
+          this.mergeResponsePoints(this.responseHistory(), result.response.data.points),
+        );
         this.error.set('');
         this.loading.set(false);
       });
@@ -89,12 +101,32 @@ export class MonitorDetailPage {
 
   setStatusRange(days: number): void {
     this.statusDays.set(days);
-    this.refresh.next();
+    this.api
+      .get<StatusHistory>(`/dashboard/status-history/${this.monitorId}?days=${days}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          if (this.statusDays() === days) {
+            this.statusHistory.set(this.mergeStatusPoints([], response.data.history));
+          }
+        },
+        error: (error: unknown) => this.error.set(ApiService.errorMessage(error)),
+      });
   }
 
   setResponseRange(days: number): void {
     this.responseDays.set(days);
-    this.refresh.next();
+    this.api
+      .get<ResponseHistory>(`/dashboard/response-history/${this.monitorId}?days=${days}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          if (this.responseDays() === days) {
+            this.responseHistory.set(this.mergeResponsePoints([], response.data.points));
+          }
+        },
+        error: (error: unknown) => this.error.set(ApiService.errorMessage(error)),
+      });
   }
 
   statusPolyline(): string {
@@ -127,6 +159,78 @@ export class MonitorDetailPage {
     if (totalSeconds < 86400)
       return `${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}m`;
     return `${Math.floor(totalSeconds / 86400)}d ${Math.floor((totalSeconds % 86400) / 3600)}h`;
+  }
+
+  uptimeSeconds(overview: MonitorOverview): number {
+    return this.realtime.liveUptimeSeconds(overview);
+  }
+
+  downtimeSeconds(overview: MonitorOverview): number {
+    return this.realtime.liveDowntimeSeconds(overview);
+  }
+
+  uptimePercentage(overview: MonitorOverview): number | null {
+    return this.realtime.liveUptimePercentage(overview);
+  }
+
+  incidentDuration(incident: MonitorIncident): number {
+    if (incident.resolved_at) return incident.duration_seconds;
+    const now = this.realtime.now();
+    return Math.max(0, Math.floor((now - Date.parse(incident.started_at)) / 1000));
+  }
+
+  private applySnapshot(snapshot: RealtimeSnapshot): void {
+    const changedDetail = snapshot.changed_monitor_details[this.monitorId];
+    if (changedDetail) {
+      this.detail.set(changedDetail);
+    } else {
+      const overview = snapshot.overviews.find((item) => item.id === this.monitorId);
+      const current = this.detail();
+      if (overview && current) {
+        this.detail.set({ ...current, ...overview });
+      }
+    }
+
+    const activity = snapshot.activity.filter((item) => item.monitor_id === this.monitorId);
+    this.statusHistory.update((current) =>
+      this.mergeStatusPoints(
+        current,
+        activity.map((item) => ({ checked_at: item.checked_at, status: item.status })),
+      ),
+    );
+    this.responseHistory.update((current) =>
+      this.mergeResponsePoints(
+        current,
+        activity.map((item) => ({
+          checked_at: item.checked_at,
+          response_time_ms: item.response_time_ms,
+        })),
+      ),
+    );
+  }
+
+  private mergeStatusPoints(
+    current: StatusHistoryPoint[],
+    incoming: StatusHistoryPoint[],
+  ): StatusHistoryPoint[] {
+    const cutoff = Date.now() - this.statusDays() * 24 * 60 * 60 * 1000;
+    return [
+      ...new Map([...current, ...incoming].map((point) => [point.checked_at, point])).values(),
+    ]
+      .filter((point) => Date.parse(point.checked_at) >= cutoff)
+      .sort((left, right) => Date.parse(left.checked_at) - Date.parse(right.checked_at));
+  }
+
+  private mergeResponsePoints(
+    current: ResponseHistoryPoint[],
+    incoming: ResponseHistoryPoint[],
+  ): ResponseHistoryPoint[] {
+    const cutoff = Date.now() - this.responseDays() * 24 * 60 * 60 * 1000;
+    return [
+      ...new Map([...current, ...incoming].map((point) => [point.checked_at, point])).values(),
+    ]
+      .filter((point) => Date.parse(point.checked_at) >= cutoff)
+      .sort((left, right) => Date.parse(left.checked_at) - Date.parse(right.checked_at));
   }
 
   private statusY(status: StatusHistoryPoint['status']): number {

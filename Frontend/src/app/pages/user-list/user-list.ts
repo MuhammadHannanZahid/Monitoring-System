@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { UserResponse } from '../../core/models';
+import { RealtimeService } from '../../core/realtime.service';
 
 @Component({
   selector: 'app-user-list-page',
@@ -12,6 +14,7 @@ import { UserResponse } from '../../core/models';
 })
 export class UserListPage {
   private readonly api = inject(ApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   readonly users = signal<UserResponse[]>([]);
@@ -30,7 +33,17 @@ export class UserListPage {
     );
     if (navigationMessage) this.showNotice(navigationMessage);
     this.destroyRef.onDestroy(() => this.clearNoticeTimers());
-    this.loadUsers();
+    this.realtime.connect();
+    effect(() => {
+      const error = this.realtime.error();
+      if (error && this.loading()) this.error.set(error);
+    });
+    this.realtime.snapshots$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((snapshot) => {
+      if (!snapshot.resources) return;
+      this.users.set(snapshot.resources.users.filter((user) => user.role === 'viewer'));
+      this.error.set('');
+      this.loading.set(false);
+    });
   }
 
   toggleActive(user: UserResponse): void {
@@ -70,19 +83,6 @@ export class UserListPage {
       error: (error: unknown) => {
         this.error.set(ApiService.errorMessage(error));
         this.deletingId.set('');
-      },
-    });
-  }
-
-  private loadUsers(): void {
-    this.api.get<UserResponse[]>('/users/list').subscribe({
-      next: (response) => {
-        this.users.set(response.data.filter((user) => user.role === 'viewer'));
-        this.loading.set(false);
-      },
-      error: (error: unknown) => {
-        this.error.set(ApiService.errorMessage(error));
-        this.loading.set(false);
       },
     });
   }

@@ -22,6 +22,7 @@ class DashboardIncidentResponse(BaseModel):
     started_at: datetime
     resolved_at: datetime | None
     duration_seconds: int | None
+    reason: str
 
 class MonitorIncidentResponse(BaseModel):
     id: str
@@ -42,11 +43,15 @@ class MonitorOverviewResponse(BaseModel):
     uptime_percentage: float | None
     current_uptime_seconds: int
     latest_downtime_seconds: int
+    measurement_seconds: int
+    downtime_seconds: int
+    snapshot_at: datetime
 
 class MonitorDetailResponse(MonitorOverviewResponse):
     incidents: list[MonitorIncidentResponse]
 
 class DashboardActivityResponse(BaseModel):
+    monitor_id: str
     monitor_name: str
     status: MonitorStatus
     status_code: int | None

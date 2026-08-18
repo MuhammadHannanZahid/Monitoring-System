@@ -1,10 +1,10 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
 import { ApiService } from '../../core/api.service';
-import { MonitorOverview, ResourceRecord } from '../../core/models';
+import { MonitorOverview, RealtimeResources, ResourceRecord } from '../../core/models';
+import { RealtimeService } from '../../core/realtime.service';
 
 @Component({
   selector: 'app-resource-list-page',
@@ -16,6 +16,7 @@ export class ResourceListPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(ApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
   readonly title = signal('Resources');
   readonly description = signal('');
@@ -32,6 +33,7 @@ export class ResourceListPage {
   readonly message = signal('');
   readonly heartbeatToken = signal('');
   readonly noticeLeaving = signal(false);
+  private readonly resourceType = signal<keyof RealtimeResources | null>(null);
   private noticeTimer: ReturnType<typeof setTimeout> | undefined;
   private noticeRemovalTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -41,49 +43,32 @@ export class ResourceListPage {
     const initialToken = String(navigationState?.['heartbeatToken'] ?? '');
     if (initialMessage || initialToken) this.showNotice(initialMessage, initialToken);
     this.destroyRef.onDestroy(() => this.clearNoticeTimers());
+    this.realtime.connect();
+    effect(() => {
+      const error = this.realtime.error();
+      if (error && this.loading()) this.error.set(error);
+    });
 
-    this.route.data
-      .pipe(
-        switchMap((data) => {
-          this.title.set(String(data['title'] ?? 'Resources'));
-          this.description.set(String(data['description'] ?? ''));
-          this.newUrl.set(String(data['newUrl'] ?? ''));
-          this.detailBase.set(String(data['detailBase'] ?? ''));
-          this.deletePath.set(String(data['deletePath'] ?? ''));
-          this.updatePath.set(String(data['updatePath'] ?? ''));
-          const endpoint = String(data['endpoint']);
-          const includeOverviews = Boolean(data['detailBase']);
-          const loadResources = () =>
-            forkJoin({
-              records: this.api.get<ResourceRecord[]>(endpoint),
-              overviews: includeOverviews
-                ? this.api
-                    .get<MonitorOverview[]>('/dashboard/monitor-overviews')
-                    .pipe(map((response) => response.data))
-                : of([] as MonitorOverview[]),
-            }).pipe(
-              catchError((error: unknown) => {
-                this.error.set(ApiService.errorMessage(error));
-                this.loading.set(false);
-                return of(null);
-              }),
-            );
+    this.route.data.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
+      this.title.set(String(data['title'] ?? 'Resources'));
+      this.description.set(String(data['description'] ?? ''));
+      this.newUrl.set(String(data['newUrl'] ?? ''));
+      this.detailBase.set(String(data['detailBase'] ?? ''));
+      this.deletePath.set(String(data['deletePath'] ?? ''));
+      this.updatePath.set(String(data['updatePath'] ?? ''));
+      this.resourceType.set(data['resourceType'] as keyof RealtimeResources);
+    });
 
-          return includeOverviews
-            ? timer(0, 5000).pipe(switchMap(() => loadResources()))
-            : loadResources();
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((result) => {
-        if (result === null) return;
-        this.records.set(result.records.data);
-        this.overviews.set(
-          Object.fromEntries(result.overviews.map((overview) => [overview.id, overview])),
-        );
-        this.error.set('');
-        this.loading.set(false);
-      });
+    this.realtime.snapshots$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((snapshot) => {
+      const resourceType = this.resourceType();
+      if (!resourceType || !snapshot.resources) return;
+      this.records.set(snapshot.resources[resourceType] as ResourceRecord[]);
+      this.overviews.set(
+        Object.fromEntries(snapshot.overviews.map((overview) => [overview.id, overview])),
+      );
+      this.error.set('');
+      this.loading.set(false);
+    });
   }
 
   target(record: ResourceRecord): string {
@@ -124,13 +109,14 @@ export class ResourceListPage {
       .put<unknown, { is_active: boolean }>(endpoint, { is_active: !stats.is_active })
       .subscribe({
         next: (response) => {
+          const isActive = !stats.is_active;
           this.overviews.update((overviews) => ({
             ...overviews,
-            [record.id]: { ...stats, is_active: !stats.is_active },
+            [record.id]: this.realtime.withActiveState(stats, isActive),
           }));
           this.records.update((records) =>
             records.map((item) =>
-              item.id === record.id ? { ...item, is_active: !stats.is_active } : item,
+              item.id === record.id ? { ...item, is_active: isActive } : item,
             ),
           );
           this.showNotice(response.message);
@@ -172,5 +158,17 @@ export class ResourceListPage {
     if (totalSeconds < 86400)
       return `${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}m`;
     return `${Math.floor(totalSeconds / 86400)}d ${Math.floor((totalSeconds % 86400) / 3600)}h`;
+  }
+
+  uptimeSeconds(overview: MonitorOverview): number {
+    return this.realtime.liveUptimeSeconds(overview);
+  }
+
+  downtimeSeconds(overview: MonitorOverview): number {
+    return this.realtime.liveDowntimeSeconds(overview);
+  }
+
+  uptimePercentage(overview: MonitorOverview): number | null {
+    return this.realtime.liveUptimePercentage(overview);
   }
 }

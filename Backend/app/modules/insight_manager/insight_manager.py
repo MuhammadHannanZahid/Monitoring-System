@@ -68,6 +68,7 @@ class DashboardManager:
                     started_at=incident.started_at,
                     resolved_at=incident.resolved_at,
                     duration_seconds=incident.duration_seconds,
+                    reason=incident.reason,
                 )
             )
         return results
@@ -86,6 +87,8 @@ class DashboardManager:
             if monitor.id is None:
                 continue
             uptime_percentage = None
+            measured_seconds = 0.0
+            downtime_seconds = 0.0
             incidents = incidents_by_monitor.get(monitor.id, [])
             latest_incident = incidents[0] if incidents else None
             first_check_at = first_check_times.get(monitor.id)
@@ -140,6 +143,9 @@ class DashboardManager:
                     uptime_percentage=uptime_percentage,
                     current_uptime_seconds=current_uptime_seconds,
                     latest_downtime_seconds=latest_downtime_seconds,
+                    measurement_seconds=max(0, int(measured_seconds)),
+                    downtime_seconds=max(0, int(downtime_seconds)),
+                    snapshot_at=now,
                 )
             )
         return overviews
@@ -207,6 +213,7 @@ class DashboardManager:
             monitor = monitor_map.get(result.monitor_id)
             activities.append(
                 DashboardActivityResponse(
+                    monitor_id=result.monitor_id,
                     monitor_name=monitor.name if monitor else "Unknown",
                     status=result.status,
                     status_code=result.status_code,

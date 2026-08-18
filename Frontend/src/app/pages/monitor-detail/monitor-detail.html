@@ -30,19 +30,19 @@
         <dt>Up percentage</dt>
         <dd>
           {{
-            monitor.uptime_percentage === null
+            uptimePercentage(monitor) === null
               ? '—'
-              : (monitor.uptime_percentage | number: '1.0-2') + '%'
+              : (uptimePercentage(monitor) | number: '1.0-2') + '%'
           }}
         </dd>
       </div>
       <div>
         <dt>Total uptime</dt>
-        <dd>{{ formatDuration(monitor.current_uptime_seconds) }}</dd>
+        <dd>{{ formatDuration(uptimeSeconds(monitor)) }}</dd>
       </div>
       <div>
         <dt>Total downtime</dt>
-        <dd>{{ formatDuration(monitor.latest_downtime_seconds) }}</dd>
+        <dd>{{ formatDuration(downtimeSeconds(monitor)) }}</dd>
       </div>
       <div>
         <dt>Created on</dt>
@@ -191,7 +191,7 @@
           </div>
           <div>
             <dt>Downtime</dt>
-            <dd>{{ formatDuration(incident.duration_seconds) }}</dd>
+            <dd>{{ formatDuration(incidentDuration(incident)) }}</dd>
           </div>
         </dl>
       </article>

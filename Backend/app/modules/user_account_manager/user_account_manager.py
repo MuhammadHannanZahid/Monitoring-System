@@ -8,6 +8,7 @@ from app.modules.auth_manager.auth_manager import PasswordManager
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthorizationError, ConflictError, NotFoundError
 from app.service.mongo_db.shared_models.db_user_account_model import UserModel, UserResponse, UserRole
+from app.service.realtime import realtime_broker
 
 logger = get_logger(__name__)
 
@@ -35,6 +36,7 @@ class UserManager:
         document.pop("id", None)
         result = await self.collection.insert_one(document)
         user.id = str(result.inserted_id)
+        realtime_broker.notify("user", user.id)
         logger.info("User '%s' created with role '%s'.", user.username, user.role.value)
         return UserResponse(**user.model_dump())
 
@@ -100,6 +102,7 @@ class UserManager:
             )
 
         updated_user = await self.get_user_model(user_id)
+        realtime_broker.notify("user", updated_user.id)
         logger.info("User '%s' updated. Fields changed: %s", updated_user.username, ", ".join(update_data.keys()))
         return UserResponse(**updated_user.model_dump())
 
@@ -109,6 +112,7 @@ class UserManager:
             logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
         await self.collection.delete_one({"_id": ObjectId(user_id)})
+        realtime_broker.notify("user", user_id)
         logger.info("User '%s' deleted.", user.username)
 
     async def ensure_default_admin(self, username: str, password: str) -> bool:

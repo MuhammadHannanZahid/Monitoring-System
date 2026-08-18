@@ -1,9 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, timer } from 'rxjs';
-import { ApiService } from '../../core/api.service';
-import { DashboardActivity, DashboardIncident, DashboardSummary } from '../../core/models';
+import { Component, computed, inject } from '@angular/core';
+import { DashboardIncident } from '../../core/models';
+import { RealtimeService } from '../../core/realtime.service';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -11,40 +9,29 @@ import { DashboardActivity, DashboardIncident, DashboardSummary } from '../../co
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class DashboardPage implements OnInit {
-  private readonly api = inject(ApiService);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly summary = signal<DashboardSummary | null>(null);
-  readonly incidents = signal<DashboardIncident[]>([]);
-  readonly activity = signal<DashboardActivity[]>([]);
-  readonly loading = signal(true);
-  readonly error = signal('');
+export class DashboardPage {
+  readonly realtime = inject(RealtimeService);
+  readonly summary = this.realtime.summary;
+  readonly incidents = this.realtime.incidents;
+  readonly activity = this.realtime.activity;
+  readonly loading = computed(() => this.realtime.snapshot() === null);
+  readonly error = this.realtime.error;
+  readonly overallUptime = computed(() => {
+    const percentages = this.realtime
+      .overviews()
+      .filter((overview) => overview.is_active)
+      .map((overview) => this.realtime.liveUptimePercentage(overview))
+      .filter((value): value is number => value !== null);
+    if (!percentages.length) return 0;
+    return percentages.reduce((total, value) => total + value, 0) / percentages.length;
+  });
 
-  ngOnInit(): void {
-    timer(0, 5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((iteration) => this.loadDashboard(iteration === 0));
+  constructor() {
+    this.realtime.connect();
   }
 
-  loadDashboard(showLoading = true): void {
-    if (showLoading) this.loading.set(true);
-    this.error.set('');
-    forkJoin({
-      summary: this.api.get<DashboardSummary>('/dashboard/summary'),
-      incidents: this.api.get<DashboardIncident[]>('/dashboard/incidents'),
-      activity: this.api.get<DashboardActivity[]>('/dashboard/activity'),
-    }).subscribe({
-      next: ({ summary, incidents, activity }) => {
-        this.summary.set(summary.data);
-        this.incidents.set(incidents.data);
-        this.activity.set(activity.data);
-        this.loading.set(false);
-      },
-      error: (error: unknown) => {
-        this.error.set(ApiService.errorMessage(error));
-        this.loading.set(false);
-      },
-    });
+  loadDashboard(): void {
+    this.realtime.reconnect();
   }
 
   formatDuration(seconds: number | null): string {
@@ -52,5 +39,9 @@ export class DashboardPage implements OnInit {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
     return `${(seconds / 3600).toFixed(1)}h`;
+  }
+
+  incidentDuration(incident: DashboardIncident): string {
+    return this.formatDuration(this.realtime.liveIncidentDuration(incident));
   }
 }
