@@ -105,6 +105,85 @@ export interface MonitorOverview {
   snapshot_at: string;
 }
 
+export interface StatusPage {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  monitor_ids: string[];
+  monitor_count: number;
+  public_path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicStatusPage {
+  name: string;
+  slug: string;
+  description: string;
+  overall_status: 'operational' | 'degraded' | 'outage' | 'unknown';
+  monitor_count: number;
+  monitors_up: number;
+  monitors_down: number;
+  monitors_unknown: number;
+  monitors_paused: number;
+  generated_at: string;
+  refresh_interval_seconds: number;
+  uptime_status: PublicUptimeStatus;
+  monitors: PublicStatusMonitor[];
+}
+
+export interface DailyUptime {
+  date: string;
+  uptime_percentage: number | null;
+}
+
+export interface PublicStatusMonitor extends MonitorOverview {
+  uptime_90_days: number | null;
+  daily_uptime: DailyUptime[];
+}
+
+export interface PublicUptimeStatus {
+  last_24_hours: number | null;
+  last_7_days: number | null;
+  last_30_days: number | null;
+  last_90_days: number | null;
+}
+
+export interface PublicResponseTimePoint {
+  checked_at: string;
+  response_time_ms: number;
+}
+
+export interface PublicResponseTimeMetrics {
+  average_ms: number | null;
+  maximum_ms: number | null;
+  minimum_ms: number | null;
+}
+
+export interface PublicMonitorEvent {
+  event_id: string;
+  event_type: 'created' | 'down' | 'up';
+  occurred_at: string;
+  message: string;
+  status_code: number | null;
+  reason: string | null;
+  duration_seconds: number | null;
+  ongoing: boolean;
+}
+
+export interface PublicMonitorDetail {
+  page_name: string;
+  page_slug: string;
+  generated_at: string;
+  refresh_interval_seconds: number;
+  monitor: PublicStatusMonitor;
+  uptime_status: PublicUptimeStatus;
+  response_time_points: PublicResponseTimePoint[];
+  response_time_metrics: PublicResponseTimeMetrics;
+  recent_events: PublicMonitorEvent[];
+}
+
 export interface MonitorIncident {
   id: string;
   status: 'open' | 'resolved';
@@ -141,7 +220,7 @@ export interface ResponseHistory {
 export type MonitorResourceType = 'HTTP' | 'API' | 'ping' | 'heartbeat';
 
 export interface RealtimeChange {
-  kind: 'monitor' | 'auth_profile' | 'user';
+  kind: 'monitor' | 'auth_profile' | 'user' | 'status_page';
   entity_id: string | null;
 }
 
@@ -152,6 +231,7 @@ export interface RealtimeResources {
   heartbeat: ResourceRecord[];
   auth_profiles: ResourceRecord[];
   users: UserResponse[];
+  status_pages: StatusPage[];
 }
 
 export interface RealtimeSnapshot {

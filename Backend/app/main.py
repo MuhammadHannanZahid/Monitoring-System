@@ -13,6 +13,7 @@ from app.routes.ping_monitor_routes import router as ping_router
 from app.routes.heartbeat_monitor_routes import router as heartbeat_router
 from app.routes.orion_login_routes import router as auth_profiles_router
 from app.routes.realtime_routes import router as realtime_router
+from app.routes.status_page_routes import router as status_page_router
 from app.service.mongo_db.mongo_controller import db_manager
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logger import get_logger
@@ -33,6 +34,7 @@ from app.modules.auth_manager.auth_manager import password_service
 from app.modules.user_account_manager.user_account_manager import UserManager
 from app.service.realtime import realtime_broker
 from app.service.exceptions import NotFoundError
+from app.modules.status_page_manager.status_page_manager import StatusPageManager
 import app.modules.orion_login_manager.orion_token_manager as auth_token_state
 import app.modules.monitoring_controller.scheduler as scheduler_state
 
@@ -48,6 +50,7 @@ api_router.include_router(ping_router)
 api_router.include_router(heartbeat_router)
 api_router.include_router(auth_profiles_router)
 api_router.include_router(realtime_router)
+api_router.include_router(status_page_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -87,6 +90,11 @@ async def lifespan(app: FastAPI):
         monitor_service=monitor_service,
         monitor_result_service=monitor_result_service,
         incident_service=incident_service,
+    )
+    status_page_service = StatusPageManager(
+        engine,
+        monitor_service,
+        dashboard_service,
     )
 
     async def build_realtime_snapshot(changed, include_admin):
@@ -128,6 +136,7 @@ async def lifespan(app: FastAPI):
                 heartbeat_monitors,
                 auth_profiles,
                 users,
+                status_pages,
             ) = await asyncio.gather(
                 http_monitor_service.list_monitors(),
                 api_monitor_manager.list_monitors(),
@@ -135,6 +144,7 @@ async def lifespan(app: FastAPI):
                 heartbeat_monitor_service.list_monitors(),
                 auth_profile_service.list_profiles(),
                 user_service.list_users(),
+                status_page_service.list_pages(),
             )
             admin = {
                 **common,
@@ -145,6 +155,7 @@ async def lifespan(app: FastAPI):
                     "heartbeat": heartbeat_monitors,
                     "auth_profiles": auth_profiles,
                     "users": users,
+                    "status_pages": status_pages,
                 },
             }
         return common, admin

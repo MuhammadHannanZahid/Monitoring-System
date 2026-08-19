@@ -47,6 +47,7 @@ class DatabaseManager:
         await self._create_monitor_result_indexes()
         await self._create_incident_indexes()
         await self._create_heartbeat_indexes()
+        await self._create_status_page_indexes()
         logger.info("MongoDB indexes initialized.")
 
     async def _create_monitor_result_indexes(self) -> None:
@@ -72,6 +73,12 @@ class DatabaseManager:
         await collection.create_index("is_active")
         await collection.create_index("name")
         logger.info("Heartbeat indexes initialized.")
+
+    async def _create_status_page_indexes(self) -> None:
+        collection = self.engine.database[Collections.STATUS_PAGES]
+        await collection.create_index("slug", unique=True)
+        await collection.create_index("created_at")
+        logger.info("Status Page indexes initialized.")
 
     def get_engine(self) -> AIOEngine:
         return self.engine

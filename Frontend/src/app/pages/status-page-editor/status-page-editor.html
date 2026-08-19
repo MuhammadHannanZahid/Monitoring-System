@@ -1,0 +1,88 @@
+<header>
+  <div>
+    <p class="eyebrow">Status pages</p>
+    <h1 class="page-title">{{ editing ? 'Edit status page' : 'New status page' }}</h1>
+    <p class="page-description">
+      Choose exactly which monitor health information is visible on this public page.
+    </p>
+  </div>
+  <a class="back-link" routerLink="/status-pages">← Back to status pages</a>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    @if (error()) {
+      <p class="form-error">{{ error() }}</p>
+    }
+
+    <section class="panel details-panel">
+      <div class="section-heading">
+        <span>01</span>
+        <div>
+          <h2>Public details</h2>
+          <p>The page name and description are visible without signing in.</p>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label for="status-page-name">Name</label>
+          <input
+            id="status-page-name"
+            type="text"
+            formControlName="name"
+            placeholder="Public service status"
+          />
+        </div>
+        <div class="field">
+          <label for="status-page-description">Description</label>
+          <textarea
+            id="status-page-description"
+            formControlName="description"
+            placeholder="A short description of the services shown on this page"
+          ></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel monitors-panel">
+      <div class="section-heading">
+        <span>02</span>
+        <div>
+          <h2>Select monitors</h2>
+          <p>{{ selectedIds().size }} of {{ monitors().length }} selected</p>
+        </div>
+      </div>
+
+      <div class="monitor-options">
+        @for (monitor of monitors(); track monitor.id) {
+          <label class="monitor-option" [class.selected]="isSelected(monitor.id)">
+            <input
+              type="checkbox"
+              [checked]="isSelected(monitor.id)"
+              (change)="toggleMonitor(monitor.id)"
+            />
+            <span class="checkmark"></span>
+            <span class="monitor-copy">
+              <strong>{{ monitor.name }}</strong>
+              <small>{{ monitor.monitor_type }} monitor</small>
+            </span>
+            <span class="monitor-status" [class]="'monitor-status ' + monitor.status">
+              {{ monitor.is_active ? monitor.status : 'paused' }}
+            </span>
+          </label>
+        } @empty {
+          <p class="empty-state">Create a monitor before adding one to a status page.</p>
+        }
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <a routerLink="/status-pages">Cancel</a>
+      <button class="button" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : editing ? 'Save changes' : 'Create status page' }}
+      </button>
+    </div>
+  </form>
+}

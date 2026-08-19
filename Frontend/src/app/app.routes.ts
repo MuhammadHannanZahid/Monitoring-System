@@ -8,9 +8,23 @@ import { MonitorDetailPage } from './pages/monitor-detail/monitor-detail';
 import { RegisterUserPage } from './pages/register-user/register-user';
 import { ResourceListPage } from './pages/resource-list/resource-list';
 import { UserListPage } from './pages/user-list/user-list';
+import { StatusPageListPage } from './pages/status-page-list/status-page-list';
+import { StatusPageEditorPage } from './pages/status-page-editor/status-page-editor';
+import { PublicStatusPageView } from './pages/public-status-page/public-status-page';
+import { PublicMonitorDetailPage } from './pages/public-monitor-detail/public-monitor-detail';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage, title: 'Login · Monochrome' },
+  {
+    path: 'status/:slug/:monitorId',
+    component: PublicMonitorDetailPage,
+    title: 'Monitor status · Monochrome',
+  },
+  {
+    path: 'status/:slug',
+    component: PublicStatusPageView,
+    title: 'Service status · Monochrome',
+  },
   {
     path: '',
     component: AppShell,
@@ -139,6 +153,24 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         title: 'New auth profile · Monochrome',
         data: { kind: 'auth-profile', title: 'New auth profile', backUrl: '/auth-profiles' },
+      },
+      {
+        path: 'status-pages/new',
+        component: StatusPageEditorPage,
+        canActivate: [adminGuard],
+        title: 'New status page · Monochrome',
+      },
+      {
+        path: 'status-pages/:id/edit',
+        component: StatusPageEditorPage,
+        canActivate: [adminGuard],
+        title: 'Edit status page · Monochrome',
+      },
+      {
+        path: 'status-pages',
+        component: StatusPageListPage,
+        canActivate: [adminGuard],
+        title: 'Status pages · Monochrome',
       },
       {
         path: 'auth-profiles',

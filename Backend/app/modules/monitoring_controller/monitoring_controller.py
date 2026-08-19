@@ -11,6 +11,7 @@ from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import Heartb
 from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorTransition
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
 from app.service.realtime import realtime_broker
+from app.service.constants import Collections
 
 if TYPE_CHECKING:
     from app.modules.api_monitor_manager.api_monitor_manager import API_monitorManager
@@ -188,6 +189,18 @@ class MonitorManager:
         await self.monitor_result_service.delete_for_monitor(monitor_id)
         await self.incident_service.delete_for_monitor(monitor_id)
         await self.monitor_state_service.delete_for_monitor(monitor_id)
+        status_pages = self.monitor_result_service.collection.database[
+            Collections.STATUS_PAGES
+        ]
+        result = await status_pages.update_many(
+            {"monitor_ids": monitor_id},
+            {
+                "$pull": {"monitor_ids": monitor_id},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+        )
+        if result.modified_count:
+            realtime_broker.notify("status_page", None)
 
     async def process_heartbeat(self, monitor: HeartbeatMonitorModel) -> None:
         checked_at = datetime.now(timezone.utc)

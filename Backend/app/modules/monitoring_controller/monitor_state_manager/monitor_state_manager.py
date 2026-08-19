@@ -31,8 +31,8 @@ class MonitorStateManager:
         previous_status = state.status
 
         load_dotenv()
-        recovery_threshold = 1 if monitor_type == MonitorType.HEARTBEAT else int(os.environ["MONITOR_RECOVERY_THRESHOLD"])
-        failure_threshold = 1 if monitor_type == MonitorType.HEARTBEAT else int(os.environ["MONITOR_FAILURE_THRESHOLD"])
+        recovery_threshold = int(os.environ["MONITOR_RECOVERY_THRESHOLD"])
+        failure_threshold = int(os.environ["MONITOR_FAILURE_THRESHOLD"])
 
         if success:
             state.consecutive_successes += 1

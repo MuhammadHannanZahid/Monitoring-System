@@ -1,0 +1,66 @@
+<header>
+  <div>
+    <p class="eyebrow">Publishing</p>
+    <h1 class="page-title">Status pages</h1>
+    <p class="page-description">Group selected monitors into public, live service-health pages.</p>
+  </div>
+  <div class="header-actions">
+    <span>{{ pages().length }} configured</span>
+    <a class="new-button" routerLink="/status-pages/new">+ New</a>
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+}
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}
+@if (message()) {
+  <div class="notification" [class.leaving]="noticeLeaving()">{{ message() }}</div>
+}
+
+<section class="page-grid">
+  @for (page of pages(); track page.id) {
+    <article class="panel status-page-card">
+      <div class="card-heading">
+        <div>
+          <span class="page-mark">S</span>
+          <div>
+            <h2>{{ page.name }}</h2>
+            <p>{{ page.description || 'No public description.' }}</p>
+          </div>
+        </div>
+        <span class="monitor-count">{{ page.monitor_count }} monitors</span>
+      </div>
+
+      <div class="monitor-list">
+        <span>Included monitors</span>
+        @if (monitorNames(page).length) {
+          <p>{{ monitorNames(page).join(' · ') }}</p>
+        } @else {
+          <p>No monitors selected</p>
+        }
+      </div>
+
+      <div class="meta">
+        <span>Created {{ page.created_at | date: 'MMM d, y' }}</span>
+        <span>/status/{{ page.slug }}</span>
+      </div>
+
+      <div class="card-actions">
+        <a class="public-link" [href]="page.public_path" target="_blank" rel="noopener">
+          Open public page ↗
+        </a>
+        <a [routerLink]="['/status-pages', page.id, 'edit']">Edit</a>
+        <button type="button" (click)="deletePage(page)" [disabled]="deletingId() === page.id">
+          {{ deletingId() === page.id ? 'Deleting…' : 'Delete' }}
+        </button>
+      </div>
+    </article>
+  } @empty {
+    @if (!loading() && !error()) {
+      <div class="empty-state panel">No status pages have been created yet.</div>
+    }
+  }
+</section>

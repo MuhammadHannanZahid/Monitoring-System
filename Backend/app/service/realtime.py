@@ -100,7 +100,11 @@ class RealtimeBroker:
         include_admin: bool,
     ) -> None:
         async with self._build_lock:
-            if not broadcast and self._common_snapshot is not None:
+            if (
+                not broadcast
+                and self._common_snapshot is not None
+                and (not include_admin or self._admin_snapshot is not None)
+            ):
                 return
             if self._factory is None:
                 raise RuntimeError("Real-time snapshot factory has not been configured.")

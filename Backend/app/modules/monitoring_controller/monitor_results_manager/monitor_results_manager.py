@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
+from typing import Any
 from odmantic import AIOEngine
 from app.service.constants import Collections
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
@@ -100,6 +101,162 @@ class MonitorResultManager:
             "total": result[0]["total"],
             "successful": result[0]["successful"],
         }
+
+    async def get_public_uptime_breakdown(
+        self,
+        monitor_ids: list[str],
+        now: datetime,
+    ) -> dict[str, Any]:
+        if not monitor_ids:
+            return {
+                "daily": [],
+                "monitors_90": [],
+                "overall_24": [],
+                "overall_7": [],
+                "overall_30": [],
+                "overall_90": [],
+            }
+
+        start_90_days = now - timedelta(days=90)
+        daily_start = datetime(
+            now.year,
+            now.month,
+            now.day,
+            tzinfo=timezone.utc,
+        ) - timedelta(days=89)
+        pipeline = [
+            {
+                "$match": {
+                    "monitor_id": {"$in": monitor_ids},
+                    "checked_at": {"$gte": start_90_days},
+                    "status": {"$ne": MonitorStatus.UNKNOWN},
+                }
+            },
+            {
+                "$facet": {
+                    "daily": [
+                        {
+                            "$group": {
+                                "_id": {
+                                    "monitor_id": "$monitor_id",
+                                    "date": {
+                                        "$dateToString": {
+                                            "format": "%Y-%m-%d",
+                                            "date": "$checked_at",
+                                            "timezone": "UTC",
+                                        }
+                                    },
+                                },
+                                "total": {"$sum": 1},
+                                "successful": {
+                                    "$sum": {"$cond": ["$success", 1, 0]}
+                                },
+                            }
+                        }
+                    ],
+                    "monitors_90": [
+                        {"$match": {"checked_at": {"$gte": daily_start}}},
+                        {
+                            "$group": {
+                                "_id": "$monitor_id",
+                                "total": {"$sum": 1},
+                                "successful": {
+                                    "$sum": {"$cond": ["$success", 1, 0]}
+                                },
+                            }
+                        }
+                    ],
+                    "overall_24": self._uptime_window_pipeline(
+                        now - timedelta(hours=24)
+                    ),
+                    "overall_7": self._uptime_window_pipeline(
+                        now - timedelta(days=7)
+                    ),
+                    "overall_30": self._uptime_window_pipeline(
+                        now - timedelta(days=30)
+                    ),
+                    "overall_90": self._uptime_window_pipeline(start_90_days),
+                }
+            },
+        ]
+        results = await self.collection.aggregate(pipeline).to_list(1)
+        return results[0] if results else {}
+
+    @staticmethod
+    def _uptime_window_pipeline(started_at: datetime) -> list[dict[str, Any]]:
+        return [
+            {"$match": {"checked_at": {"$gte": started_at}}},
+            {
+                "$group": {
+                    "_id": "$monitor_id",
+                    "total": {"$sum": 1},
+                    "successful": {"$sum": {"$cond": ["$success", 1, 0]}},
+                }
+            },
+            {
+                "$project": {
+                    "uptime_percentage": {
+                        "$multiply": [
+                            {"$divide": ["$successful", "$total"]},
+                            100,
+                        ]
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "uptime_percentage": {"$avg": "$uptime_percentage"},
+                }
+            },
+        ]
+
+    async def get_public_response_time(
+        self,
+        monitor_id: str,
+        now: datetime,
+    ) -> dict[str, Any]:
+        pipeline = [
+            {
+                "$match": {
+                    "monitor_id": monitor_id,
+                    "checked_at": {"$gte": now - timedelta(hours=24)},
+                    "response_time_ms": {"$ne": None},
+                }
+            },
+            {
+                "$facet": {
+                    "points": [
+                        {
+                            "$group": {
+                                "_id": {
+                                    "$dateTrunc": {
+                                        "date": "$checked_at",
+                                        "unit": "minute",
+                                        "binSize": 15,
+                                        "timezone": "UTC",
+                                    }
+                                },
+                                "response_time_ms": {"$avg": "$response_time_ms"},
+                            }
+                        },
+                        {"$sort": {"_id": 1}},
+                    ],
+                    "metrics": [
+                        {
+                            "$group": {
+                                "_id": None,
+                                "average_ms": {"$avg": "$response_time_ms"},
+                                "maximum_ms": {"$max": "$response_time_ms"},
+                                "minimum_ms": {"$min": "$response_time_ms"},
+                            }
+                        }
+                    ],
+                }
+            },
+        ]
+        results = await self.collection.aggregate(pipeline).to_list(1)
+        return results[0] if results else {"points": [], "metrics": []}
 
     async def count_slow_checks(self, monitor_id: str) -> int:
         return await self.collection.count_documents(
