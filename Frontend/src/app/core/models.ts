@@ -76,6 +76,7 @@ export interface DashboardActivity {
 export interface ResourceRecord {
   id: string;
   name: string;
+  monitor_type?: string;
   status?: string;
   is_active?: boolean;
   url?: string;

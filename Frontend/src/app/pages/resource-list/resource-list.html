@@ -6,7 +6,9 @@
   </div>
   <div class="header-actions">
     <span class="record-count">{{ records().length }} configured</span>
-    <a class="new-button" [routerLink]="newUrl()">+ New</a>
+    @if (canManage()) {
+      <a class="new-button" [routerLink]="newUrl()">+ New</a>
+    }
   </div>
 </header>
 
@@ -50,26 +52,28 @@
             </div>
           </div>
         }
-        <div class="card-actions">
-          @if (overview(record); as stats) {
+        @if (canManage()) {
+          <div class="card-actions">
+            @if (overview(record); as stats) {
+              <button
+                class="toggle-button"
+                type="button"
+                (click)="toggleActive(record)"
+                [disabled]="updatingId() === record.id"
+              >
+                {{ updatingId() === record.id ? 'Updating…' : stats.is_active ? 'Pause' : 'Start' }}
+              </button>
+            }
             <button
-              class="toggle-button"
+              class="delete-button"
               type="button"
-              (click)="toggleActive(record)"
-              [disabled]="updatingId() === record.id"
+              (click)="deleteResource(record)"
+              [disabled]="deletingId() === record.id"
             >
-              {{ updatingId() === record.id ? 'Updating…' : stats.is_active ? 'Pause' : 'Start' }}
+              {{ deletingId() === record.id ? 'Deleting…' : 'Delete' }}
             </button>
-          }
-          <button
-            class="delete-button"
-            type="button"
-            (click)="deleteResource(record)"
-            [disabled]="deletingId() === record.id"
-          >
-            {{ deletingId() === record.id ? 'Deleting…' : 'Delete' }}
-          </button>
-        </div>
+          </div>
+        }
       </div>
 
       @if (overview(record); as stats) {

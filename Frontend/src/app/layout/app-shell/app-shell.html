@@ -18,14 +18,15 @@
       <p class="nav-label">Workspace</p>
       <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()"> Dashboard </a>
 
+      <p class="nav-label">Monitoring</p>
+      <a routerLink="/monitors/http" routerLinkActive="active" (click)="closeMenu()">HTTP</a>
+      <a routerLink="/monitors/api" routerLinkActive="active" (click)="closeMenu()">API</a>
+      <a routerLink="/monitors/ping" routerLinkActive="active" (click)="closeMenu()">Ping</a>
+      <a routerLink="/monitors/heartbeat" routerLinkActive="active" (click)="closeMenu()"
+        >Heartbeat</a
+      >
+
       @if (auth.user()?.role === 'admin') {
-        <p class="nav-label">Monitoring</p>
-        <a routerLink="/monitors/http" routerLinkActive="active" (click)="closeMenu()">HTTP</a>
-        <a routerLink="/monitors/api" routerLinkActive="active" (click)="closeMenu()">API</a>
-        <a routerLink="/monitors/ping" routerLinkActive="active" (click)="closeMenu()">Ping</a>
-        <a routerLink="/monitors/heartbeat" routerLinkActive="active" (click)="closeMenu()"
-          >Heartbeat</a
-        >
         <a routerLink="/status-pages" routerLinkActive="active" (click)="closeMenu()"
           >Status pages</a
         >

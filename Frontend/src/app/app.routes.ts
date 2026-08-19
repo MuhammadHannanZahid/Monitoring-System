@@ -41,13 +41,11 @@ export const routes: Routes = [
       {
         path: 'monitors/http/:id',
         component: MonitorDetailPage,
-        canActivate: [adminGuard],
         data: { backUrl: '/monitors/http' },
       },
       {
         path: 'monitors/http',
         component: ResourceListPage,
-        canActivate: [adminGuard],
         data: {
           title: 'HTTP monitors',
           description: 'Website and HTTP endpoint availability checks.',
@@ -69,13 +67,11 @@ export const routes: Routes = [
       {
         path: 'monitors/api/:id',
         component: MonitorDetailPage,
-        canActivate: [adminGuard],
         data: { backUrl: '/monitors/api' },
       },
       {
         path: 'monitors/api',
         component: ResourceListPage,
-        canActivate: [adminGuard],
         data: {
           title: 'API monitors',
           description: 'Request, response, and protected API checks.',
@@ -97,13 +93,11 @@ export const routes: Routes = [
       {
         path: 'monitors/ping/:id',
         component: MonitorDetailPage,
-        canActivate: [adminGuard],
         data: { backUrl: '/monitors/ping' },
       },
       {
         path: 'monitors/ping',
         component: ResourceListPage,
-        canActivate: [adminGuard],
         data: {
           title: 'Ping monitors',
           description: 'Operating-system ICMP host checks.',
@@ -129,13 +123,11 @@ export const routes: Routes = [
       {
         path: 'monitors/heartbeat/:id',
         component: MonitorDetailPage,
-        canActivate: [adminGuard],
         data: { backUrl: '/monitors/heartbeat' },
       },
       {
         path: 'monitors/heartbeat',
         component: ResourceListPage,
-        canActivate: [adminGuard],
         data: {
           title: 'Heartbeat monitors',
           description: 'Passive client heartbeat listeners.',

@@ -119,6 +119,31 @@ async def lifespan(app: FastAPI):
                 )
             except NotFoundError:
                 pass
+        viewer_resources = {
+            "HTTP": [],
+            "API": [],
+            "ping": [],
+            "heartbeat": [],
+            "auth_profiles": [],
+            "users": [],
+            "status_pages": [],
+        }
+        for overview in overviews:
+            monitor_type = overview.monitor_type
+            if monitor_type not in viewer_resources:
+                continue
+            viewer_resources[monitor_type].append(
+                {
+                    "id": overview.id,
+                    "name": overview.name,
+                    "monitor_type": monitor_type,
+                    "status": overview.status,
+                    "is_active": overview.is_active,
+                    "created_at": overview.created_at,
+                    "last_checked_at": overview.last_checked_at,
+                }
+            )
+
         common = {
             "generated_at": datetime.now(timezone.utc),
             "summary": summary,
@@ -126,6 +151,7 @@ async def lifespan(app: FastAPI):
             "activity": activity,
             "overviews": overviews,
             "changed_monitor_details": changed_monitor_details,
+            "resources": viewer_resources,
         }
         admin = common
         if include_admin:

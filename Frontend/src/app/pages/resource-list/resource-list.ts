@@ -1,8 +1,9 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { MonitorOverview, RealtimeResources, ResourceRecord } from '../../core/models';
 import { RealtimeService } from '../../core/realtime.service';
 
@@ -16,6 +17,7 @@ export class ResourceListPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
   readonly title = signal('Resources');
@@ -33,6 +35,7 @@ export class ResourceListPage {
   readonly message = signal('');
   readonly heartbeatToken = signal('');
   readonly noticeLeaving = signal(false);
+  readonly canManage = computed(() => this.auth.user()?.role === 'admin');
   private readonly resourceType = signal<keyof RealtimeResources | null>(null);
   private noticeTimer: ReturnType<typeof setTimeout> | undefined;
   private noticeRemovalTimer: ReturnType<typeof setTimeout> | undefined;
@@ -61,8 +64,27 @@ export class ResourceListPage {
 
     this.realtime.snapshots$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((snapshot) => {
       const resourceType = this.resourceType();
-      if (!resourceType || !snapshot.resources) return;
-      this.records.set(snapshot.resources[resourceType] as ResourceRecord[]);
+      if (!resourceType) return;
+      const resources = snapshot.resources?.[resourceType];
+      if (resources) {
+        this.records.set(resources as ResourceRecord[]);
+      } else if (this.isMonitorResource(resourceType)) {
+        this.records.set(
+          snapshot.overviews
+            .filter((overview) => overview.monitor_type === resourceType)
+            .map((overview) => ({
+              id: overview.id,
+              name: overview.name,
+              monitor_type: overview.monitor_type,
+              status: overview.status,
+              is_active: overview.is_active,
+              created_at: overview.created_at,
+              last_checked_at: overview.last_checked_at,
+            })),
+        );
+      } else {
+        return;
+      }
       this.overviews.set(
         Object.fromEntries(snapshot.overviews.map((overview) => [overview.id, overview])),
       );
@@ -76,11 +98,18 @@ export class ResourceListPage {
     if (record.host) return record.host;
     if (record.login_url) return record.login_url;
     if (record.expected_heartbeat_interval) return `Every ${record.expected_heartbeat_interval}s`;
+    if (record.monitor_type) return `${record.monitor_type} monitor`;
     return 'Configured';
   }
 
   overview(record: ResourceRecord): MonitorOverview | undefined {
     return this.overviews()[record.id];
+  }
+
+  private isMonitorResource(
+    resourceType: keyof RealtimeResources,
+  ): resourceType is 'HTTP' | 'API' | 'ping' | 'heartbeat' {
+    return ['HTTP', 'API', 'ping', 'heartbeat'].includes(resourceType);
   }
 
   deleteResource(record: ResourceRecord): void {
