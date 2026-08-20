@@ -10,7 +10,7 @@ import { RealtimeService } from '../../services/realtime.service';
 @Component({
   selector: 'app-resource-list-page',
   imports: [DatePipe, DecimalPipe, RouterLink],
-  templateUrl: './resource-list.html',
+  templateUrl: './monitor-list.html',
 })
 export class ResourceListPage {
   private readonly route = inject(ActivatedRoute);
