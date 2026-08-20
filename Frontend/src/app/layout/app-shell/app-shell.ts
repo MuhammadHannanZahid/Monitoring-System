@@ -8,7 +8,7 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-shell',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './app-shell.html',
-  styleUrl: './app-shell.scss',
+  styleUrl: './app-shell.css',
 })
 export class AppShell {
   readonly auth = inject(AuthService);

@@ -41,6 +41,10 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  status-test:
+    image: kennethreitz/httpbin
+    restart: unless-stopped
+
 volumes:
   backend_logs:
   mongodb_data:

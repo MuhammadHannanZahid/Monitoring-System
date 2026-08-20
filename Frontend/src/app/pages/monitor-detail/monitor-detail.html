@@ -172,7 +172,12 @@
         </div>
         <div class="incident-reason">
           <strong>{{ incident.reason }}</strong
-          ><span>Incident ID {{ incident.id }}</span>
+          ><span>
+            @if (incident.status_code !== null) {
+              HTTP {{ incident.status_code }} ·
+            }
+            Incident ID {{ incident.id }}
+          </span>
         </div>
         <dl>
           <div>

@@ -125,6 +125,12 @@
                 {{ incident.resolved_at ? 'Resolved' : 'Open' }} ·
                 {{ incidentDuration(incident) }}
               </p>
+              <small>
+                @if (incident.status_code !== null) {
+                  HTTP {{ incident.status_code }} ·
+                }
+                {{ incident.reason }}
+              </small>
             </div>
             <time>{{ incident.started_at | date: 'MMM d' }}</time>
           </article>

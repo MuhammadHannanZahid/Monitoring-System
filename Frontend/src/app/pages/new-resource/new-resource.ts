@@ -12,7 +12,7 @@ type ResourceKind = 'http' | 'api' | 'ping' | 'heartbeat' | 'auth-profile';
   selector: 'app-new-resource-page',
   imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet],
   templateUrl: './new-resource.html',
-  styleUrl: './new-resource.scss',
+  styleUrl: './new-resource.css',
 })
 export class NewResourcePage {
   private readonly fb = inject(FormBuilder);

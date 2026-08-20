@@ -13,6 +13,8 @@ class PingChecker:
         success = False
         status = MonitorStatus.DOWN
         is_slow = False
+        error = None
+        timed_out = False
         try:
             process = await asyncio.create_subprocess_exec(
                 "ping",
@@ -63,6 +65,10 @@ class PingChecker:
                     )
                 else:
                     error_output = stderr.decode().strip() or stdout.decode().strip()
+                    error = (
+                        "The target did not answer ICMP ping and no TCP connection "
+                        f"could be established on ports 443, 53, or 80. {error_output}"
+                    ).strip()
                     logger.warning(
                         "Ping monitor '%s' failed ICMP and TCP reachability checks: %s",
                         monitor.name,
@@ -71,9 +77,12 @@ class PingChecker:
 
         except asyncio.TimeoutError:
             response_time_ms = monitor.timeout * 1000
+            timed_out = True
+            error = f"The ping check did not complete within {monitor.timeout} seconds."
             logger.warning("Ping monitor '%s' timed out.", monitor.name)
 
         except Exception as exc:
+            error = f"The ping check failed: {exc}."
             logger.warning("Ping monitor '%s' failed: %s", monitor.name, exc)
 
         return HealthCheckResponse(
@@ -83,6 +92,8 @@ class PingChecker:
             response_time_ms=response_time_ms,
             success=success,
             is_slow=is_slow,
+            error=error,
+            timed_out=timed_out,
         )
 
     async def close(self) -> None:

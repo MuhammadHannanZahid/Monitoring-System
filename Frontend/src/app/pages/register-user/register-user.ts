@@ -9,7 +9,7 @@ import { CreateUserRequest, UserResponse } from '../../core/models';
   selector: 'app-register-user-page',
   imports: [ReactiveFormsModule],
   templateUrl: './register-user.html',
-  styleUrl: './register-user.scss',
+  styleUrl: './register-user.css',
 })
 export class RegisterUserPage {
   private readonly fb = inject(FormBuilder);

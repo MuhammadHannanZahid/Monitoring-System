@@ -293,8 +293,17 @@ class StatusPageManager:
     def _recent_events(overview, incidents) -> list[PublicMonitorEventResponse]:
         events = []
         for incident in incidents:
-            status_code_match = re.search(r"got HTTP (\d+)", incident.reason)
-            status_code = int(status_code_match.group(1)) if status_code_match else None
+            status_code = incident.status_code
+            if status_code is None:
+                status_code_match = re.search(
+                    r"(?:got|received) HTTP (\d+)",
+                    incident.reason,
+                )
+                status_code = (
+                    int(status_code_match.group(1))
+                    if status_code_match
+                    else None
+                )
             events.append(
                 PublicMonitorEventResponse(
                     event_id=f"{incident.id}:down",

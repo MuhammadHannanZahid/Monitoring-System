@@ -10,7 +10,7 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-status-page-editor',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './status-page-editor.html',
-  styleUrl: './status-page-editor.scss',
+  styleUrl: './status-page-editor.css',
 })
 export class StatusPageEditorPage {
   private readonly api = inject(ApiService);

@@ -197,7 +197,7 @@ footer {
 }
 
 .monitor-row:last-child {
-  border-bottom: 0;
+  border: 0;
 }
 
 .monitor-name {

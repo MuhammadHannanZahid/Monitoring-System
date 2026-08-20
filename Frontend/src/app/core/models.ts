@@ -61,6 +61,7 @@ export interface DashboardIncident {
   resolved_at: string | null;
   duration_seconds: number | null;
   reason: string;
+  status_code: number | null;
 }
 
 export interface DashboardActivity {
@@ -189,6 +190,7 @@ export interface MonitorIncident {
   id: string;
   status: 'open' | 'resolved';
   reason: string;
+  status_code: number | null;
   started_at: string;
   resolved_at: string | null;
   duration_seconds: number;

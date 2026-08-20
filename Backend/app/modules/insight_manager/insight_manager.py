@@ -69,6 +69,7 @@ class DashboardManager:
                     resolved_at=incident.resolved_at,
                     duration_seconds=incident.duration_seconds,
                     reason=incident.reason,
+                    status_code=incident.status_code,
                 )
             )
         return results
@@ -173,6 +174,7 @@ class DashboardManager:
                     id=incident.id,
                     status="resolved" if incident.is_resolved else "open",
                     reason=incident.reason,
+                    status_code=incident.status_code,
                     started_at=incident.started_at,
                     resolved_at=incident.resolved_at,
                     duration_seconds=incident.duration_seconds,

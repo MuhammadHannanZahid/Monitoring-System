@@ -14,7 +14,13 @@ class IncidentManager:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.INCIDENTS]
 
-    async def open_incident(self, monitor_id: str, monitor_type: MonitorType, reason: str | None = None) -> None:
+    async def open_incident(
+        self,
+        monitor_id: str,
+        monitor_type: MonitorType,
+        reason: str,
+        status_code: int | None = None,
+    ) -> None:
         active = await self.get_active_incident(monitor_id, monitor_type)
         if active is not None:
             return
@@ -26,6 +32,7 @@ class IncidentManager:
             resolved_at=None,
             is_resolved=False,
             reason=reason,
+            status_code=status_code,
         )
         document = incident.model_dump()
         document.pop("id", None)

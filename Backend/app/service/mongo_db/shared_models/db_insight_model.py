@@ -23,11 +23,13 @@ class DashboardIncidentResponse(BaseModel):
     resolved_at: datetime | None
     duration_seconds: int | None
     reason: str
+    status_code: int | None = None
 
 class MonitorIncidentResponse(BaseModel):
     id: str
     status: Literal["open", "resolved"]
     reason: str
+    status_code: int | None = None
     started_at: datetime
     resolved_at: datetime | None
     duration_seconds: int
