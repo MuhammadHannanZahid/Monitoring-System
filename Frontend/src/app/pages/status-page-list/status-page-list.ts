@@ -56,10 +56,10 @@ export class StatusPageListPage {
     if (!window.confirm(`Delete “${page.name}”? Its public link will stop working.`)) return;
     this.deletingId.set(page.id);
     this.api.delete<null>(`/status-pages/${page.id}`).subscribe({
-      next: (response) => {
+      next: () => {
         this.pages.update((pages) => pages.filter((item) => item.id !== page.id));
         this.deletingId.set('');
-        this.showNotice(response.message);
+        this.showNotice(`Status page “${page.name}” deleted.`);
       },
       error: (error: unknown) => {
         this.deletingId.set('');
@@ -77,7 +77,7 @@ export class StatusPageListPage {
       this.noticeRemovalTimer = setTimeout(() => {
         this.message.set('');
         this.noticeLeaving.set(false);
-      }, 260);
+      }, 300);
     }, 4000);
   }
 

@@ -75,10 +75,10 @@ export class UserListPage {
     if (!window.confirm(`Delete “${user.username}”? This action cannot be undone.`)) return;
     this.deletingId.set(user.id);
     this.api.delete<null>(`/users/${user.id}/delete`).subscribe({
-      next: (response) => {
+      next: () => {
         this.users.update((users) => users.filter((item) => item.id !== user.id));
         this.deletingId.set('');
-        this.showNotice(response.message);
+        this.showNotice(`Viewer “${user.username}” deleted.`);
       },
       error: (error: unknown) => {
         this.error.set(ApiService.errorMessage(error));
@@ -96,7 +96,7 @@ export class UserListPage {
       this.noticeRemovalTimer = setTimeout(() => {
         this.message.set('');
         this.noticeLeaving.set(false);
-      }, 260);
+      }, 300);
     }, 4000);
   }
 

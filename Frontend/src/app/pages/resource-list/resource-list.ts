@@ -117,9 +117,9 @@ export class ResourceListPage {
     this.deletingId.set(record.id);
     const endpoint = this.deletePath().replace(':id', record.id);
     this.api.delete<null>(endpoint).subscribe({
-      next: (response) => {
+      next: () => {
         this.records.update((records) => records.filter((item) => item.id !== record.id));
-        this.showNotice(response.message);
+        this.showNotice(`${this.resourceLabel()} “${record.name}” deleted.`);
         this.deletingId.set('');
       },
       error: (error: unknown) => {
@@ -137,7 +137,7 @@ export class ResourceListPage {
     this.api
       .put<unknown, { is_active: boolean }>(endpoint, { is_active: !stats.is_active })
       .subscribe({
-        next: (response) => {
+        next: () => {
           const isActive = !stats.is_active;
           this.overviews.update((overviews) => ({
             ...overviews,
@@ -148,7 +148,7 @@ export class ResourceListPage {
               item.id === record.id ? { ...item, is_active: isActive } : item,
             ),
           );
-          this.showNotice(response.message);
+          this.showNotice(`“${record.name}” ${isActive ? 'started' : 'paused'}.`);
           this.updatingId.set('');
         },
         error: (error: unknown) => {
@@ -170,7 +170,7 @@ export class ResourceListPage {
           this.message.set('');
           this.heartbeatToken.set('');
           this.noticeLeaving.set(false);
-        }, 260);
+        }, 300);
       },
       heartbeatToken ? 12000 : 4000,
     );
@@ -179,6 +179,23 @@ export class ResourceListPage {
   private clearNoticeTimers(): void {
     if (this.noticeTimer) clearTimeout(this.noticeTimer);
     if (this.noticeRemovalTimer) clearTimeout(this.noticeRemovalTimer);
+  }
+
+  private resourceLabel(): string {
+    switch (this.resourceType()) {
+      case 'HTTP':
+        return 'HTTP monitor';
+      case 'API':
+        return 'API monitor';
+      case 'ping':
+        return 'Ping monitor';
+      case 'heartbeat':
+        return 'Heartbeat monitor';
+      case 'auth_profiles':
+        return 'Auth profile';
+      default:
+        return 'Resource';
+    }
   }
 
   formatDuration(totalSeconds: number): string {

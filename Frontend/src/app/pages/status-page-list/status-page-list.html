@@ -17,7 +17,14 @@
   <p class="form-error">{{ error() }}</p>
 }
 @if (message()) {
-  <div class="notification" [class.leaving]="noticeLeaving()">{{ message() }}</div>
+  <div
+    class="notification app-notification"
+    [class.leaving]="noticeLeaving()"
+    role="status"
+    aria-live="polite"
+  >
+    {{ message() }}
+  </div>
 }
 
 <section class="page-grid">

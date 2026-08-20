@@ -158,6 +158,47 @@ a {
   color: white;
 }
 
+.app-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  width: min(360px, calc(100vw - 40px));
+  margin: 0;
+  padding: 13px 15px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  box-shadow: 6px 6px 0 rgb(0 0 0 / 12%);
+  color: white;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 1;
+  overflow-wrap: anywhere;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 280ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: notification-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+.app-notification--wide {
+  width: min(520px, calc(100vw - 40px));
+}
+
+.app-notification.leaving {
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(18px, -6px, 0) scale(0.98);
+}
+
+@keyframes notification-in {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, -6px, 0) scale(0.98);
+  }
+}
+
 .panel {
   border: 1px solid var(--line);
   background: white;

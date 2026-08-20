@@ -19,7 +19,13 @@
   <p class="form-error">{{ error() }}</p>
 }
 @if (message() || heartbeatToken()) {
-  <div class="notification" [class.leaving]="noticeLeaving()">
+  <div
+    class="notification app-notification"
+    [class.app-notification--wide]="heartbeatToken()"
+    [class.leaving]="noticeLeaving()"
+    role="status"
+    aria-live="polite"
+  >
     @if (message()) {
       <strong>{{ message() }}</strong>
     }

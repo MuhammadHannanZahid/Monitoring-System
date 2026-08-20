@@ -38,35 +38,12 @@ header {
 }
 
 .loading-line,
-.form-error,
-.notification {
+.form-error {
   margin-bottom: 16px;
 }
 
 .notification {
-  padding: 16px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: white;
   font-size: 12px;
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease;
-  animation: notice-in 260ms ease both;
-}
-
-.notification.leaving {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-@keyframes notice-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
 }
 
 .page-grid {
