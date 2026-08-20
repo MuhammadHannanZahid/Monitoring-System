@@ -2,10 +2,10 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
-import { MonitorOverview, RealtimeResources, ResourceRecord } from '../../core/models';
-import { RealtimeService } from '../../core/realtime.service';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { MonitorOverview, RealtimeResources, ResourceRecord } from '../../models/models';
+import { RealtimeService } from '../../services/realtime.service';
 
 @Component({
   selector: 'app-resource-list-page',

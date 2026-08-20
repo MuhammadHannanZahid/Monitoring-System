@@ -2,9 +2,9 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiService } from '../../core/api.service';
-import { MonitorOverview, StatusPage } from '../../core/models';
-import { RealtimeService } from '../../core/realtime.service';
+import { ApiService } from '../../services/api.service';
+import { MonitorOverview, StatusPage } from '../../models/models';
+import { RealtimeService } from '../../services/realtime.service';
 
 @Component({
   selector: 'app-status-page-editor',

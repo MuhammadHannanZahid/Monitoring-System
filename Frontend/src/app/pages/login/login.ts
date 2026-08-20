@@ -2,8 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login-page',

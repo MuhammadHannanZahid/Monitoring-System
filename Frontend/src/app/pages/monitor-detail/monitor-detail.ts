@@ -3,7 +3,7 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
-import { ApiService } from '../../core/api.service';
+import { ApiService } from '../../services/api.service';
 import {
   MonitorDetail,
   MonitorIncident,
@@ -13,8 +13,8 @@ import {
   ResponseHistoryPoint,
   StatusHistory,
   StatusHistoryPoint,
-} from '../../core/models';
-import { RealtimeService } from '../../core/realtime.service';
+} from '../../models/models';
+import { RealtimeService } from '../../services/realtime.service';
 
 interface ChartPoint<T> {
   data: T;

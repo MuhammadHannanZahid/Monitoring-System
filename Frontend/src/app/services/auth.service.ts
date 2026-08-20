@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, switchMap, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import { CurrentUser, LoginRequest, TokenResponse } from './models';
+import { CurrentUser, LoginRequest, TokenResponse } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

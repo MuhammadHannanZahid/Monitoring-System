@@ -2,9 +2,9 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { ApiService } from '../../core/api.service';
-import { UserResponse } from '../../core/models';
-import { RealtimeService } from '../../core/realtime.service';
+import { ApiService } from '../../services/api.service';
+import { UserResponse } from '../../models/models';
+import { RealtimeService } from '../../services/realtime.service';
 
 @Component({
   selector: 'app-user-list-page',
