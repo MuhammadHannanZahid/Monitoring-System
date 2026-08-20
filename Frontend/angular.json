@@ -10,7 +10,7 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "css"
+          "style": "none"
         }
       },
       "root": "",
@@ -29,7 +29,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": ["src/tailwind.css"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {

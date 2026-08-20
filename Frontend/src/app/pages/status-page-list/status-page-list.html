@@ -1,73 +1,79 @@
-<header>
-  <div>
-    <p class="eyebrow">Publishing</p>
-    <h1 class="page-title">Status pages</h1>
-    <p class="page-description">Group selected monitors into public, live service-health pages.</p>
-  </div>
-  <div class="header-actions">
-    <span>{{ pages().length }} configured</span>
-    <a class="new-button" routerLink="/status-pages/new">+ New</a>
-  </div>
-</header>
+<div
+  class="tw:[&_header]:mb-[38px] tw:[&_header]:flex tw:[&_header]:items-end tw:[&_header]:justify-between tw:[&_header]:gap-[30px] tw:max-[700px]:[&_header]:flex-col tw:max-[700px]:[&_header]:items-start tw:[&_.header-actions]:flex tw:[&_.header-actions]:items-center tw:[&_.header-actions]:gap-[18px] tw:max-[700px]:[&_.header-actions]:w-full tw:max-[700px]:[&_.header-actions]:justify-between tw:[&_.header-actions_span]:font-mono tw:[&_.header-actions_span]:text-[10px] tw:[&_.header-actions_span]:whitespace-nowrap tw:[&_.header-actions_span]:text-[#686868] tw:[&_.new-button]:inline-grid tw:[&_.new-button]:min-h-10 tw:[&_.new-button]:place-items-center tw:[&_.new-button]:border tw:[&_.new-button]:border-[#0a0a0a] tw:[&_.new-button]:bg-[#0a0a0a] tw:[&_.new-button]:px-[17px] tw:[&_.new-button]:text-[11px] tw:[&_.new-button]:font-bold tw:[&_.new-button]:text-white tw:[&_.new-button]:no-underline tw:[&_.new-button:hover]:bg-white tw:[&_.new-button:hover]:text-[#0a0a0a] tw:[&_.loading-line]:mb-4 tw:[&_.form-error]:mb-4 tw:[&_.notification]:text-xs tw:[&_.page-grid]:grid tw:[&_.page-grid]:grid-cols-[repeat(auto-fill,minmax(330px,1fr))] tw:[&_.page-grid]:gap-4 tw:max-[700px]:[&_.page-grid]:grid-cols-1 tw:[&_.status-page-card]:grid tw:[&_.status-page-card]:min-w-0 tw:[&_.status-page-card]:gap-5 tw:[&_.status-page-card]:p-5 tw:[&_.card-heading]:flex tw:[&_.card-heading]:items-start tw:[&_.card-heading]:justify-between tw:[&_.card-heading]:gap-4 tw:[&_.card-heading>div]:flex tw:[&_.card-heading>div]:min-w-0 tw:[&_.card-heading>div]:items-center tw:[&_.card-heading>div]:gap-3 tw:[&_.page-mark]:grid tw:[&_.page-mark]:size-9 tw:[&_.page-mark]:flex-none tw:[&_.page-mark]:place-items-center tw:[&_.page-mark]:border tw:[&_.page-mark]:border-[#0a0a0a] tw:[&_.page-mark]:text-[11px] tw:[&_.page-mark]:font-extrabold tw:[&_.card-heading_h2]:m-0 tw:[&_.card-heading_h2]:text-[13px] tw:[&_.card-heading_p]:mt-[5px] tw:[&_.card-heading_p]:mb-0 tw:[&_.card-heading_p]:line-clamp-2 tw:[&_.card-heading_p]:overflow-hidden tw:[&_.card-heading_p]:text-[10px] tw:[&_.card-heading_p]:leading-normal tw:[&_.card-heading_p]:text-[#686868] tw:[&_.monitor-count]:flex-none tw:[&_.monitor-count]:bg-[#f5f5f3] tw:[&_.monitor-count]:px-1.5 tw:[&_.monitor-count]:py-1 tw:[&_.monitor-count]:text-[8px] tw:[&_.monitor-count]:text-[#686868] tw:[&_.monitor-count]:uppercase tw:[&_.monitor-list]:min-w-0 tw:[&_.monitor-list]:border tw:[&_.monitor-list]:border-[#dedede] tw:[&_.monitor-list]:p-[13px] tw:[&_.monitor-list_span]:text-[8px] tw:[&_.monitor-list_span]:text-[#686868] tw:[&_.monitor-list_span]:uppercase tw:[&_.monitor-list_p]:mt-2 tw:[&_.monitor-list_p]:mb-0 tw:[&_.monitor-list_p]:text-[10px] tw:[&_.monitor-list_p]:leading-[1.55] tw:[&_.monitor-list_p]:[overflow-wrap:anywhere] tw:[&_.meta]:flex tw:[&_.meta]:items-center tw:[&_.meta]:justify-between tw:[&_.meta]:gap-3 tw:[&_.meta]:font-mono tw:[&_.meta]:text-[8px] tw:[&_.meta]:text-[#686868] tw:[&_.meta_span:last-child]:overflow-hidden tw:[&_.meta_span:last-child]:text-ellipsis tw:[&_.meta_span:last-child]:whitespace-nowrap tw:[&_.card-actions]:flex tw:[&_.card-actions]:flex-wrap tw:[&_.card-actions]:items-center tw:[&_.card-actions]:gap-4 tw:[&_.card-actions_a]:cursor-pointer tw:[&_.card-actions_a]:border-b tw:[&_.card-actions_a]:border-[#aaa] tw:[&_.card-actions_a]:py-[5px] tw:[&_.card-actions_a]:text-[9px] tw:[&_.card-actions_a]:text-[#686868] tw:[&_.card-actions_a]:no-underline tw:[&_.card-actions_button]:cursor-pointer tw:[&_.card-actions_button]:border-0 tw:[&_.card-actions_button]:border-b tw:[&_.card-actions_button]:border-[#aaa] tw:[&_.card-actions_button]:bg-transparent tw:[&_.card-actions_button]:py-[5px] tw:[&_.card-actions_button]:text-[9px] tw:[&_.card-actions_button]:text-[#686868] tw:[&_.public-link]:border-[#0a0a0a] tw:[&_.public-link]:font-bold tw:[&_.public-link]:text-[#0a0a0a] tw:[&_.card-actions_button:disabled]:cursor-wait tw:[&_.card-actions_button:disabled]:opacity-50 tw:[&_.empty-state]:col-span-full"
+>
+  <header>
+    <div>
+      <p class="eyebrow">Publishing</p>
+      <h1 class="page-title">Status pages</h1>
+      <p class="page-description">
+        Group selected monitors into public, live service-health pages.
+      </p>
+    </div>
+    <div class="header-actions">
+      <span>{{ pages().length }} configured</span>
+      <a class="new-button" routerLink="/status-pages/new">+ New</a>
+    </div>
+  </header>
 
-@if (loading()) {
-  <div class="loading-line"></div>
-}
-@if (error()) {
-  <p class="form-error">{{ error() }}</p>
-}
-@if (message()) {
-  <div
-    class="notification app-notification"
-    [class.leaving]="noticeLeaving()"
-    role="status"
-    aria-live="polite"
-  >
-    {{ message() }}
-  </div>
-}
-
-<section class="page-grid">
-  @for (page of pages(); track page.id) {
-    <article class="panel status-page-card">
-      <div class="card-heading">
-        <div>
-          <span class="page-mark">S</span>
-          <div>
-            <h2>{{ page.name }}</h2>
-            <p>{{ page.description || 'No public description.' }}</p>
-          </div>
-        </div>
-        <span class="monitor-count">{{ page.monitor_count }} monitors</span>
-      </div>
-
-      <div class="monitor-list">
-        <span>Included monitors</span>
-        @if (monitorNames(page).length) {
-          <p>{{ monitorNames(page).join(' · ') }}</p>
-        } @else {
-          <p>No monitors selected</p>
-        }
-      </div>
-
-      <div class="meta">
-        <span>Created {{ page.created_at | date: 'MMM d, y' }}</span>
-        <span>/status/{{ page.slug }}</span>
-      </div>
-
-      <div class="card-actions">
-        <a class="public-link" [href]="page.public_path" target="_blank" rel="noopener">
-          Open public page ↗
-        </a>
-        <a [routerLink]="['/status-pages', page.id, 'edit']">Edit</a>
-        <button type="button" (click)="deletePage(page)" [disabled]="deletingId() === page.id">
-          {{ deletingId() === page.id ? 'Deleting…' : 'Delete' }}
-        </button>
-      </div>
-    </article>
-  } @empty {
-    @if (!loading() && !error()) {
-      <div class="empty-state panel">No status pages have been created yet.</div>
-    }
+  @if (loading()) {
+    <div class="loading-line"></div>
   }
-</section>
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+  @if (message()) {
+    <div
+      class="notification app-notification"
+      [class.leaving]="noticeLeaving()"
+      role="status"
+      aria-live="polite"
+    >
+      {{ message() }}
+    </div>
+  }
+
+  <section class="page-grid">
+    @for (page of pages(); track page.id) {
+      <article class="panel status-page-card">
+        <div class="card-heading">
+          <div>
+            <span class="page-mark">S</span>
+            <div>
+              <h2>{{ page.name }}</h2>
+              <p>{{ page.description || 'No public description.' }}</p>
+            </div>
+          </div>
+          <span class="monitor-count">{{ page.monitor_count }} monitors</span>
+        </div>
+
+        <div class="monitor-list">
+          <span>Included monitors</span>
+          @if (monitorNames(page).length) {
+            <p>{{ monitorNames(page).join(' · ') }}</p>
+          } @else {
+            <p>No monitors selected</p>
+          }
+        </div>
+
+        <div class="meta">
+          <span>Created {{ page.created_at | date: 'MMM d, y' }}</span>
+          <span>/status/{{ page.slug }}</span>
+        </div>
+
+        <div class="card-actions">
+          <a class="public-link" [href]="page.public_path" target="_blank" rel="noopener">
+            Open public page ↗
+          </a>
+          <a [routerLink]="['/status-pages', page.id, 'edit']">Edit</a>
+          <button type="button" (click)="deletePage(page)" [disabled]="deletingId() === page.id">
+            {{ deletingId() === page.id ? 'Deleting…' : 'Delete' }}
+          </button>
+        </div>
+      </article>
+    } @empty {
+      @if (!loading() && !error()) {
+        <div class="empty-state panel">No status pages have been created yet.</div>
+      }
+    }
+  </section>
+</div>

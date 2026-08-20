@@ -1,36 +1,82 @@
-<main class="login-page">
-  <section class="intro" aria-label="Product introduction">
-    <a class="brand" href="/login"><span>M</span> MONO MONITOR</a>
+<main
+  class="tw:grid tw:min-h-dvh tw:grid-cols-[minmax(360px,1.05fr)_minmax(420px,0.95fr)] tw:max-[820px]:grid-cols-1"
+>
+  <section
+    class="tw:flex tw:flex-col tw:justify-between tw:bg-[#0a0a0a] tw:p-[clamp(32px,5vw,72px)] tw:text-white tw:max-[820px]:min-h-80 tw:max-[820px]:p-7"
+    aria-label="Product introduction"
+  >
+    <a
+      class="tw:flex tw:items-center tw:gap-[11px] tw:text-[11px] tw:font-extrabold tw:tracking-[0.15em] tw:text-white tw:no-underline"
+      href="/login"
+      ><span
+        class="tw:grid tw:size-[34px] tw:place-items-center tw:rounded-full tw:border tw:border-white"
+        >M</span
+      >
+      MONO MONITOR</a
+    >
     <div>
-      <p class="eyebrow">Monitoring, reduced</p>
-      <h1>Know when<br />it matters.</h1>
-      <p class="lead">A quiet control room for HTTP, API, ping, and heartbeat monitors.</p>
+      <p
+        class="tw:mt-0 tw:mb-2.5 tw:text-[11px] tw:font-bold tw:tracking-[0.14em] tw:text-[#aaa] tw:uppercase"
+      >
+        Monitoring, reduced
+      </p>
+      <h1
+        class="tw:m-0 tw:text-[clamp(58px,7.3vw,108px)] tw:leading-[0.84] tw:font-medium tw:tracking-[-0.075em] tw:max-[820px]:text-[59px]"
+      >
+        Know when<br />it matters.
+      </h1>
+      <p
+        class="tw:mt-[30px] tw:mb-0 tw:max-w-[420px] tw:text-[15px] tw:leading-[1.7] tw:text-[#aaa] tw:max-[820px]:mt-5"
+      >
+        A quiet control room for HTTP, API, ping, and heartbeat monitors.
+      </p>
     </div>
-    <p class="footnote">FastAPI · MongoDB · Angular</p>
+    <p
+      class="tw:m-0 tw:font-mono tw:text-[10px] tw:tracking-[0.08em] tw:text-[#777] tw:max-[820px]:hidden"
+    >
+      FastAPI · MongoDB · Angular
+    </p>
   </section>
 
-  <section class="form-side">
-    <form (ngSubmit)="submit()" [formGroup]="form">
-      <p class="eyebrow">Welcome back</p>
-      <h2>Sign in</h2>
-      <p class="subtext">Use the account provided by your administrator.</p>
+  <section
+    class="tw:grid tw:place-items-center tw:p-10 tw:max-[820px]:px-6 tw:max-[820px]:py-[52px]"
+  >
+    <form class="tw:grid tw:w-[min(100%,390px)] tw:gap-5" (ngSubmit)="submit()" [formGroup]="form">
+      <p
+        class="tw:mt-0 tw:mb-2.5 tw:text-[11px] tw:font-bold tw:tracking-[0.14em] tw:text-[#686868] tw:uppercase"
+      >
+        Welcome back
+      </p>
+      <h2 class="tw:mt-[-3px] tw:mb-0 tw:text-[43px] tw:font-[620] tw:tracking-[-0.05em]">
+        Sign in
+      </h2>
+      <p class="tw:mt-[-9px] tw:mb-4 tw:text-sm tw:text-[#686868]">
+        Use the account provided by your administrator.
+      </p>
 
       @if (error()) {
-        <p class="form-error" role="alert">{{ error() }}</p>
+        <p
+          class="tw:m-0 tw:border tw:border-[#0a0a0a] tw:px-3 tw:py-[11px] tw:text-[13px] tw:leading-[1.45]"
+          role="alert"
+        >
+          {{ error() }}
+        </p>
       }
 
-      <div class="field">
-        <label for="username">Username</label>
+      <div class="tw:grid tw:gap-2">
+        <label class="tw:text-xs tw:font-bold" for="username">Username</label>
         <input
+          class="tw:h-[46px] tw:w-full tw:rounded-[3px] tw:border tw:border-[#bdbdbd] tw:bg-white tw:px-[13px] tw:outline-none tw:focus:border-[#0a0a0a] tw:focus:shadow-[0_0_0_1px_#0a0a0a]"
           id="username"
           formControlName="username"
           autocomplete="username"
           placeholder="your username"
         />
       </div>
-      <div class="field">
-        <label for="password">Password</label>
+      <div class="tw:grid tw:gap-2">
+        <label class="tw:text-xs tw:font-bold" for="password">Password</label>
         <input
+          class="tw:h-[46px] tw:w-full tw:rounded-[3px] tw:border tw:border-[#bdbdbd] tw:bg-white tw:px-[13px] tw:outline-none tw:focus:border-[#0a0a0a] tw:focus:shadow-[0_0_0_1px_#0a0a0a]"
           id="password"
           type="password"
           formControlName="password"
@@ -38,11 +84,18 @@
           placeholder="minimum 8 characters"
         />
       </div>
-      <button class="button" type="submit" [disabled]="loading()">
+      <button
+        class="tw:min-h-11 tw:cursor-pointer tw:rounded-[3px] tw:border tw:border-[#0a0a0a] tw:bg-[#0a0a0a] tw:px-[18px] tw:font-[650] tw:text-white tw:transition-[background,color,transform] tw:duration-140 tw:hover:bg-white tw:hover:text-[#0a0a0a] tw:active:translate-y-px tw:disabled:cursor-wait tw:disabled:opacity-55"
+        type="submit"
+        [disabled]="loading()"
+      >
         {{ loading() ? 'Signing in…' : 'Sign in' }}
       </button>
-      <p class="registration-note">
-        <strong>Need an account?</strong> Registration is managed by an administrator for security.
+      <p
+        class="tw:mt-[5px] tw:mb-0 tw:border-t tw:border-[#dedede] tw:pt-[22px] tw:text-xs tw:leading-[1.55] tw:text-[#686868]"
+      >
+        <strong class="tw:text-[#0a0a0a]">Need an account?</strong> Registration is managed by an
+        administrator for security.
       </p>
     </form>
   </section>

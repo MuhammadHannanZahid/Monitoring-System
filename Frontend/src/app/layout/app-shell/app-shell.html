@@ -1,51 +1,133 @@
-<div class="app-frame tw:min-h-screen">
+<div class="tw:min-h-dvh tw:bg-[#fafafa]">
   <button
-    class="mobile-menu"
+    class="tw:fixed tw:top-5 tw:left-5 tw:z-15 tw:hidden tw:size-10 tw:place-content-center tw:gap-[5px] tw:border tw:border-[#0a0a0a] tw:bg-white tw:max-[780px]:grid"
     type="button"
     (click)="menuOpen.set(!menuOpen())"
     aria-label="Toggle navigation"
   >
-    <span></span><span></span>
+    <span class="tw:block tw:h-px tw:w-[17px] tw:bg-[#0a0a0a]"></span
+    ><span class="tw:block tw:h-px tw:w-[17px] tw:bg-[#0a0a0a]"></span>
   </button>
 
-  <aside class="sidebar" [class.open]="menuOpen()">
-    <a class="brand" routerLink="/dashboard" (click)="closeMenu()">
-      <span class="brand-mark">M</span>
+  <aside
+    class="tw:fixed tw:inset-y-0 tw:left-0 tw:z-20 tw:flex tw:w-[244px] tw:flex-col tw:border-r tw:border-[#dedede] tw:bg-white tw:px-5 tw:pt-[27px] tw:pb-5 tw:max-[780px]:transition-transform tw:max-[780px]:duration-180 tw:max-[780px]:ease-in-out"
+    [class]="menuOpen() ? 'tw:max-[780px]:translate-x-0' : 'tw:max-[780px]:-translate-x-full'"
+  >
+    <a
+      class="tw:mb-[47px] tw:flex tw:items-center tw:gap-3 tw:text-xs tw:leading-[1.15] tw:font-extrabold tw:tracking-[0.09em] tw:no-underline"
+      routerLink="/dashboard"
+      (click)="closeMenu()"
+    >
+      <span
+        class="tw:grid tw:size-[35px] tw:place-items-center tw:rounded-full tw:bg-[#0a0a0a] tw:text-sm tw:text-white"
+        >M</span
+      >
       <span>MONO<br />MONITOR</span>
     </a>
 
-    <nav aria-label="Primary navigation">
-      <p class="nav-label">Workspace</p>
-      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()"> Dashboard </a>
+    <nav class="tw:grid tw:gap-[3px]" aria-label="Primary navigation">
+      <p
+        class="tw:mx-[11px] tw:mt-[21px] tw:mb-[7px] tw:text-[9px] tw:font-extrabold tw:tracking-[0.16em] tw:text-[#999] tw:uppercase"
+      >
+        Workspace
+      </p>
+      <a
+        class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+        routerLink="/dashboard"
+        routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+        (click)="closeMenu()"
+      >
+        Dashboard
+      </a>
 
-      <p class="nav-label">Monitoring</p>
-      <a routerLink="/monitors/http" routerLinkActive="active" (click)="closeMenu()">HTTP</a>
-      <a routerLink="/monitors/api" routerLinkActive="active" (click)="closeMenu()">API</a>
-      <a routerLink="/monitors/ping" routerLinkActive="active" (click)="closeMenu()">Ping</a>
-      <a routerLink="/monitors/heartbeat" routerLinkActive="active" (click)="closeMenu()"
+      <p
+        class="tw:mx-[11px] tw:mt-[21px] tw:mb-[7px] tw:text-[9px] tw:font-extrabold tw:tracking-[0.16em] tw:text-[#999] tw:uppercase"
+      >
+        Monitoring
+      </p>
+      <a
+        class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+        routerLink="/monitors/http"
+        routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+        (click)="closeMenu()"
+        >HTTP</a
+      >
+      <a
+        class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+        routerLink="/monitors/api"
+        routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+        (click)="closeMenu()"
+        >API</a
+      >
+      <a
+        class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+        routerLink="/monitors/ping"
+        routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+        (click)="closeMenu()"
+        >Ping</a
+      >
+      <a
+        class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+        routerLink="/monitors/heartbeat"
+        routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+        (click)="closeMenu()"
         >Heartbeat</a
       >
 
       @if (auth.user()?.role === 'admin') {
-        <a routerLink="/status-pages" routerLinkActive="active" (click)="closeMenu()"
+        <a
+          class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+          routerLink="/status-pages"
+          routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+          (click)="closeMenu()"
           >Status pages</a
         >
 
-        <p class="nav-label">Administration</p>
-        <a routerLink="/auth-profiles" routerLinkActive="active" (click)="closeMenu()"
+        <p
+          class="tw:mx-[11px] tw:mt-[21px] tw:mb-[7px] tw:text-[9px] tw:font-extrabold tw:tracking-[0.16em] tw:text-[#999] tw:uppercase"
+        >
+          Administration
+        </p>
+        <a
+          class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+          routerLink="/auth-profiles"
+          routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+          (click)="closeMenu()"
           >Auth profiles</a
         >
-        <a routerLink="/users" routerLinkActive="active" (click)="closeMenu()">Users</a>
+        <a
+          class="tw:flex tw:min-h-[39px] tw:items-center tw:rounded-[3px] tw:px-2.5 tw:text-[13px] tw:font-[570] tw:text-[#555] tw:no-underline tw:transition-[background,color,transform] tw:duration-180 tw:hover:translate-x-0.5 tw:hover:bg-[#f5f5f3] tw:hover:text-[#0a0a0a]"
+          routerLink="/users"
+          routerLinkActive="tw:bg-[#0a0a0a]! tw:text-white! tw:translate-x-0!"
+          (click)="closeMenu()"
+          >Users</a
+        >
       }
     </nav>
 
-    <div class="account">
-      <div class="avatar">{{ auth.user()?.username?.charAt(0)?.toUpperCase() }}</div>
-      <div class="account-copy">
-        <strong>{{ auth.user()?.username }}</strong>
-        <span>{{ auth.user()?.role }}</span>
+    <div
+      class="tw:mt-auto tw:grid tw:grid-cols-[34px_1fr_30px] tw:items-center tw:gap-2.5 tw:border-t tw:border-[#dedede] tw:pt-[18px]"
+    >
+      <div
+        class="tw:grid tw:size-[34px] tw:place-items-center tw:rounded-full tw:border tw:border-[#0a0a0a] tw:text-xs tw:font-extrabold"
+      >
+        {{ auth.user()?.username?.charAt(0)?.toUpperCase() }}
       </div>
-      <button type="button" (click)="logout()" [disabled]="loggingOut()" aria-label="Log out">
+      <div class="tw:grid tw:min-w-0">
+        <strong class="tw:overflow-hidden tw:text-xs tw:text-ellipsis">{{
+          auth.user()?.username
+        }}</strong>
+        <span class="tw:mt-0.5 tw:text-[10px] tw:text-[#686868] tw:capitalize">{{
+          auth.user()?.role
+        }}</span>
+      </div>
+      <button
+        class="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:text-[17px]"
+        type="button"
+        (click)="logout()"
+        [disabled]="loggingOut()"
+        aria-label="Log out"
+      >
         ↗
       </button>
     </div>
@@ -53,14 +135,16 @@
 
   @if (menuOpen()) {
     <button
-      class="scrim"
+      class="tw:fixed tw:inset-0 tw:z-19 tw:block tw:border-0 tw:bg-black/35"
       type="button"
       (click)="closeMenu()"
       aria-label="Close navigation"
     ></button>
   }
 
-  <main class="content">
+  <main
+    class="tw:ml-[244px] tw:min-h-dvh tw:p-[clamp(28px,4vw,58px)] tw:max-[780px]:ml-0 tw:max-[780px]:px-5 tw:max-[780px]:pt-[78px] tw:max-[780px]:pb-8"
+  >
     <router-outlet />
   </main>
 </div>

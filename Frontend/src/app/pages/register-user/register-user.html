@@ -1,29 +1,52 @@
-<header>
-  <p class="eyebrow">Administration</p>
-  <h1 class="page-title">Register user</h1>
-  <p class="page-description">
+<header class="tw:mb-[42px]">
+  <p
+    class="tw:mt-0 tw:mb-2.5 tw:text-[11px] tw:font-bold tw:tracking-[0.14em] tw:text-[#686868] tw:uppercase"
+  >
+    Administration
+  </p>
+  <h1
+    class="tw:m-0 tw:text-[clamp(30px,4vw,48px)] tw:leading-none tw:font-[650] tw:tracking-[-0.045em]"
+  >
+    Register user
+  </h1>
+  <p class="tw:mt-3.5 tw:mb-0 tw:max-w-[620px] tw:text-[15px] tw:leading-[1.6] tw:text-[#686868]">
     Create a read-only viewer account for access to the monitoring dashboard.
   </p>
 </header>
 
-<div class="registration-layout">
-  <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="form-heading"><span>New account</span><span>01 / 01</span></div>
+<div class="tw:max-w-[590px]">
+  <form
+    class="tw:grid tw:gap-[22px] tw:border tw:border-[#dedede] tw:bg-white tw:p-[25px]"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+  >
+    <div
+      class="tw:mx-[-25px] tw:mt-[-25px] tw:mb-[3px] tw:flex tw:justify-between tw:border-b tw:border-[#dedede] tw:px-[25px] tw:py-[17px] tw:text-[10px] tw:font-bold tw:tracking-[0.08em] tw:uppercase"
+    >
+      <span>New account</span><span class="tw:text-[#999]">01 / 01</span>
+    </div>
     @if (error()) {
-      <p class="form-error" role="alert">{{ error() }}</p>
+      <p
+        class="tw:m-0 tw:border tw:border-[#0a0a0a] tw:px-3 tw:py-[11px] tw:text-[13px] tw:leading-[1.45]"
+        role="alert"
+      >
+        {{ error() }}
+      </p>
     }
-    <div class="field">
-      <label for="new-username">Username</label
+    <div class="tw:grid tw:gap-2">
+      <label class="tw:text-xs tw:font-bold" for="new-username">Username</label
       ><input
+        class="tw:h-[46px] tw:w-full tw:rounded-[3px] tw:border tw:border-[#bdbdbd] tw:bg-white tw:px-[13px] tw:outline-none tw:focus:border-[#0a0a0a] tw:focus:shadow-[0_0_0_1px_#0a0a0a]"
         id="new-username"
         formControlName="username"
         autocomplete="off"
         placeholder="3–50 characters"
       />
     </div>
-    <div class="field">
-      <label for="new-password">Password</label
+    <div class="tw:grid tw:gap-2">
+      <label class="tw:text-xs tw:font-bold" for="new-password">Password</label
       ><input
+        class="tw:h-[46px] tw:w-full tw:rounded-[3px] tw:border tw:border-[#bdbdbd] tw:bg-white tw:px-[13px] tw:outline-none tw:focus:border-[#0a0a0a] tw:focus:shadow-[0_0_0_1px_#0a0a0a]"
         id="new-password"
         type="password"
         formControlName="password"
@@ -31,7 +54,11 @@
         placeholder="minimum 8 characters"
       />
     </div>
-    <button class="button" type="submit" [disabled]="loading()">
+    <button
+      class="tw:min-h-11 tw:cursor-pointer tw:rounded-[3px] tw:border tw:border-[#0a0a0a] tw:bg-[#0a0a0a] tw:px-[18px] tw:font-[650] tw:text-white tw:transition-[background,color,transform] tw:duration-140 tw:hover:bg-white tw:hover:text-[#0a0a0a] tw:active:translate-y-px tw:disabled:cursor-wait tw:disabled:opacity-55"
+      type="submit"
+      [disabled]="loading()"
+    >
       {{ loading() ? 'Registering…' : 'Register account' }}
     </button>
   </form>

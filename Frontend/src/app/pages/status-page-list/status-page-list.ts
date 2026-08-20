@@ -10,7 +10,6 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-status-page-list',
   imports: [DatePipe, RouterLink],
   templateUrl: './status-page-list.html',
-  styleUrl: './status-page-list.css',
 })
 export class StatusPageListPage {
   private readonly api = inject(ApiService);

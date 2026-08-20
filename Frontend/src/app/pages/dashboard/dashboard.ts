@@ -7,7 +7,6 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-dashboard-page',
   imports: [DatePipe, DecimalPipe],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
 })
 export class DashboardPage {
   readonly realtime = inject(RealtimeService);

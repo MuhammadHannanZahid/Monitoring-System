@@ -1,188 +1,194 @@
-<main class="detail-page">
-  @if (loading()) {
-    <div class="loading-line"></div>
-  }
+<div class="tw:min-h-dvh tw:bg-[#f3f3f0]">
+  <main
+    class="tw:mx-auto tw:min-h-screen tw:w-[min(1040px,calc(100%_-_40px))] tw:bg-[#f3f3f0] tw:py-9 tw:max-[700px]:w-[min(100%_-_20px,1040px)] tw:max-[700px]:pt-3 tw:[&_.topbar]:flex tw:[&_.topbar]:items-center tw:[&_.topbar]:justify-between tw:[&_.topbar]:gap-5 tw:[&_.topbar]:px-1 tw:[&_.topbar]:pb-[22px] tw:[&_.brand]:flex tw:[&_.brand]:items-center tw:[&_.brand]:gap-2.5 tw:[&_.brand]:text-[10px] tw:[&_.brand]:font-extrabold tw:[&_.brand]:no-underline tw:[&_.brand]:uppercase tw:[&_.brand_span]:grid tw:[&_.brand_span]:size-[30px] tw:[&_.brand_span]:place-items-center tw:[&_.brand_span]:border tw:[&_.brand_span]:border-[#0a0a0a] tw:[&_.back-link]:text-[10px] tw:[&_.back-link]:text-[#686868] tw:[&_.status-hero]:relative tw:[&_.status-hero]:rounded-t-2xl tw:[&_.status-hero]:bg-[#0a0a0a] tw:[&_.status-hero]:px-12 tw:[&_.status-hero]:pt-14 tw:[&_.status-hero]:pb-[72px] tw:[&_.status-hero]:text-white tw:max-[700px]:[&_.status-hero]:px-6 tw:max-[700px]:[&_.status-hero]:pt-[42px] tw:max-[700px]:[&_.status-hero]:pb-[54px] tw:[&_.status-hero>p]:mt-0 tw:[&_.status-hero>p]:mb-3 tw:[&_.status-hero>p]:text-[9px] tw:[&_.status-hero>p]:text-[#aaa] tw:[&_.status-hero>p]:uppercase tw:[&_.status-hero_h1]:m-0 tw:[&_.status-hero_h1]:max-w-[800px] tw:[&_.status-hero_h1]:text-[clamp(32px,6vw,58px)] tw:[&_.status-hero_h1]:leading-none tw:[&_.status-hero_h1]:font-[620] tw:[&_.status-hero_h1]:tracking-[-0.05em] tw:[&_.current-status]:mt-7 tw:[&_.current-status]:flex tw:[&_.current-status]:items-center tw:[&_.current-status]:gap-[7px] tw:[&_.current-status]:text-[9px] tw:[&_.current-status]:uppercase tw:[&_.current-status_i]:size-[7px] tw:[&_.current-status_i]:rounded-full tw:[&_.current-status_i]:border tw:[&_.current-status_i]:border-current tw:[&_.current-status.up_i]:bg-white tw:[&_.current-status.down]:text-white tw:[&_.current-status.down]:underline tw:[&_.content]:grid tw:[&_.content]:gap-[54px] tw:[&_.content]:rounded-b-2xl tw:[&_.content]:bg-white tw:[&_.content]:px-12 tw:[&_.content]:py-[54px] tw:max-[700px]:[&_.content]:gap-[42px] tw:max-[700px]:[&_.content]:px-[18px] tw:max-[700px]:[&_.content]:py-[38px] tw:[&_.section-heading]:flex tw:[&_.section-heading]:items-center tw:[&_.section-heading]:justify-between tw:[&_.section-heading]:gap-5 tw:[&_.section-heading_h2]:m-0 tw:[&_.section-heading_h2]:text-lg tw:[&_.section-heading_span]:text-[9px] tw:[&_.section-heading_span]:text-[#686868] tw:[&_.heat-panel]:mt-4 tw:[&_.heat-panel]:grid tw:[&_.heat-panel]:grid-cols-[120px_1fr] tw:[&_.heat-panel]:items-center tw:[&_.heat-panel]:gap-6 tw:[&_.heat-panel]:border tw:[&_.heat-panel]:border-[#dedede] tw:[&_.heat-panel]:p-5 tw:max-[700px]:[&_.heat-panel]:grid-cols-1 tw:max-[700px]:[&_.heat-panel]:overflow-x-auto tw:[&_.heat-summary]:grid tw:[&_.heat-summary]:gap-1.5 tw:[&_.heat-summary_strong]:text-xl tw:[&_.heat-summary_span]:text-[9px] tw:[&_.heat-summary_span]:text-[#686868] tw:[&_.heat-map]:grid tw:[&_.heat-map]:h-7 tw:[&_.heat-map]:min-w-[420px] tw:[&_.heat-map]:grid-cols-[repeat(90,minmax(2px,1fr))] tw:[&_.heat-map]:gap-0.5 tw:[&_.day]:cursor-help tw:[&_.day]:rounded-full tw:[&_.day]:bg-[#e9e9e5] tw:[&_.day.up]:bg-[#0a0a0a] tw:[&_.day.partial]:bg-[#777] tw:[&_.day.down]:border tw:[&_.day.down]:border-[#0a0a0a] tw:[&_.day.down]:bg-white tw:[&_.metric-grid]:mt-4 tw:[&_.metric-grid]:grid tw:[&_.metric-grid]:border tw:[&_.metric-grid]:border-[#dedede] tw:[&_.uptime-grid]:grid-cols-4 tw:max-[700px]:[&_.uptime-grid]:grid-cols-2 tw:[&_.response-metrics]:grid-cols-3 tw:max-[700px]:[&_.response-metrics]:grid-cols-2 tw:max-[700px]:[&_.response-metrics>div:last-child]:col-span-full tw:[&_.metric-grid>div]:grid tw:[&_.metric-grid>div]:min-h-24 tw:[&_.metric-grid>div]:content-center tw:[&_.metric-grid>div]:gap-[9px] tw:[&_.metric-grid>div]:border-r tw:[&_.metric-grid>div]:border-[#dedede] tw:[&_.metric-grid>div]:p-[18px] tw:[&_.metric-grid>div:last-child]:border-r-0 tw:[&_.metric-grid_strong]:text-[clamp(17px,3vw,27px)] tw:[&_.metric-grid_strong]:font-[620] tw:[&_.metric-grid_strong]:tracking-[-0.04em] tw:[&_.metric-grid_span]:text-[9px] tw:[&_.metric-grid_span]:text-[#686868] tw:[&_.response-chart]:mt-4 tw:[&_.response-chart]:h-60 tw:[&_.response-chart]:border tw:[&_.response-chart]:border-[#dedede] tw:[&_.response-chart]:px-5 tw:[&_.response-chart]:py-6 tw:[&_.response-chart_svg]:h-[190px] tw:[&_.response-chart_svg]:w-full tw:[&_.response-chart_svg]:overflow-visible tw:[&_.response-chart_line]:stroke-[#e6e6e2] tw:[&_.response-chart_line]:stroke-1 tw:[&_.response-chart_line]:[vector-effect:non-scaling-stroke] tw:[&_.response-chart_polyline]:fill-none tw:[&_.response-chart_polyline]:stroke-[#0a0a0a] tw:[&_.response-chart_polyline]:stroke-2 tw:[&_.response-chart_polyline]:[stroke-linecap:round] tw:[&_.response-chart_polyline]:[stroke-linejoin:round] tw:[&_.response-chart_polyline]:[vector-effect:non-scaling-stroke] tw:[&_.point-hit]:cursor-crosshair tw:[&_.point-hit]:fill-transparent tw:[&_.point-dot]:fill-[#0a0a0a] tw:[&_.point-dot]:opacity-0 tw:[&_.point-dot]:transition-opacity tw:[&_.point-dot]:duration-120 tw:[&_.chart-point:hover_.point-dot]:opacity-100 tw:[&_.chart-point:focus_.point-dot]:opacity-100 tw:[&_.empty]:mt-4 tw:[&_.empty]:border tw:[&_.empty]:border-[#dedede] tw:[&_.empty]:px-5 tw:[&_.empty]:py-[50px] tw:[&_.empty]:text-center tw:[&_.empty]:text-[#686868] tw:[&_.events]:mt-4 tw:[&_.events]:border tw:[&_.events]:border-[#dedede] tw:[&_.events_article]:grid tw:[&_.events_article]:grid-cols-[12px_minmax(220px,1fr)_auto] tw:[&_.events_article]:items-start tw:[&_.events_article]:gap-4 tw:[&_.events_article]:border-b tw:[&_.events_article]:border-[#dedede] tw:[&_.events_article]:p-5 tw:[&_.events_article:last-child]:border-b-0 tw:max-[700px]:[&_.events_article]:grid-cols-[12px_1fr] tw:[&_.event-icon]:mt-[3px] tw:[&_.event-icon]:size-[9px] tw:[&_.event-icon]:rounded-full tw:[&_.event-icon]:border tw:[&_.event-icon]:border-[#0a0a0a] tw:[&_.event-icon.up]:bg-[#0a0a0a] tw:[&_.event-icon.created]:bg-[#0a0a0a] tw:[&_.event-copy]:grid tw:[&_.event-copy]:gap-1.5 tw:[&_.event-copy_strong]:text-[11px] tw:[&_.event-copy>span]:text-[9px] tw:[&_.event-copy>span]:text-[#686868] tw:[&_.event-copy_p]:mt-[3px] tw:[&_.event-copy_p]:mb-0 tw:[&_.event-copy_p]:text-[10px] tw:[&_.event-copy_p]:text-[#686868] tw:[&_.events_dl]:m-0 tw:[&_.events_dl]:flex tw:[&_.events_dl]:gap-6 tw:max-[700px]:[&_.events_dl]:col-start-2 tw:max-[700px]:[&_.events_dl]:flex-wrap tw:[&_.events_dl_div]:grid tw:[&_.events_dl_div]:gap-[5px] tw:[&_.events_dt]:text-[8px] tw:[&_.events_dt]:text-[#686868] tw:[&_.events_dd]:m-0 tw:[&_.events_dd]:text-[10px] tw:[&_.events_dd]:font-bold tw:[&_footer]:flex tw:[&_footer]:items-center tw:[&_footer]:justify-between tw:[&_footer]:gap-5 tw:[&_footer]:px-1 tw:[&_footer]:pt-[22px] tw:[&_footer]:text-[9px] tw:[&_footer]:text-[#686868] tw:max-[700px]:[&_footer]:flex-col tw:max-[700px]:[&_footer]:items-start tw:[&_.connection]:flex tw:[&_.connection]:items-center tw:[&_.connection]:gap-[7px] tw:[&_.connection]:uppercase tw:[&_.connection_i]:size-[7px] tw:[&_.connection_i]:rounded-full tw:[&_.connection_i]:border tw:[&_.connection_i]:border-current tw:[&_.connection.connected_i]:bg-[#0a0a0a] tw:[&_.unavailable]:py-20"
+  >
+    @if (loading()) {
+      <div class="loading-line"></div>
+    }
 
-  @if (error() && !detail()) {
-    <section class="unavailable">
-      <p class="eyebrow">Public status</p>
-      <h1>{{ error() }}</h1>
-      <a [routerLink]="['/status', slug]">← Back to status page</a>
-    </section>
-  }
+    @if (error() && !detail()) {
+      <section class="unavailable">
+        <p class="eyebrow">Public status</p>
+        <h1>{{ error() }}</h1>
+        <a [routerLink]="['/status', slug]">← Back to status page</a>
+      </section>
+    }
 
-  @if (detail(); as monitorDetail) {
-    <header class="topbar">
-      <a class="brand" [routerLink]="['/status', monitorDetail.page_slug]">
-        <span>M</span>{{ monitorDetail.page_name }}
-      </a>
-      <a class="back-link" [routerLink]="['/status', monitorDetail.page_slug]"> ← All monitors </a>
-    </header>
+    @if (detail(); as monitorDetail) {
+      <header class="topbar">
+        <a class="brand" [routerLink]="['/status', monitorDetail.page_slug]">
+          <span>M</span>{{ monitorDetail.page_name }}
+        </a>
+        <a class="back-link" [routerLink]="['/status', monitorDetail.page_slug]">
+          ← All monitors
+        </a>
+      </header>
 
-    <section class="status-hero">
-      <p>Current service status</p>
-      <h1>{{ statusMessage(monitorDetail.monitor) }}</h1>
-      <span [class]="'current-status ' + monitorStatus(monitorDetail.monitor)">
-        <i></i>{{ monitorStatus(monitorDetail.monitor) }}
-      </span>
-    </section>
+      <section class="status-hero">
+        <p>Current service status</p>
+        <h1>{{ statusMessage(monitorDetail.monitor) }}</h1>
+        <span [class]="'current-status ' + monitorStatus(monitorDetail.monitor)">
+          <i></i>{{ monitorStatus(monitorDetail.monitor) }}
+        </span>
+      </section>
 
-    <div class="content">
-      <section>
-        <div class="section-heading">
-          <h2>Uptime</h2>
-          <span>Last 90 days</span>
-        </div>
-        <div class="heat-panel">
-          <div class="heat-summary">
-            <strong>
-              {{
-                monitorDetail.monitor.uptime_90_days === null
-                  ? '—'
-                  : (monitorDetail.monitor.uptime_90_days | number: '1.0-2') + '%'
-              }}
-            </strong>
-            <span>90-day uptime</span>
+      <div class="content">
+        <section>
+          <div class="section-heading">
+            <h2>Uptime</h2>
+            <span>Last 90 days</span>
           </div>
-          <div class="heat-map" aria-label="Daily uptime for the last 90 days">
-            @for (day of monitorDetail.monitor.daily_uptime; track day.date) {
-              <span class="day" [class]="'day ' + dayClass(day)" [title]="dayLabel(day)"></span>
+          <div class="heat-panel">
+            <div class="heat-summary">
+              <strong>
+                {{
+                  monitorDetail.monitor.uptime_90_days === null
+                    ? '—'
+                    : (monitorDetail.monitor.uptime_90_days | number: '1.0-2') + '%'
+                }}
+              </strong>
+              <span>90-day uptime</span>
+            </div>
+            <div class="heat-map" aria-label="Daily uptime for the last 90 days">
+              @for (day of monitorDetail.monitor.daily_uptime; track day.date) {
+                <span class="day" [class]="'day ' + dayClass(day)" [title]="dayLabel(day)"></span>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="uptime-section">
+          <div class="section-heading">
+            <h2>Overall Uptime</h2>
+            <span>{{ monitorDetail.monitor.name }}</span>
+          </div>
+          <div class="metric-grid uptime-grid">
+            @for (window of uptimeWindows(monitorDetail.uptime_status); track window.label) {
+              <div>
+                <strong>
+                  {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
+                </strong>
+                <span>{{ window.label }}</span>
+              </div>
             }
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="uptime-section">
-        <div class="section-heading">
-          <h2>Overall Uptime</h2>
-          <span>{{ monitorDetail.monitor.name }}</span>
-        </div>
-        <div class="metric-grid uptime-grid">
-          @for (window of uptimeWindows(monitorDetail.uptime_status); track window.label) {
+        <section class="response-section">
+          <div class="section-heading">
+            <h2>Response Time</h2>
+            <span>Last 24 hours</span>
+          </div>
+          @if (responsePolyline()) {
+            <div class="response-chart">
+              <svg
+                viewBox="0 0 900 180"
+                preserveAspectRatio="none"
+                role="img"
+                aria-label="Response time over the last 24 hours"
+              >
+                <line x1="0" y1="30" x2="900" y2="30" />
+                <line x1="0" y1="92" x2="900" y2="92" />
+                <line x1="0" y1="155" x2="900" y2="155" />
+                <polyline [attr.points]="responsePolyline()" />
+                @for (point of chartPoints(); track point.data.checked_at) {
+                  <g class="chart-point" tabindex="0">
+                    <title>
+                      {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} —
+                      {{ point.data.response_time_ms | number: '1.0-2' }} ms
+                    </title>
+                    <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                    <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+                  </g>
+                }
+              </svg>
+            </div>
+          } @else {
+            <div class="empty">No response-time data is available for this monitor.</div>
+          }
+
+          <div class="metric-grid response-metrics">
             <div>
               <strong>
-                {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
+                {{
+                  monitorDetail.response_time_metrics.average_ms === null
+                    ? '—'
+                    : (monitorDetail.response_time_metrics.average_ms | number: '1.0-2') + ' ms'
+                }}
               </strong>
-              <span>{{ window.label }}</span>
+              <span>Avg. response time</span>
             </div>
-          }
-        </div>
-      </section>
-
-      <section class="response-section">
-        <div class="section-heading">
-          <h2>Response Time</h2>
-          <span>Last 24 hours</span>
-        </div>
-        @if (responsePolyline()) {
-          <div class="response-chart">
-            <svg
-              viewBox="0 0 900 180"
-              preserveAspectRatio="none"
-              role="img"
-              aria-label="Response time over the last 24 hours"
-            >
-              <line x1="0" y1="30" x2="900" y2="30" />
-              <line x1="0" y1="92" x2="900" y2="92" />
-              <line x1="0" y1="155" x2="900" y2="155" />
-              <polyline [attr.points]="responsePolyline()" />
-              @for (point of chartPoints(); track point.data.checked_at) {
-                <g class="chart-point" tabindex="0">
-                  <title>
-                    {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} —
-                    {{ point.data.response_time_ms | number: '1.0-2' }} ms
-                  </title>
-                  <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
-                  <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
-                </g>
-              }
-            </svg>
+            <div>
+              <strong>
+                {{
+                  monitorDetail.response_time_metrics.maximum_ms === null
+                    ? '—'
+                    : (monitorDetail.response_time_metrics.maximum_ms | number: '1.0-2') + ' ms'
+                }}
+              </strong>
+              <span>Max. response time</span>
+            </div>
+            <div>
+              <strong>
+                {{
+                  monitorDetail.response_time_metrics.minimum_ms === null
+                    ? '—'
+                    : (monitorDetail.response_time_metrics.minimum_ms | number: '1.0-2') + ' ms'
+                }}
+              </strong>
+              <span>Min. response time</span>
+            </div>
           </div>
-        } @else {
-          <div class="empty">No response-time data is available for this monitor.</div>
-        }
+        </section>
 
-        <div class="metric-grid response-metrics">
-          <div>
-            <strong>
-              {{
-                monitorDetail.response_time_metrics.average_ms === null
-                  ? '—'
-                  : (monitorDetail.response_time_metrics.average_ms | number: '1.0-2') + ' ms'
-              }}
-            </strong>
-            <span>Avg. response time</span>
+        <section class="events-section">
+          <div class="section-heading">
+            <h2>Recent events</h2>
+            <span>{{ monitorDetail.recent_events.length }} events</span>
           </div>
-          <div>
-            <strong>
-              {{
-                monitorDetail.response_time_metrics.maximum_ms === null
-                  ? '—'
-                  : (monitorDetail.response_time_metrics.maximum_ms | number: '1.0-2') + ' ms'
-              }}
-            </strong>
-            <span>Max. response time</span>
+          <div class="events">
+            @for (event of monitorDetail.recent_events; track event.event_id) {
+              <article>
+                <span [class]="'event-icon ' + event.event_type"></span>
+                <div class="event-copy">
+                  <strong>{{ eventTitle(event, monitorDetail.monitor.name) }}</strong>
+                  <span>{{ event.occurred_at | date: 'MMM d, y, HH:mm:ss' }}</span>
+                  @if (event.reason) {
+                    <p>{{ event.reason }}</p>
+                  }
+                </div>
+                <dl>
+                  @if (event.status_code !== null) {
+                    <div>
+                      <dt>Status code</dt>
+                      <dd>HTTP {{ event.status_code }}</dd>
+                    </div>
+                  }
+                  @if (eventDuration(event); as duration) {
+                    <div>
+                      <dt>Downtime</dt>
+                      <dd>{{ formatDuration(duration) }}</dd>
+                    </div>
+                  }
+                  @if (event.ongoing) {
+                    <div>
+                      <dt>State</dt>
+                      <dd>Ongoing</dd>
+                    </div>
+                  }
+                </dl>
+              </article>
+            }
           </div>
-          <div>
-            <strong>
-              {{
-                monitorDetail.response_time_metrics.minimum_ms === null
-                  ? '—'
-                  : (monitorDetail.response_time_metrics.minimum_ms | number: '1.0-2') + ' ms'
-              }}
-            </strong>
-            <span>Min. response time</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section class="events-section">
-        <div class="section-heading">
-          <h2>Recent events</h2>
-          <span>{{ monitorDetail.recent_events.length }} events</span>
-        </div>
-        <div class="events">
-          @for (event of monitorDetail.recent_events; track event.event_id) {
-            <article>
-              <span [class]="'event-icon ' + event.event_type"></span>
-              <div class="event-copy">
-                <strong>{{ eventTitle(event, monitorDetail.monitor.name) }}</strong>
-                <span>{{ event.occurred_at | date: 'MMM d, y, HH:mm:ss' }}</span>
-                @if (event.reason) {
-                  <p>{{ event.reason }}</p>
-                }
-              </div>
-              <dl>
-                @if (event.status_code !== null) {
-                  <div>
-                    <dt>Status code</dt>
-                    <dd>HTTP {{ event.status_code }}</dd>
-                  </div>
-                }
-                @if (eventDuration(event); as duration) {
-                  <div>
-                    <dt>Downtime</dt>
-                    <dd>{{ formatDuration(duration) }}</dd>
-                  </div>
-                }
-                @if (event.ongoing) {
-                  <div>
-                    <dt>State</dt>
-                    <dd>Ongoing</dd>
-                  </div>
-                }
-              </dl>
-            </article>
-          }
-        </div>
-      </section>
-    </div>
-
-    <footer>
-      <span>Live status supplied by Mono Monitor</span>
-      <span class="connection" [class.connected]="connected()">
-        <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
-      </span>
-    </footer>
-  }
-</main>
+      <footer>
+        <span>Live status supplied by Mono Monitor</span>
+        <span class="connection" [class.connected]="connected()">
+          <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
+        </span>
+      </footer>
+    }
+  </main>
+</div>

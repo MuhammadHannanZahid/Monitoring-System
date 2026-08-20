@@ -10,7 +10,6 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-user-list-page',
   imports: [DatePipe, RouterLink],
   templateUrl: './user-list.html',
-  styleUrl: './user-list.css',
 })
 export class UserListPage {
   private readonly api = inject(ApiService);

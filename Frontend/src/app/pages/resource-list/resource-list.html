@@ -1,143 +1,149 @@
-<header>
-  <div>
-    <p class="eyebrow">Configuration</p>
-    <h1 class="page-title">{{ title() }}</h1>
-    <p class="page-description">{{ description() }}</p>
-  </div>
-  <div class="header-actions">
-    <span class="record-count">{{ records().length }} configured</span>
-    @if (canManage()) {
-      <a class="new-button" [routerLink]="newUrl()">+ New</a>
-    }
-  </div>
-</header>
+<div
+  class="tw:[&_header]:mb-[38px] tw:[&_header]:flex tw:[&_header]:items-end tw:[&_header]:justify-between tw:[&_header]:gap-[30px] tw:max-[700px]:[&_header]:flex-col tw:max-[700px]:[&_header]:items-start tw:[&_.header-actions]:flex tw:[&_.header-actions]:items-center tw:[&_.header-actions]:gap-[18px] tw:max-[700px]:[&_.header-actions]:w-full tw:max-[700px]:[&_.header-actions]:justify-between tw:[&_.record-count]:font-mono tw:[&_.record-count]:text-[10px] tw:[&_.record-count]:whitespace-nowrap tw:[&_.record-count]:text-[#686868] tw:[&_.new-button]:inline-grid tw:[&_.new-button]:min-h-10 tw:[&_.new-button]:place-items-center tw:[&_.new-button]:border tw:[&_.new-button]:border-[#0a0a0a] tw:[&_.new-button]:bg-[#0a0a0a] tw:[&_.new-button]:px-[17px] tw:[&_.new-button]:text-[11px] tw:[&_.new-button]:font-bold tw:[&_.new-button]:text-white tw:[&_.new-button]:no-underline tw:[&_.new-button:hover]:bg-white tw:[&_.new-button:hover]:text-[#0a0a0a] tw:[&_.loading-line]:mb-4 tw:[&_.form-error]:mb-4 tw:[&_.notification]:grid tw:[&_.notification]:gap-[9px] tw:[&_.notification_strong]:text-xs tw:[&_.notification_span]:text-xs tw:[&_.notification_code]:bg-white tw:[&_.notification_code]:p-2.5 tw:[&_.notification_code]:text-[10px] tw:[&_.notification_code]:text-[#0a0a0a] tw:[&_.notification_code]:[overflow-wrap:anywhere] tw:[&_.notification_small]:text-[10px] tw:[&_.notification_small]:text-[#aaa] tw:[&_.resource-grid]:grid tw:[&_.resource-grid]:grid-cols-[repeat(auto-fill,minmax(310px,1fr))] tw:[&_.resource-grid]:gap-4 tw:max-[700px]:[&_.resource-grid]:grid-cols-1 tw:[&_.resource-card]:grid tw:[&_.resource-card]:min-w-0 tw:[&_.resource-card]:gap-5 tw:[&_.resource-card]:overflow-hidden tw:[&_.resource-card]:p-5 tw:[&_.card-top]:flex tw:[&_.card-top]:min-w-0 tw:[&_.card-top]:items-start tw:[&_.card-top]:justify-between tw:[&_.card-top]:gap-3.5 tw:[&_.identity]:flex tw:[&_.identity]:min-w-0 tw:[&_.identity]:flex-1 tw:[&_.identity]:items-center tw:[&_.identity]:gap-3 tw:[&_.identity]:no-underline tw:[&_.resource-mark]:grid tw:[&_.resource-mark]:size-9 tw:[&_.resource-mark]:flex-none tw:[&_.resource-mark]:place-items-center tw:[&_.resource-mark]:border tw:[&_.resource-mark]:border-[#0a0a0a] tw:[&_.resource-mark]:text-[11px] tw:[&_.resource-mark]:font-extrabold tw:[&_.identity_div]:min-w-0 tw:[&_.identity_strong]:text-xs tw:[&_.identity_p]:mt-[5px] tw:[&_.identity_p]:mb-0 tw:[&_.identity_p]:font-mono tw:[&_.identity_p]:text-[9px] tw:[&_.identity_p]:leading-[1.45] tw:[&_.identity_p]:text-[#686868] tw:[&_.identity_p]:[overflow-wrap:anywhere] tw:[&_.card-actions]:flex tw:[&_.card-actions]:flex-none tw:[&_.card-actions]:gap-3 tw:[&_.delete-button]:cursor-pointer tw:[&_.delete-button]:border-0 tw:[&_.delete-button]:border-b tw:[&_.delete-button]:border-[#aaa] tw:[&_.delete-button]:bg-transparent tw:[&_.delete-button]:py-[5px] tw:[&_.delete-button]:text-[9px] tw:[&_.delete-button]:text-[#686868] tw:[&_.toggle-button]:cursor-pointer tw:[&_.toggle-button]:border-0 tw:[&_.toggle-button]:border-b tw:[&_.toggle-button]:border-[#aaa] tw:[&_.toggle-button]:bg-transparent tw:[&_.toggle-button]:py-[5px] tw:[&_.toggle-button]:text-[9px] tw:[&_.toggle-button]:text-[#686868] tw:[&_.delete-button:hover]:border-[#0a0a0a] tw:[&_.delete-button:hover]:text-[#0a0a0a] tw:[&_.toggle-button:hover]:border-[#0a0a0a] tw:[&_.toggle-button:hover]:text-[#0a0a0a] tw:[&_.delete-button:disabled]:cursor-wait tw:[&_.delete-button:disabled]:opacity-50 tw:[&_.toggle-button:disabled]:cursor-wait tw:[&_.toggle-button:disabled]:opacity-50 tw:[&_.status-row]:flex tw:[&_.status-row]:items-center tw:[&_.status-row]:gap-2.5 tw:[&_.status]:flex tw:[&_.status]:items-center tw:[&_.status]:gap-[7px] tw:[&_.status]:text-[10px] tw:[&_.status]:capitalize tw:[&_.status::before]:size-1.5 tw:[&_.status::before]:rounded-full tw:[&_.status::before]:bg-[#aaa] tw:[&_.status::before]:content-[''] tw:[&_.status.up::before]:bg-[#0a0a0a] tw:[&_.status.down::before]:border tw:[&_.status.down::before]:border-[#0a0a0a] tw:[&_.status.down::before]:bg-white tw:[&_.paused]:bg-[#f5f5f3] tw:[&_.paused]:px-[5px] tw:[&_.paused]:py-[3px] tw:[&_.paused]:text-[8px] tw:[&_.paused]:text-[#686868] tw:[&_.paused]:uppercase tw:[&_.monitor-stats]:m-0 tw:[&_.monitor-stats]:grid tw:[&_.monitor-stats]:grid-cols-2 tw:[&_.monitor-stats]:border tw:[&_.monitor-stats]:border-[#dedede] tw:[&_.monitor-stats_div]:grid tw:[&_.monitor-stats_div]:gap-[7px] tw:[&_.monitor-stats_div]:border-r tw:[&_.monitor-stats_div]:border-b tw:[&_.monitor-stats_div]:border-[#dedede] tw:[&_.monitor-stats_div]:p-3 tw:[&_.monitor-stats_div:nth-child(2n)]:border-r-0 tw:[&_.monitor-stats_div:nth-last-child(-n+2)]:border-b-0 tw:[&_.monitor-stats_dt]:text-[8px] tw:[&_.monitor-stats_dt]:text-[#686868] tw:[&_.monitor-stats_dt]:uppercase tw:[&_.monitor-stats_dd]:m-0 tw:[&_.monitor-stats_dd]:text-xs tw:[&_.monitor-stats_dd]:font-bold tw:[&_.details-link]:justify-self-start tw:[&_.details-link]:border-b tw:[&_.details-link]:border-[#0a0a0a] tw:[&_.details-link]:pb-[3px] tw:[&_.details-link]:text-[9px] tw:[&_.details-link]:font-bold tw:[&_.details-link]:no-underline tw:[&_.profile-details]:m-0 tw:[&_.profile-details]:grid tw:[&_.profile-details]:min-w-0 tw:[&_.profile-details]:border tw:[&_.profile-details]:border-[#dedede] tw:[&_.profile-details_div]:grid tw:[&_.profile-details_div]:min-w-0 tw:[&_.profile-details_div]:grid-cols-[110px_minmax(0,1fr)] tw:[&_.profile-details_div]:gap-3 tw:[&_.profile-details_div]:border-b tw:[&_.profile-details_div]:border-[#dedede] tw:[&_.profile-details_div]:px-3 tw:[&_.profile-details_div]:py-2.5 tw:[&_.profile-details_div:last-child]:border-b-0 tw:[&_.profile-details_dt]:text-[9px] tw:[&_.profile-details_dt]:text-[#686868] tw:[&_.profile-details_dd]:m-0 tw:[&_.profile-details_dd]:min-w-0 tw:[&_.profile-details_dd]:text-right tw:[&_.profile-details_dd]:font-mono tw:[&_.profile-details_dd]:text-[9px] tw:[&_.profile-details_dd]:[overflow-wrap:anywhere] tw:[&_.empty-state]:col-span-full"
+>
+  <header>
+    <div>
+      <p class="eyebrow">Configuration</p>
+      <h1 class="page-title">{{ title() }}</h1>
+      <p class="page-description">{{ description() }}</p>
+    </div>
+    <div class="header-actions">
+      <span class="record-count">{{ records().length }} configured</span>
+      @if (canManage()) {
+        <a class="new-button" [routerLink]="newUrl()">+ New</a>
+      }
+    </div>
+  </header>
 
-@if (loading()) {
-  <div class="loading-line"></div>
-}
-@if (error()) {
-  <p class="form-error">{{ error() }}</p>
-}
-@if (message() || heartbeatToken()) {
-  <div
-    class="notification app-notification"
-    [class.app-notification--wide]="heartbeatToken()"
-    [class.leaving]="noticeLeaving()"
-    role="status"
-    aria-live="polite"
-  >
-    @if (message()) {
-      <strong>{{ message() }}</strong>
-    }
-    @if (heartbeatToken()) {
-      <span>Save this heartbeat token now</span>
-      <code>{{ heartbeatToken() }}</code>
-      <small>It is only shown after creation or regeneration.</small>
-    }
-  </div>
-}
+  @if (loading()) {
+    <div class="loading-line"></div>
+  }
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+  @if (message() || heartbeatToken()) {
+    <div
+      class="notification app-notification"
+      [class.app-notification--wide]="heartbeatToken()"
+      [class.leaving]="noticeLeaving()"
+      role="status"
+      aria-live="polite"
+    >
+      @if (message()) {
+        <strong>{{ message() }}</strong>
+      }
+      @if (heartbeatToken()) {
+        <span>Save this heartbeat token now</span>
+        <code>{{ heartbeatToken() }}</code>
+        <small>It is only shown after creation or regeneration.</small>
+      }
+    </div>
+  }
 
-<section class="resource-grid">
-  @for (record of records(); track record.id) {
-    <article class="panel resource-card">
-      <div class="card-top">
-        @if (detailBase()) {
-          <a class="identity" [routerLink]="[detailBase(), record.id]">
-            <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
-            <div>
-              <strong>{{ record.name }}</strong>
-              <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
+  <section class="resource-grid">
+    @for (record of records(); track record.id) {
+      <article class="panel resource-card">
+        <div class="card-top">
+          @if (detailBase()) {
+            <a class="identity" [routerLink]="[detailBase(), record.id]">
+              <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
+              <div>
+                <strong>{{ record.name }}</strong>
+                <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
+              </div>
+            </a>
+          } @else {
+            <div class="identity">
+              <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
+              <div>
+                <strong>{{ record.name }}</strong>
+                <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
+              </div>
             </div>
-          </a>
-        } @else {
-          <div class="identity">
-            <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
-            <div>
-              <strong>{{ record.name }}</strong>
-              <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
-            </div>
-          </div>
-        }
-        @if (canManage()) {
-          <div class="card-actions">
-            @if (overview(record); as stats) {
+          }
+          @if (canManage()) {
+            <div class="card-actions">
+              @if (overview(record); as stats) {
+                <button
+                  class="toggle-button"
+                  type="button"
+                  (click)="toggleActive(record)"
+                  [disabled]="updatingId() === record.id"
+                >
+                  {{
+                    updatingId() === record.id ? 'Updating…' : stats.is_active ? 'Pause' : 'Start'
+                  }}
+                </button>
+              }
               <button
-                class="toggle-button"
+                class="delete-button"
                 type="button"
-                (click)="toggleActive(record)"
-                [disabled]="updatingId() === record.id"
+                (click)="deleteResource(record)"
+                [disabled]="deletingId() === record.id"
               >
-                {{ updatingId() === record.id ? 'Updating…' : stats.is_active ? 'Pause' : 'Start' }}
+                {{ deletingId() === record.id ? 'Deleting…' : 'Delete' }}
               </button>
-            }
-            <button
-              class="delete-button"
-              type="button"
-              (click)="deleteResource(record)"
-              [disabled]="deletingId() === record.id"
-            >
-              {{ deletingId() === record.id ? 'Deleting…' : 'Delete' }}
-            </button>
-          </div>
-        }
-      </div>
-
-      @if (overview(record); as stats) {
-        <div class="status-row">
-          <span class="status" [class]="'status ' + stats.status">{{ stats.status }}</span>
-          @if (!stats.is_active) {
-            <span class="paused">paused</span>
+            </div>
           }
         </div>
-        <dl class="monitor-stats">
-          <div>
-            <dt>Up percentage</dt>
-            <dd>
-              {{
-                uptimePercentage(stats) === null
-                  ? '—'
-                  : (uptimePercentage(stats) | number: '1.0-2') + '%'
-              }}
-            </dd>
+
+        @if (overview(record); as stats) {
+          <div class="status-row">
+            <span class="status" [class]="'status ' + stats.status">{{ stats.status }}</span>
+            @if (!stats.is_active) {
+              <span class="paused">paused</span>
+            }
           </div>
-          <div>
-            <dt>Total uptime</dt>
-            <dd>{{ formatDuration(uptimeSeconds(stats)) }}</dd>
-          </div>
-          <div>
-            <dt>Total downtime</dt>
-            <dd>{{ formatDuration(downtimeSeconds(stats)) }}</dd>
-          </div>
-          <div>
-            <dt>Created on</dt>
-            <dd>{{ stats.created_at | date: 'MMM d, y' }}</dd>
-          </div>
-        </dl>
-        <a class="details-link" [routerLink]="[detailBase(), record.id]">View incidents →</a>
-      } @else {
-        <dl class="profile-details">
-          <div>
-            <dt>Method</dt>
-            <dd>{{ record.method || 'POST' }}</dd>
-          </div>
-          <div>
-            <dt>Login URL</dt>
-            <dd>{{ record.login_url }}</dd>
-          </div>
-          <div>
-            <dt>Credential fields</dt>
-            <dd>{{ record.credential_fields?.join(', ') || 'Configured' }}</dd>
-          </div>
-          <div>
-            <dt>Created on</dt>
-            <dd>{{ record.created_at | date: 'MMM d, y' }}</dd>
-          </div>
-        </dl>
+          <dl class="monitor-stats">
+            <div>
+              <dt>Up percentage</dt>
+              <dd>
+                {{
+                  uptimePercentage(stats) === null
+                    ? '—'
+                    : (uptimePercentage(stats) | number: '1.0-2') + '%'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Total uptime</dt>
+              <dd>{{ formatDuration(uptimeSeconds(stats)) }}</dd>
+            </div>
+            <div>
+              <dt>Total downtime</dt>
+              <dd>{{ formatDuration(downtimeSeconds(stats)) }}</dd>
+            </div>
+            <div>
+              <dt>Created on</dt>
+              <dd>{{ stats.created_at | date: 'MMM d, y' }}</dd>
+            </div>
+          </dl>
+          <a class="details-link" [routerLink]="[detailBase(), record.id]">View incidents →</a>
+        } @else {
+          <dl class="profile-details">
+            <div>
+              <dt>Method</dt>
+              <dd>{{ record.method || 'POST' }}</dd>
+            </div>
+            <div>
+              <dt>Login URL</dt>
+              <dd>{{ record.login_url }}</dd>
+            </div>
+            <div>
+              <dt>Credential fields</dt>
+              <dd>{{ record.credential_fields?.join(', ') || 'Configured' }}</dd>
+            </div>
+            <div>
+              <dt>Created on</dt>
+              <dd>{{ record.created_at | date: 'MMM d, y' }}</dd>
+            </div>
+          </dl>
+        }
+      </article>
+    } @empty {
+      @if (!loading() && !error()) {
+        <div class="empty-state panel">No {{ title().toLowerCase() }} have been created yet.</div>
       }
-    </article>
-  } @empty {
-    @if (!loading() && !error()) {
-      <div class="empty-state panel">No {{ title().toLowerCase() }} have been created yet.</div>
     }
-  }
-</section>
+  </section>
+</div>
