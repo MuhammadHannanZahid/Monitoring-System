@@ -1,0 +1,137 @@
+<header>
+  <div>
+    <p class="eyebrow">Configuration</p>
+    <h1 class="page-title">{{ title() }}</h1>
+    <p class="page-description">{{ description() }}</p>
+  </div>
+  <div class="header-actions">
+    <span class="record-count">{{ records().length }} configured</span>
+    @if (canManage()) {
+      <a class="new-button" [routerLink]="newUrl()">+ New</a>
+    }
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+}
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}
+@if (message() || heartbeatToken()) {
+  <div class="notification" [class.leaving]="noticeLeaving()">
+    @if (message()) {
+      <strong>{{ message() }}</strong>
+    }
+    @if (heartbeatToken()) {
+      <span>Save this heartbeat token now</span>
+      <code>{{ heartbeatToken() }}</code>
+      <small>It is only shown after creation or regeneration.</small>
+    }
+  </div>
+}
+
+<section class="resource-grid">
+  @for (record of records(); track record.id) {
+    <article class="panel resource-card">
+      <div class="card-top">
+        @if (detailBase()) {
+          <a class="identity" [routerLink]="[detailBase(), record.id]">
+            <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
+            <div>
+              <strong>{{ record.name }}</strong>
+              <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
+            </div>
+          </a>
+        } @else {
+          <div class="identity">
+            <span class="resource-mark">{{ record.name.charAt(0).toUpperCase() }}</span>
+            <div>
+              <strong>{{ record.name }}</strong>
+              <p>{{ record.method ? record.method + ' · ' : '' }}{{ target(record) }}</p>
+            </div>
+          </div>
+        }
+        @if (canManage()) {
+          <div class="card-actions">
+            @if (overview(record); as stats) {
+              <button
+                class="toggle-button"
+                type="button"
+                (click)="toggleActive(record)"
+                [disabled]="updatingId() === record.id"
+              >
+                {{ updatingId() === record.id ? 'Updating…' : stats.is_active ? 'Pause' : 'Start' }}
+              </button>
+            }
+            <button
+              class="delete-button"
+              type="button"
+              (click)="deleteResource(record)"
+              [disabled]="deletingId() === record.id"
+            >
+              {{ deletingId() === record.id ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (overview(record); as stats) {
+        <div class="status-row">
+          <span class="status" [class]="'status ' + stats.status">{{ stats.status }}</span>
+          @if (!stats.is_active) {
+            <span class="paused">paused</span>
+          }
+        </div>
+        <dl class="monitor-stats">
+          <div>
+            <dt>Up percentage</dt>
+            <dd>
+              {{
+                uptimePercentage(stats) === null
+                  ? '—'
+                  : (uptimePercentage(stats) | number: '1.0-2') + '%'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Total uptime</dt>
+            <dd>{{ formatDuration(uptimeSeconds(stats)) }}</dd>
+          </div>
+          <div>
+            <dt>Total downtime</dt>
+            <dd>{{ formatDuration(downtimeSeconds(stats)) }}</dd>
+          </div>
+          <div>
+            <dt>Created on</dt>
+            <dd>{{ stats.created_at | date: 'MMM d, y' }}</dd>
+          </div>
+        </dl>
+        <a class="details-link" [routerLink]="[detailBase(), record.id]">View incidents →</a>
+      } @else {
+        <dl class="profile-details">
+          <div>
+            <dt>Method</dt>
+            <dd>{{ record.method || 'POST' }}</dd>
+          </div>
+          <div>
+            <dt>Login URL</dt>
+            <dd>{{ record.login_url }}</dd>
+          </div>
+          <div>
+            <dt>Credential fields</dt>
+            <dd>{{ record.credential_fields?.join(', ') || 'Configured' }}</dd>
+          </div>
+          <div>
+            <dt>Created on</dt>
+            <dd>{{ record.created_at | date: 'MMM d, y' }}</dd>
+          </div>
+        </dl>
+      }
+    </article>
+  } @empty {
+    @if (!loading() && !error()) {
+      <div class="empty-state panel">No {{ title().toLowerCase() }} have been created yet.</div>
+    }
+  }
+</section>

@@ -7,12 +7,10 @@ from app.core.logger import get_logger
 from app.modules.auth_manager.auth_manager import password_service
 from app.modules.user_account_manager.user_account_manager import UserManager
 
-from .base import BaseSeeder
-
 logger = get_logger(__name__)
 
 
-class AdminSeeder(BaseSeeder):
+class AdminSeeder:
     async def run(self) -> None:
         load_dotenv()
         default_admin_username = os.environ["DEFAULT_ADMIN_USERNAME"]

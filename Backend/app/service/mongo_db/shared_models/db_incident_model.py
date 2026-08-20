@@ -11,6 +11,7 @@ class IncidentModel(BaseModel):
     started_at: datetime
     resolved_at: datetime | None = None
     reason: str
+    status_code: int | None = None
     is_resolved: bool = False
 
     @property

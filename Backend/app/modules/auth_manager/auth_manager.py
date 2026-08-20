@@ -1,4 +1,8 @@
 from __future__ import annotations
+import asyncio
+import hashlib
+import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -13,6 +17,15 @@ from app.service.exceptions import AuthenticationError, NotFoundError
 from app.service.mongo_db.shared_models.db_user_account_model import AuthTokens, CurrentUserResponse, TokenResponse, UserModel
 
 logger = get_logger(__name__)
+
+REFRESH_REPLAY_SECONDS = 10
+
+
+@dataclass(frozen=True)
+class RefreshReplay:
+    tokens: AuthTokens
+    rotated_token_hash: str
+    expires_at: float
 
 class PasswordManager:
     def __init__(self) -> None:
@@ -30,6 +43,8 @@ class PasswordManager:
 class RefreshTokenManager:
     def __init__(self) -> None:
         self._hasher = PasswordHasher()
+        self._locks: dict[str, asyncio.Lock] = {}
+        self._replays: dict[str, RefreshReplay] = {}
 
     def hash_token(self, token: str) -> str:
         return self._hasher.hash(token)
@@ -39,6 +54,41 @@ class RefreshTokenManager:
             return self._hasher.verify(hashed_token, token)
         except (VerifyMismatchError, VerificationError):
             return False
+
+    def lock_for(self, user_id: str) -> asyncio.Lock:
+        return self._locks.setdefault(user_id, asyncio.Lock())
+
+    def get_replay(self, token: str) -> RefreshReplay | None:
+        key = self._token_key(token)
+        replay = self._replays.get(key)
+        if replay is None:
+            return None
+        if time.monotonic() >= replay.expires_at:
+            self._replays.pop(key, None)
+            return None
+        return replay
+
+    def remember_rotation(
+        self,
+        old_token: str,
+        tokens: AuthTokens,
+        rotated_token_hash: str,
+    ) -> None:
+        now = time.monotonic()
+        self._replays = {
+            key: replay
+            for key, replay in self._replays.items()
+            if replay.expires_at > now
+        }
+        self._replays[self._token_key(old_token)] = RefreshReplay(
+            tokens=tokens,
+            rotated_token_hash=rotated_token_hash,
+            expires_at=now + REFRESH_REPLAY_SECONDS,
+        )
+
+    @staticmethod
+    def _token_key(token: str) -> str:
+        return hashlib.sha256(token.encode()).hexdigest()
 
 password_service = PasswordManager()
 refresh_token_service = RefreshTokenManager()
@@ -112,63 +162,86 @@ class AuthManager:
         except InvalidId as exc:
             raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN) from exc
 
-        document = await self.collection.find_one({"_id": object_id})
-        if document is None:
-            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
-        document["id"] = str(document.pop("_id"))
-        user = UserModel(**document)
-        if user.id is None or not user.is_active or user.refresh_token_hash is None or user.refresh_token_expires_at is None:
-            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+        async with self.refresh_token_service.lock_for(user_id):
+            replay = self.refresh_token_service.get_replay(refresh_token)
+            if replay is not None:
+                current_rotation = await self.collection.find_one(
+                    {
+                        "_id": object_id,
+                        "is_active": True,
+                        "refresh_token_hash": replay.rotated_token_hash,
+                    }
+                )
+                if current_rotation is not None:
+                    return replay.tokens
 
-        refresh_token_expires_at = user.refresh_token_expires_at
-        if refresh_token_expires_at.tzinfo is None:
-            refresh_token_expires_at = refresh_token_expires_at.replace(
-                tzinfo=timezone.utc
+            document = await self.collection.find_one({"_id": object_id})
+            if document is None:
+                raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+            document["id"] = str(document.pop("_id"))
+            user = UserModel(**document)
+            if (
+                user.id is None
+                or not user.is_active
+                or user.refresh_token_hash is None
+                or user.refresh_token_expires_at is None
+            ):
+                raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+            refresh_token_expires_at = user.refresh_token_expires_at
+            if refresh_token_expires_at.tzinfo is None:
+                refresh_token_expires_at = refresh_token_expires_at.replace(
+                    tzinfo=timezone.utc
+                )
+            if refresh_token_expires_at <= datetime.now(timezone.utc):
+                raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+            if not self.refresh_token_service.verify_token(
+                refresh_token,
+                user.refresh_token_hash,
+            ):
+                raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+
+            new_refresh_token, new_refresh_token_expires_at = (
+                self.jwt_service.create_refresh_token(
+                    user_id=user.id,
+                    username=user.username,
+                    role=user.role,
+                )
             )
-        if refresh_token_expires_at <= datetime.now(timezone.utc):
-            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
-        if not self.refresh_token_service.verify_token(
-            refresh_token,
-            user.refresh_token_hash,
-        ):
-            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
-
-        new_refresh_token, new_refresh_token_expires_at = (
-            self.jwt_service.create_refresh_token(
-                user_id=user.id,
-                username=user.username,
-                role=user.role,
+            new_refresh_token_hash = self.refresh_token_service.hash_token(
+                new_refresh_token
             )
-        )
-        new_refresh_token_hash = self.refresh_token_service.hash_token(
-            new_refresh_token
-        )
-        rotated = await self.collection.update_one(
-            {
-                "_id": object_id,
-                "refresh_token_hash": user.refresh_token_hash,
-            },
-            {
-                "$set": {
-                    "refresh_token_hash": new_refresh_token_hash,
-                    "refresh_token_expires_at": new_refresh_token_expires_at,
-                    "updated_at": datetime.now(timezone.utc),
-                }
-            },
-        )
-        if rotated.modified_count == 0:
-            raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
+            rotated = await self.collection.update_one(
+                {
+                    "_id": object_id,
+                    "refresh_token_hash": user.refresh_token_hash,
+                },
+                {
+                    "$set": {
+                        "refresh_token_hash": new_refresh_token_hash,
+                        "refresh_token_expires_at": new_refresh_token_expires_at,
+                        "updated_at": datetime.now(timezone.utc),
+                    }
+                },
+            )
+            if rotated.modified_count == 0:
+                raise AuthenticationError(Messages.INVALID_REFRESH_TOKEN)
 
-        access_token = self.jwt_service.create_access_token(
-            user_id=user.id,
-            username=user.username,
-            role=user.role,
-        )
-        logger.info("Tokens refreshed for user '%s'.", user.username)
-        return AuthTokens(
-            access_token=access_token,
-            refresh_token=new_refresh_token,
-        )
+            tokens = AuthTokens(
+                access_token=self.jwt_service.create_access_token(
+                    user_id=user.id,
+                    username=user.username,
+                    role=user.role,
+                ),
+                refresh_token=new_refresh_token,
+            )
+            self.refresh_token_service.remember_rotation(
+                refresh_token,
+                tokens,
+                new_refresh_token_hash,
+            )
+            logger.info("Tokens refreshed for user '%s'.", user.username)
+            return tokens
 
     async def get_current_user(self, user_id: str) -> CurrentUserResponse:
         try:

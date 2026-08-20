@@ -12,8 +12,22 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      seed:
+        condition: service_completed_successfully
     init: true
     restart: unless-stopped
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.seeder.seed"]
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
 
   mongodb:
     image: mongo:7.0
@@ -25,6 +39,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+
+  status-test:
+    image: kennethreitz/httpbin
     restart: unless-stopped
 
 volumes:

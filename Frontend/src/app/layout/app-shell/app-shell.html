@@ -1,0 +1,66 @@
+<div class="app-frame tw:min-h-screen">
+  <button
+    class="mobile-menu"
+    type="button"
+    (click)="menuOpen.set(!menuOpen())"
+    aria-label="Toggle navigation"
+  >
+    <span></span><span></span>
+  </button>
+
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <a class="brand" routerLink="/dashboard" (click)="closeMenu()">
+      <span class="brand-mark">M</span>
+      <span>MONO<br />MONITOR</span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <p class="nav-label">Workspace</p>
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()"> Dashboard </a>
+
+      <p class="nav-label">Monitoring</p>
+      <a routerLink="/monitors/http" routerLinkActive="active" (click)="closeMenu()">HTTP</a>
+      <a routerLink="/monitors/api" routerLinkActive="active" (click)="closeMenu()">API</a>
+      <a routerLink="/monitors/ping" routerLinkActive="active" (click)="closeMenu()">Ping</a>
+      <a routerLink="/monitors/heartbeat" routerLinkActive="active" (click)="closeMenu()"
+        >Heartbeat</a
+      >
+
+      @if (auth.user()?.role === 'admin') {
+        <a routerLink="/status-pages" routerLinkActive="active" (click)="closeMenu()"
+          >Status pages</a
+        >
+
+        <p class="nav-label">Administration</p>
+        <a routerLink="/auth-profiles" routerLinkActive="active" (click)="closeMenu()"
+          >Auth profiles</a
+        >
+        <a routerLink="/users" routerLinkActive="active" (click)="closeMenu()">Users</a>
+      }
+    </nav>
+
+    <div class="account">
+      <div class="avatar">{{ auth.user()?.username?.charAt(0)?.toUpperCase() }}</div>
+      <div class="account-copy">
+        <strong>{{ auth.user()?.username }}</strong>
+        <span>{{ auth.user()?.role }}</span>
+      </div>
+      <button type="button" (click)="logout()" [disabled]="loggingOut()" aria-label="Log out">
+        ↗
+      </button>
+    </div>
+  </aside>
+
+  @if (menuOpen()) {
+    <button
+      class="scrim"
+      type="button"
+      (click)="closeMenu()"
+      aria-label="Close navigation"
+    ></button>
+  }
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

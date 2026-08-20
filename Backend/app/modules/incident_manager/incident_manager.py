@@ -14,7 +14,13 @@ class IncidentManager:
     def __init__(self, engine: AIOEngine):
         self.collection = engine.database[Collections.INCIDENTS]
 
-    async def open_incident(self, monitor_id: str, monitor_type: MonitorType, reason: str | None = None) -> None:
+    async def open_incident(
+        self,
+        monitor_id: str,
+        monitor_type: MonitorType,
+        reason: str,
+        status_code: int | None = None,
+    ) -> None:
         active = await self.get_active_incident(monitor_id, monitor_type)
         if active is not None:
             return
@@ -26,6 +32,7 @@ class IncidentManager:
             resolved_at=None,
             is_resolved=False,
             reason=reason,
+            status_code=status_code,
         )
         document = incident.model_dump()
         document.pop("id", None)
@@ -80,3 +87,19 @@ class IncidentManager:
             document["id"] = str(document.pop("_id"))
             incidents.append(IncidentModel(**document))
         return incidents
+
+    async def get_for_monitors(self, monitor_ids: list[str]) -> dict[str, list[IncidentModel]]:
+        if not monitor_ids:
+            return {}
+        cursor = self.collection.find(
+            {"monitor_id": {"$in": monitor_ids}}
+        ).sort("started_at", -1)
+        incidents: dict[str, list[IncidentModel]] = {}
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            incident = IncidentModel(**document)
+            incidents.setdefault(incident.monitor_id, []).append(incident)
+        return incidents
+
+    async def delete_for_monitor(self, monitor_id: str) -> None:
+        await self.collection.delete_many({"monitor_id": monitor_id})

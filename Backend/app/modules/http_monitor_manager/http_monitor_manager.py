@@ -9,6 +9,7 @@ from app.service.constants import Collections, Messages
 from app.service.exceptions import ConflictError, NotFoundError
 from app.service.mongo_db.shared_models.db_http_monitor_model import HTTPMonitorModel, HTTP_monitorResponse
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
+from app.service.realtime import realtime_broker
 
 logger = get_logger(__name__)
 
@@ -48,6 +49,7 @@ class HTTP_monitorManager:
 
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(monitor)
+        realtime_broker.notify("monitor", monitor.id)
         logger.info("HTTP_monitor '%s' created. URL: %s", monitor.name, monitor.url)
         return HTTP_monitorResponse(**monitor.model_dump())
 
@@ -123,6 +125,7 @@ class HTTP_monitorManager:
             await scheduler_state.scheduler.stop_worker(updated_monitor.id)
             if updated_monitor.is_active:
                 await scheduler_state.scheduler.start_worker(updated_monitor)
+        realtime_broker.notify("monitor", updated_monitor.id)
         logger.info("HTTP_monitor '%s' updated. Fields changed: %s", updated_monitor.name, ", ".join(update_data.keys()))
         return HTTP_monitorResponse(**updated_monitor.model_dump())
 
@@ -133,6 +136,9 @@ class HTTP_monitorManager:
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.stop_worker(monitor.id)
         await self.collection.delete_one({"_id": ObjectId(monitor.id)})
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.monitor_service.delete_monitor_history(monitor.id)
+        realtime_broker.notify("monitor", monitor.id)
         logger.info("HTTP_monitor '%s' deleted.", monitor.name)
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:

@@ -9,6 +9,7 @@ import app.modules.monitoring_controller.scheduler as scheduler_state
 from app.service.constants import Collections, Messages
 from app.service.exceptions import NotFoundError
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.realtime import realtime_broker
 from app.service.mongo_db.shared_models.db_ping_monitor_model import PingMonitorModel, PingMonitorResponse
 
 class PingMonitorManager:
@@ -37,6 +38,7 @@ class PingMonitorManager:
 
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(monitor)
+        realtime_broker.notify("monitor", monitor.id)
         return PingMonitorResponse(**monitor.model_dump())
 
     async def get_monitor_model(self, monitor_id: str) -> PingMonitorModel | None:
@@ -97,6 +99,7 @@ class PingMonitorManager:
             await scheduler_state.scheduler.stop_worker(monitor_id)
             if monitor.is_active:
                 await scheduler_state.scheduler.start_worker(monitor)
+        realtime_broker.notify("monitor", monitor.id)
         return PingMonitorResponse(**monitor.model_dump())
 
     async def delete_monitor(self, monitor_id: str) -> None:
@@ -109,6 +112,9 @@ class PingMonitorManager:
         result = await self.collection.delete_one({"_id": object_id})
         if result.deleted_count == 0:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.monitor_service.delete_monitor_history(monitor_id)
+        realtime_broker.notify("monitor", monitor_id)
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:

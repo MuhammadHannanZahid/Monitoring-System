@@ -20,6 +20,8 @@ class ApiChecker:
         status_code = None
         response_time_ms = None
         is_slow = False
+        error = None
+        timed_out = False
         try:
             headers = await self._build_headers(monitor)
             start = time.perf_counter()
@@ -44,11 +46,6 @@ class ApiChecker:
             elapsed = int((time.perf_counter() - start) * 1000)
             status_code = response.status_code
             response_time_ms = elapsed
-            is_slow = False
-
-            if monitor.expected_response_time_ms is not None and elapsed > monitor.expected_response_time_ms:
-                is_slow = True
-
             status_ok = response.status_code == monitor.expected_status_code
 
             try:
@@ -89,25 +86,41 @@ class ApiChecker:
                 if not status_ok:
                     logger.warning("[%s] '%s' is DOWN (expected %d, got %d)", monitor.method, monitor.name, monitor.expected_status_code, response.status_code)
                 elif not json_ok:
+                    error = "The response JSON did not match the configured expected JSON."
                     logger.warning("API Monitor '%s' failed JSON validation.", monitor.name)
                 elif not headers_ok:
+                    error = "One or more response headers did not match the configured expected headers."
                     logger.warning("API Monitor '%s' failed response header validation.", monitor.name)
                 elif not content_type_ok:
+                    actual_content_type = response.headers.get("Content-Type") or "not provided"
+                    error = (
+                        f"Expected Content-Type '{monitor.expected_content_type}', "
+                        f"but received '{actual_content_type}'."
+                    )
                     logger.warning("API Monitor '%s' returned wrong Content-Type.", monitor.name)
         except AuthTokenError as exc:
+            status_code = exc.status_code
+            error = f"Authentication failed: {exc}"
             logger.warning("API Monitor '%s' could not authenticate: %s", monitor.name, exc)
 
         except httpx.TimeoutException:
             if start is not None:
                 response_time_ms = int((time.perf_counter() - start) * 1000)
+            timed_out = True
+            error = (
+                f"The target did not complete its response within "
+                f"{monitor.timeout} seconds."
+            )
             logger.warning("API Monitor '%s' timed out.", monitor.name)
 
         except httpx.HTTPError as exc:
             if start is not None:
                 response_time_ms = int((time.perf_counter() - start) * 1000)
+            error = self._request_error_message(exc)
             logger.warning("API Monitor '%s' failed: %s", monitor.name, exc)
 
-        except Exception:
+        except Exception as exc:
+            error = f"The API checker failed unexpectedly: {type(exc).__name__}."
             logger.exception("Unexpected error while checking API monitor '%s'.", monitor.name)
 
         return HealthCheckResponse(
@@ -117,6 +130,8 @@ class ApiChecker:
             response_time_ms=response_time_ms,
             success=success,
             is_slow=is_slow,
+            error=error,
+            timed_out=timed_out,
         )
 
     async def _build_headers(self, monitor, *, force_refresh: bool = False) -> dict[str, str]:
@@ -142,3 +157,13 @@ class ApiChecker:
     async def close(self):
         if self._owns_client:
             await self.client.aclose()
+
+    @staticmethod
+    def _request_error_message(exc: httpx.HTTPError) -> str:
+        if isinstance(exc, httpx.ConnectError):
+            return f"Could not connect to the target: {exc}."
+        if isinstance(exc, httpx.TooManyRedirects):
+            return "The target returned too many redirects."
+        if isinstance(exc, httpx.RemoteProtocolError):
+            return f"The target returned an invalid or incomplete HTTP response: {exc}."
+        return f"The HTTP request failed before a response was received: {exc}."

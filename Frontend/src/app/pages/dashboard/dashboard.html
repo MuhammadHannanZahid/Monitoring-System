@@ -1,0 +1,143 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">System overview</p>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-description">A live view of monitor health, incidents, and recent checks.</p>
+  </div>
+  <button class="refresh" type="button" (click)="loadDashboard()" [disabled]="loading()">
+    ↻ Refresh
+  </button>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+}
+@if (error()) {
+  <div class="error-panel panel">
+    <p>{{ error() }}</p>
+    <button class="button" type="button" (click)="loadDashboard()">Try again</button>
+  </div>
+}
+
+@if (summary(); as data) {
+  <section class="health-strip" aria-label="Overall monitor health">
+    <div class="health-score">
+      <strong>{{ overallUptime() | number: '1.0-2' }}%</strong>
+      <span>average uptime · 7 days</span>
+    </div>
+    <div class="health-bar" aria-hidden="true">
+      <span class="up" [style.flex]="data.monitors_up || 0"></span>
+      <span class="down" [style.flex]="data.monitors_down || 0"></span>
+      <span class="unknown" [style.flex]="data.monitors_unknown || 0"></span>
+    </div>
+    <div class="legend">
+      <span><i class="solid"></i>{{ data.monitors_up }} up</span>
+      <span><i class="outline"></i>{{ data.monitors_down }} down</span>
+      <span><i class="muted"></i>{{ data.monitors_unknown }} unknown</span>
+    </div>
+  </section>
+
+  <section class="metrics" aria-label="Dashboard metrics">
+    <article>
+      <span>Total monitors</span><strong>{{ data.total_monitors }}</strong
+      ><small>{{ data.active_monitors }} active · {{ data.inactive_monitors }} paused</small>
+    </article>
+    <article>
+      <span>Open incidents</span><strong>{{ data.open_incidents }}</strong
+      ><small>currently unresolved</small>
+    </article>
+    <article>
+      <span>Slow monitors</span><strong>{{ data.slow_monitors }}</strong
+      ><small>over response threshold</small>
+    </article>
+    <article>
+      <span>Average response</span
+      ><strong>{{ data.average_response_time_ms | number: '1.0-0' }}<em>ms</em></strong
+      ><small>across recent checks</small>
+    </article>
+  </section>
+}
+
+<div class="detail-grid">
+  <section class="panel table-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Latest signals</p>
+        <h2>Recent activity</h2>
+      </div>
+      <span>{{ activity().length }} checks</span>
+    </div>
+    @if (activity().length) {
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Monitor</th>
+              <th>Status</th>
+              <th>Response</th>
+              <th>Checked</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of activity(); track $index) {
+              <tr>
+                <td>
+                  <strong>{{ item.monitor_name }}</strong
+                  ><small>{{
+                    item.status_code ? 'HTTP ' + item.status_code : 'No status code'
+                  }}</small>
+                </td>
+                <td>
+                  <span class="status" [class]="'status ' + item.status">{{ item.status }}</span>
+                </td>
+                <td>
+                  {{ item.response_time_ms === null ? '—' : item.response_time_ms + ' ms' }}
+                  @if (item.is_slow) {
+                    <small class="slow">slow</small>
+                  }
+                </td>
+                <td>{{ item.checked_at | date: 'MMM d, HH:mm' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-state">No checks have been recorded yet.</div>
+    }
+  </section>
+
+  <section class="panel incidents-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Event log</p>
+        <h2>Incidents</h2>
+      </div>
+    </div>
+    @if (incidents().length) {
+      <div class="incident-list">
+        @for (incident of incidents(); track incident.id) {
+          <article>
+            <span class="incident-mark"></span>
+            <div>
+              <strong>{{ incident.monitor_name }}</strong>
+              <p>
+                {{ incident.resolved_at ? 'Resolved' : 'Open' }} ·
+                {{ incidentDuration(incident) }}
+              </p>
+              <small>
+                @if (incident.status_code !== null) {
+                  HTTP {{ incident.status_code }} ·
+                }
+                {{ incident.reason }}
+              </small>
+            </div>
+            <time>{{ incident.started_at | date: 'MMM d' }}</time>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">No incidents. Everything is quiet.</div>
+    }
+  </section>
+</div>

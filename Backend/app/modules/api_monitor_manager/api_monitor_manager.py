@@ -9,6 +9,7 @@ from app.service.constants import Collections, Messages
 from app.service.exceptions import ConflictError, NotFoundError
 from app.service.mongo_db.shared_models.db_api_monitor_model import APIMonitorModel, ApiMonitorResponse, CreateApiMonitorRequest, UpdateApiMonitorRequest
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus
+from app.service.realtime import realtime_broker
 
 class API_monitorManager:
     def __init__(self, engine: AIOEngine, auth_profile_service: AuthProfileManager | None = None):
@@ -52,6 +53,7 @@ class API_monitorManager:
 
         if scheduler_state.scheduler is not None:
             await scheduler_state.scheduler.start_worker(monitor)
+        realtime_broker.notify("monitor", monitor.id)
         return ApiMonitorResponse(
             id=monitor.id,
             name=monitor.name,
@@ -186,6 +188,7 @@ class API_monitorManager:
             await scheduler_state.scheduler.stop_worker(monitor_id)
             if updated_monitor.is_active:
                 await scheduler_state.scheduler.start_worker(updated_monitor)
+        realtime_broker.notify("monitor", updated_monitor.id)
         return ApiMonitorResponse(
             id=updated_monitor.id,
             name=updated_monitor.name,
@@ -220,6 +223,9 @@ class API_monitorManager:
         result = await self.collection.delete_one({"_id": ObjectId(monitor_id)})
         if result.deleted_count == 0:
             raise NotFoundError(Messages.monitor_NOT_FOUND)
+        if scheduler_state.scheduler is not None:
+            await scheduler_state.scheduler.monitor_service.delete_monitor_history(monitor_id)
+        realtime_broker.notify("monitor", monitor_id)
 
     async def update_monitoring_result(self, monitor_id: str, status: MonitorStatus, status_code: int | None, response_time_ms: int | None, checked_at: datetime) -> bool:
         try:

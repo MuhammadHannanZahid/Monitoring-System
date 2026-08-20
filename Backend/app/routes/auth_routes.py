@@ -3,7 +3,6 @@ from app.modules.auth_manager.auth_manager import AuthManager
 from app.service.authorization import (
     clear_auth_cookies,
     get_auth_service,
-    require_admin,
     require_viewer,
     set_auth_cookies,
 )
@@ -41,11 +40,4 @@ async def logout(response: Response, current_user: CurrentUserResponse = Depends
     return success_response(
         message=Messages.LOGOUT_SUCCESS,
         data=None,
-    )
-
-@router.get("/admin-test", response_model=SuccessResponse[str])
-async def admin_test(current_user: CurrentUserResponse = Depends(require_admin())):
-    return success_response(
-        message="Admin authorization successful.",
-        data="You are an administrator.",
     )

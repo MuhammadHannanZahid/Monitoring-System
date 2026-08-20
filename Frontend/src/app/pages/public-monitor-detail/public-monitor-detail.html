@@ -1,0 +1,188 @@
+<main class="detail-page">
+  @if (loading()) {
+    <div class="loading-line"></div>
+  }
+
+  @if (error() && !detail()) {
+    <section class="unavailable">
+      <p class="eyebrow">Public status</p>
+      <h1>{{ error() }}</h1>
+      <a [routerLink]="['/status', slug]">← Back to status page</a>
+    </section>
+  }
+
+  @if (detail(); as monitorDetail) {
+    <header class="topbar">
+      <a class="brand" [routerLink]="['/status', monitorDetail.page_slug]">
+        <span>M</span>{{ monitorDetail.page_name }}
+      </a>
+      <a class="back-link" [routerLink]="['/status', monitorDetail.page_slug]"> ← All monitors </a>
+    </header>
+
+    <section class="status-hero">
+      <p>Current service status</p>
+      <h1>{{ statusMessage(monitorDetail.monitor) }}</h1>
+      <span [class]="'current-status ' + monitorStatus(monitorDetail.monitor)">
+        <i></i>{{ monitorStatus(monitorDetail.monitor) }}
+      </span>
+    </section>
+
+    <div class="content">
+      <section>
+        <div class="section-heading">
+          <h2>Uptime</h2>
+          <span>Last 90 days</span>
+        </div>
+        <div class="heat-panel">
+          <div class="heat-summary">
+            <strong>
+              {{
+                monitorDetail.monitor.uptime_90_days === null
+                  ? '—'
+                  : (monitorDetail.monitor.uptime_90_days | number: '1.0-2') + '%'
+              }}
+            </strong>
+            <span>90-day uptime</span>
+          </div>
+          <div class="heat-map" aria-label="Daily uptime for the last 90 days">
+            @for (day of monitorDetail.monitor.daily_uptime; track day.date) {
+              <span class="day" [class]="'day ' + dayClass(day)" [title]="dayLabel(day)"></span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="uptime-section">
+        <div class="section-heading">
+          <h2>Overall Uptime</h2>
+          <span>{{ monitorDetail.monitor.name }}</span>
+        </div>
+        <div class="metric-grid uptime-grid">
+          @for (window of uptimeWindows(monitorDetail.uptime_status); track window.label) {
+            <div>
+              <strong>
+                {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
+              </strong>
+              <span>{{ window.label }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="response-section">
+        <div class="section-heading">
+          <h2>Response Time</h2>
+          <span>Last 24 hours</span>
+        </div>
+        @if (responsePolyline()) {
+          <div class="response-chart">
+            <svg
+              viewBox="0 0 900 180"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label="Response time over the last 24 hours"
+            >
+              <line x1="0" y1="30" x2="900" y2="30" />
+              <line x1="0" y1="92" x2="900" y2="92" />
+              <line x1="0" y1="155" x2="900" y2="155" />
+              <polyline [attr.points]="responsePolyline()" />
+              @for (point of chartPoints(); track point.data.checked_at) {
+                <g class="chart-point" tabindex="0">
+                  <title>
+                    {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} —
+                    {{ point.data.response_time_ms | number: '1.0-2' }} ms
+                  </title>
+                  <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                  <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+                </g>
+              }
+            </svg>
+          </div>
+        } @else {
+          <div class="empty">No response-time data is available for this monitor.</div>
+        }
+
+        <div class="metric-grid response-metrics">
+          <div>
+            <strong>
+              {{
+                monitorDetail.response_time_metrics.average_ms === null
+                  ? '—'
+                  : (monitorDetail.response_time_metrics.average_ms | number: '1.0-2') + ' ms'
+              }}
+            </strong>
+            <span>Avg. response time</span>
+          </div>
+          <div>
+            <strong>
+              {{
+                monitorDetail.response_time_metrics.maximum_ms === null
+                  ? '—'
+                  : (monitorDetail.response_time_metrics.maximum_ms | number: '1.0-2') + ' ms'
+              }}
+            </strong>
+            <span>Max. response time</span>
+          </div>
+          <div>
+            <strong>
+              {{
+                monitorDetail.response_time_metrics.minimum_ms === null
+                  ? '—'
+                  : (monitorDetail.response_time_metrics.minimum_ms | number: '1.0-2') + ' ms'
+              }}
+            </strong>
+            <span>Min. response time</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="events-section">
+        <div class="section-heading">
+          <h2>Recent events</h2>
+          <span>{{ monitorDetail.recent_events.length }} events</span>
+        </div>
+        <div class="events">
+          @for (event of monitorDetail.recent_events; track event.event_id) {
+            <article>
+              <span [class]="'event-icon ' + event.event_type"></span>
+              <div class="event-copy">
+                <strong>{{ eventTitle(event, monitorDetail.monitor.name) }}</strong>
+                <span>{{ event.occurred_at | date: 'MMM d, y, HH:mm:ss' }}</span>
+                @if (event.reason) {
+                  <p>{{ event.reason }}</p>
+                }
+              </div>
+              <dl>
+                @if (event.status_code !== null) {
+                  <div>
+                    <dt>Status code</dt>
+                    <dd>HTTP {{ event.status_code }}</dd>
+                  </div>
+                }
+                @if (eventDuration(event); as duration) {
+                  <div>
+                    <dt>Downtime</dt>
+                    <dd>{{ formatDuration(duration) }}</dd>
+                  </div>
+                }
+                @if (event.ongoing) {
+                  <div>
+                    <dt>State</dt>
+                    <dd>Ongoing</dd>
+                  </div>
+                }
+              </dl>
+            </article>
+          }
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <span>Live status supplied by Mono Monitor</span>
+      <span class="connection" [class.connected]="connected()">
+        <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
+      </span>
+    </footer>
+  }
+</main>

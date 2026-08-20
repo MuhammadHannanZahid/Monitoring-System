@@ -40,3 +40,4 @@ class Collections:
     PING_MONITORS = "ping_monitors"
     HEARTBEAT_MONITORS = "heartbeat_monitors"
     AUTH_PROFILES = "auth_profiles"
+    STATUS_PAGES = "status_pages"

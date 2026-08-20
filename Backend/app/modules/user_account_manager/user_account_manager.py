@@ -8,6 +8,7 @@ from app.modules.auth_manager.auth_manager import PasswordManager
 from app.service.constants import Collections, Messages
 from app.service.exceptions import AuthorizationError, ConflictError, NotFoundError
 from app.service.mongo_db.shared_models.db_user_account_model import UserModel, UserResponse, UserRole
+from app.service.realtime import realtime_broker
 
 logger = get_logger(__name__)
 
@@ -16,18 +17,15 @@ class UserManager:
         self.collection = engine.database[Collections.USERS]
         self.password_service = password_service
 
-    async def create_user(self, username: str, password: str, role: UserRole) -> UserResponse:
+    async def create_user(self, username: str, password: str) -> UserResponse:
         if await self.collection.find_one({"username": username}) is not None:
             raise ConflictError(Messages.USERNAME_ALREADY_EXISTS)
-        if role == UserRole.ADMIN:
-            logger.warning("Attempted creation of another admin account.")
-            raise AuthorizationError(Messages.ADMIN_CREATION_NOT_ALLOWED)
 
         now = datetime.now(timezone.utc)
         user = UserModel(
             username=username,
             password_hash=self.password_service.hash_password(password),
-            role=role,
+            role=UserRole.VIEWER,
             is_active=True,
             refresh_token_hash=None,
             created_at=now,
@@ -38,6 +36,7 @@ class UserManager:
         document.pop("id", None)
         result = await self.collection.insert_one(document)
         user.id = str(result.inserted_id)
+        realtime_broker.notify("user", user.id)
         logger.info("User '%s' created with role '%s'.", user.username, user.role.value)
         return UserResponse(**user.model_dump())
 
@@ -55,7 +54,7 @@ class UserManager:
         return UserModel(**document)
 
     async def list_user_models(self) -> list[UserModel]:
-        cursor = self.collection.find().sort("created_at", -1)
+        cursor = self.collection.find({"role": UserRole.VIEWER}).sort("created_at", -1)
         users = []
         async for document in cursor:
             document["id"] = str(document.pop("_id"))
@@ -103,6 +102,7 @@ class UserManager:
             )
 
         updated_user = await self.get_user_model(user_id)
+        realtime_broker.notify("user", updated_user.id)
         logger.info("User '%s' updated. Fields changed: %s", updated_user.username, ", ".join(update_data.keys()))
         return UserResponse(**updated_user.model_dump())
 
@@ -112,6 +112,7 @@ class UserManager:
             logger.warning("Attempted deletion of admin account '%s'.", user.username)
             raise AuthorizationError(Messages.ADMIN_DELETION_NOT_ALLOWED)
         await self.collection.delete_one({"_id": ObjectId(user_id)})
+        realtime_broker.notify("user", user_id)
         logger.info("User '%s' deleted.", user.username)
 
     async def ensure_default_admin(self, username: str, password: str) -> bool:

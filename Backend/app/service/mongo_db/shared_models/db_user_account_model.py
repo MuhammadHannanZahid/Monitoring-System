@@ -48,7 +48,6 @@ class CurrentUserResponse(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=8)
-    role: UserRole
 
 class UpdateUserRequest(BaseModel):
     username: str | None = Field(default=None, min_length=3, max_length=50)

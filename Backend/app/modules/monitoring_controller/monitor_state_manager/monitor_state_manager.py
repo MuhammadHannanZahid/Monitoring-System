@@ -31,13 +31,15 @@ class MonitorStateManager:
         previous_status = state.status
 
         load_dotenv()
-        recovery_threshold = 1 if monitor_type == MonitorType.HEARTBEAT else int(os.environ["MONITOR_RECOVERY_THRESHOLD"])
-        failure_threshold = 1 if monitor_type == MonitorType.HEARTBEAT else int(os.environ["MONITOR_FAILURE_THRESHOLD"])
+        recovery_threshold = int(os.environ["MONITOR_RECOVERY_THRESHOLD"])
+        failure_threshold = int(os.environ["MONITOR_FAILURE_THRESHOLD"])
 
         if success:
             state.consecutive_successes += 1
             state.consecutive_failures = 0
-            if previous_status != MonitorStatus.UP and state.consecutive_successes >= recovery_threshold:
+            if previous_status == MonitorStatus.UNKNOWN:
+                state.status = MonitorStatus.UP
+            elif previous_status == MonitorStatus.DOWN and state.consecutive_successes >= recovery_threshold:
                 state.status = MonitorStatus.UP
         else:
             state.consecutive_failures += 1
@@ -79,3 +81,6 @@ class MonitorStateManager:
             current_status=state.status,
             transition=transition,
         )
+
+    async def delete_for_monitor(self, monitor_id: str) -> None:
+        await self.collection.delete_many({"monitor_id": monitor_id})

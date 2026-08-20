@@ -7,6 +7,7 @@ import app.modules.orion_login_manager.orion_token_manager as auth_token_state
 from app.service.constants import Collections
 from app.service.exceptions import ConflictError, NotFoundError, ValidationError
 from app.service.mongo_db.shared_models.db_orion_login_model import AuthProfileModel, AuthProfileResponse, CreateAuthProfileRequest, UpdateAuthProfileRequest
+from app.service.realtime import realtime_broker
 
 class AuthProfileManager:
     DEPRECATED_FIELDS = {
@@ -23,16 +24,26 @@ class AuthProfileManager:
             raise ConflictError("An auth profile with this name already exists.")
 
         now = datetime.now(timezone.utc)
-        profile_data = request.model_dump()
-        profile_data["method"] = request.method.upper()
         profile = AuthProfileModel(
-            **profile_data,
+            **request.model_dump(),
+            method="POST",
             created_at=now,
             updated_at=now,
         )
+
+        token_manager = auth_token_state.token_manager
+        if token_manager is None:
+            raise ValidationError("Authentication service is not available.")
+        try:
+            token, login_status_code = await token_manager.authenticate_profile(profile)
+        except auth_token_state.AuthTokenError as exc:
+            raise ValidationError(str(exc)) from exc
+
         document = profile.model_dump(exclude={"id"})
         result = await self.collection.insert_one(document)
         profile.id = str(result.inserted_id)
+        token_manager.cache_token(profile.id, token)
+        realtime_broker.notify("auth_profile", profile.id)
         return AuthProfileResponse(
             id=profile.id,
             name=profile.name,
@@ -41,6 +52,7 @@ class AuthProfileManager:
             credential_fields=sorted(profile.credentials),
             created_at=profile.created_at,
             updated_at=profile.updated_at,
+            login_status_code=login_status_code,
         )
 
     async def get_profile_model(self, profile_id: str) -> AuthProfileModel | None:
@@ -97,7 +109,7 @@ class AuthProfileManager:
             raise NotFoundError("Auth profile not found.")
 
         update_data = request.model_dump(exclude_unset=True)
-        required_fields = {"name", "login_url", "method", "credentials"}
+        required_fields = {"name", "login_url", "credentials"}
         invalid_null_fields = [
             field
             for field in required_fields
@@ -112,9 +124,6 @@ class AuthProfileManager:
             existing = await self.collection.find_one({"name": update_data["name"]})
             if existing is not None and str(existing["_id"]) != profile_id:
                 raise ConflictError("An auth profile with this name already exists.")
-        if "method" in update_data:
-            update_data["method"] = update_data["method"].upper()
-
         update_data["updated_at"] = datetime.now(timezone.utc)
         await self.collection.update_one(
             {"_id": ObjectId(profile_id)},
@@ -127,6 +136,7 @@ class AuthProfileManager:
         updated = await self.get_profile_model(profile_id)
         if updated is None:
             raise NotFoundError("Auth profile not found.")
+        realtime_broker.notify("auth_profile", updated.id)
         return AuthProfileResponse(
             id=updated.id,
             name=updated.name,
@@ -148,11 +158,15 @@ class AuthProfileManager:
         if not deleted:
             raise NotFoundError("Auth profile not found.")
         self._invalidate_token(profile_id)
+        realtime_broker.notify("auth_profile", profile_id)
 
     async def create_indexes(self) -> None:
         await self.collection.update_many(
             {},
-            {"$unset": self.DEPRECATED_FIELDS},
+            {
+                "$set": {"method": "POST"},
+                "$unset": self.DEPRECATED_FIELDS,
+            },
         )
         await self.collection.create_index("name", unique=True)
 

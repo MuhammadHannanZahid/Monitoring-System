@@ -1,13 +1,10 @@
 fastapi
 uvicorn
+hypercorn
 odmantic
 pymongo
-python-jose
 argon2-cffi
 python-multipart
 python-dotenv
-pytest
 httpx
-black
-ruff
 python-jose[cryptography]

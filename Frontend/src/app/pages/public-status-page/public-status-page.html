@@ -1,0 +1,103 @@
+<main class="status-page">
+  @if (loading()) {
+    <div class="loading-line"></div>
+  }
+
+  @if (error() && !page()) {
+    <section class="unavailable">
+      <p class="eyebrow">Public status</p>
+      <h1>{{ error() }}</h1>
+      <p>Please check the link or try again shortly.</p>
+    </section>
+  }
+
+  @if (page(); as statusPage) {
+    <section class="hero">
+      <div class="identity">
+        <span class="logo" aria-hidden="true">M</span>
+        <div>
+          <span class="identity-label">Status page</span>
+          <h1>{{ statusPage.name }}</h1>
+          @if (statusPage.description) {
+            <p>{{ statusPage.description }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="service-state">
+        <span class="service-label">Service status</span>
+        <strong [class]="'state-value ' + statusPage.overall_status">
+          <i></i>{{ serviceStatusLabel(statusPage.overall_status) }}
+        </strong>
+        <div class="update-meta">
+          <span>Next update in {{ nextUpdateIn(statusPage) }} sec.</span>
+          <span>Last updated {{ statusPage.generated_at | date: 'h:mm:ss a' }}</span>
+        </div>
+      </div>
+
+      <div class="overall-banner" [class]="'overall-banner ' + statusPage.overall_status">
+        <span></span>
+        <strong>{{ overallLabel(statusPage.overall_status) }}</strong>
+      </div>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading uptime-heading">
+        <h2>Uptime</h2>
+        <span>Last 90 days</span>
+      </div>
+
+      <div class="monitor-table">
+        @for (monitor of statusPage.monitors; track monitor.id) {
+          <article class="monitor-row">
+            <a class="monitor-name" [routerLink]="['/status', statusPage.slug, monitor.id]">
+              <strong>{{ monitor.name }}</strong>
+              <span>{{ monitor.monitor_type }} monitor</span>
+            </a>
+            <strong class="monitor-uptime">
+              {{
+                monitor.uptime_90_days === null
+                  ? '—'
+                  : (monitor.uptime_90_days | number: '1.0-2') + '%'
+              }}
+            </strong>
+            <div class="heat-map" aria-label="Daily uptime for the last 90 days">
+              @for (day of monitor.daily_uptime; track day.date) {
+                <span class="day" [class]="'day ' + dayClass(day)" [title]="dayLabel(day)"></span>
+              }
+            </div>
+            <span [class]="'monitor-status ' + monitorStatus(monitor)">
+              <i></i>{{ monitorStatus(monitor) }}
+            </span>
+          </article>
+        } @empty {
+          <div class="empty-monitors">No monitors are published on this page yet.</div>
+        }
+      </div>
+
+      <section class="uptime-status">
+        <div class="section-heading">
+          <h2>Uptime Status</h2>
+          <span>Average across published monitors</span>
+        </div>
+        <div class="uptime-windows">
+          @for (window of uptimeWindows(statusPage); track window.label) {
+            <div>
+              <strong>
+                {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
+              </strong>
+              <span>{{ window.label }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      <span>Live status supplied by Mono Monitor</span>
+      <span class="connection" [class.connected]="connected()">
+        <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
+      </span>
+    </footer>
+  }
+</main>

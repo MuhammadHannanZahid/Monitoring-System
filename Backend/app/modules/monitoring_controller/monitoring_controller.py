@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 from app.core.logger import get_logger
 from app.modules.incident_manager.incident_manager import IncidentManager
@@ -10,6 +11,8 @@ from app.service.mongo_db.shared_models.db_monitoring_controller_model import Ba
 from app.service.mongo_db.shared_models.db_heartbeat_monitor_model import HeartbeatMonitorModel
 from app.service.mongo_db.shared_models.db_monitor_state_model import MonitorTransition
 from app.service.mongo_db.shared_models.db_monitoring_controller_model import MonitorStatus, MonitorType
+from app.service.realtime import realtime_broker
+from app.service.constants import Collections
 
 if TYPE_CHECKING:
     from app.modules.api_monitor_manager.api_monitor_manager import API_monitorManager
@@ -18,6 +21,23 @@ if TYPE_CHECKING:
     from app.modules.ping_monitor_manager.ping_monitor_manager import PingMonitorManager
 
 logger = get_logger(__name__)
+
+HTTP_STATUS_DESCRIPTION_FALLBACKS = {
+    102: "The server received the request and is still processing it",
+    103: "The server returned preliminary headers before the final response",
+    207: "The response contains separate statuses for multiple operations",
+    208: "The resource was already reported earlier in the same response",
+    226: "The response represents the result of one or more instance manipulations",
+    422: "The server understood the request but could not process its content",
+    423: "The requested resource is locked",
+    424: "The request failed because an operation it depended on also failed",
+    425: "The server rejected the request because replaying it could be unsafe",
+    426: "The server requires the client to switch to a different protocol",
+    506: "The server has a circular content-negotiation configuration",
+    507: "The server has insufficient storage to complete the request",
+    508: "The server detected an infinite loop while processing the request",
+    510: "The request requires additional extensions before it can be completed",
+}
 
 MonitorModel = BaseMonitorModel | HeartbeatMonitorModel
 
@@ -70,16 +90,6 @@ class MonitorManager:
             result = await checker.check(latest_monitor)
             checked_at = datetime.now(timezone.utc)
 
-            await self.monitor_result_service.record_result(
-                monitor_id=monitor.id,
-                monitor_type=monitor.monitor_type,
-                status=result.status,
-                status_code=result.status_code,
-                response_time_ms=result.response_time_ms,
-                success=result.success,
-                is_slow=result.is_slow,
-            )
-
             state_result = await self.monitor_state_service.process_result(
                 monitor_id=monitor.id,
                 monitor_type=monitor.monitor_type,
@@ -87,6 +97,16 @@ class MonitorManager:
                 status_code=result.status_code,
                 response_time_ms=result.response_time_ms,
                 checked_at=checked_at,
+            )
+
+            await self.monitor_result_service.record_result(
+                monitor_id=monitor.id,
+                monitor_type=monitor.monitor_type,
+                status=state_result.current_status,
+                status_code=result.status_code,
+                response_time_ms=result.response_time_ms,
+                success=state_result.current_status == MonitorStatus.UP,
+                is_slow=result.is_slow,
             )
 
             await service.update_monitoring_result(
@@ -107,6 +127,7 @@ class MonitorManager:
                 state_result.state.consecutive_failures,
             )
             await self._handle_incident_transition(monitor, result, state_result)
+            realtime_broker.notify("monitor", monitor.id)
         except Exception:
             logger.exception("Failed to process monitor '%s'.", monitor.name)
 
@@ -115,7 +136,12 @@ class MonitorManager:
             active = await self.incident_service.get_active_incident(monitor.id, monitor.monitor_type)
             if active is None:
                 reason = self._build_incident_reason(monitor, result)
-                await self.incident_service.open_incident(monitor.id, monitor.monitor_type, reason)
+                await self.incident_service.open_incident(
+                    monitor.id,
+                    monitor.monitor_type,
+                    reason,
+                    getattr(result, "status_code", None),
+                )
                 logger.warning("Incident opened for '%s'.", monitor.name)
 
         elif state_result.transition == MonitorTransition.UP:
@@ -123,32 +149,63 @@ class MonitorManager:
             if resolved:
                 logger.info("Incident resolved for '%s'.", monitor.name)
 
-    def _build_incident_reason(self, monitor: MonitorModel, result) -> str:
+    @classmethod
+    def _build_incident_reason(cls, monitor: MonitorModel, result) -> str:
         if monitor.monitor_type == MonitorType.HEARTBEAT:
             return "Heartbeat was not received."
 
+        if result is None:
+            return "The monitor failed without producing a check result."
+
+        status_code = getattr(result, "status_code", None)
+        error = getattr(result, "error", None)
+        if getattr(result, "timed_out", False):
+            return error or "The health check timed out before a response was received."
+
+        if error:
+            if status_code is not None:
+                return f"Received HTTP {cls._http_status_details(status_code)}. {error}"
+            return error
+
+        expected_status_code = getattr(monitor, "expected_status_code", None)
         if (
-                hasattr(result, "status_code")
-                and result.status_code is not None
-                and hasattr(monitor, "expected_status_code")
-                and monitor.expected_status_code is not None
-                and result.status_code != monitor.expected_status_code
+            status_code is not None
+            and expected_status_code is not None
+            and status_code != expected_status_code
         ):
             return (
-                f"Expected HTTP {monitor.expected_status_code}, "
-                f"got HTTP {result.status_code}."
+                f"Expected HTTP {cls._http_status_label(expected_status_code)}, "
+                f"but received HTTP {cls._http_status_details(status_code)}."
             )
-        if (
-                hasattr(result, "response_time_ms")
-                and hasattr(monitor, "timeout")
-                and result.response_time_ms is not None
-                and monitor.timeout is not None
-                and result.response_time_ms >= monitor.timeout
-        ):
-            return "Health check timed out."
-        if hasattr(result, "success") and not result.success:
-            return "Health check failed."
-        return "Monitor is unreachable."
+
+        if status_code is not None:
+            return (
+                f"Received HTTP {cls._http_status_details(status_code)}, but the "
+                "configured response requirements were not satisfied."
+            )
+        return "The target could not be reached and returned no HTTP response."
+
+    @staticmethod
+    def _http_status_label(status_code: int) -> str:
+        try:
+            status = HTTPStatus(status_code)
+        except ValueError:
+            return str(status_code)
+        return f"{status_code} {status.phrase}"
+
+    @classmethod
+    def _http_status_details(cls, status_code: int) -> str:
+        label = cls._http_status_label(status_code)
+        try:
+            description = HTTPStatus(status_code).description.rstrip(".")
+        except ValueError:
+            description = "The target returned a non-standard HTTP status code"
+        if not description:
+            description = HTTP_STATUS_DESCRIPTION_FALLBACKS.get(
+                status_code,
+                "The target returned this HTTP status without a standard description",
+            )
+        return f"{label} — {description}"
 
     async def get_monitor(self, monitor_id: str, monitor_type: MonitorType | None = None) -> MonitorModel | None:
         if monitor_type is not None:
@@ -181,6 +238,23 @@ class MonitorManager:
             *ping_monitors,
             *heartbeat_monitors,
         ]
+
+    async def delete_monitor_history(self, monitor_id: str) -> None:
+        await self.monitor_result_service.delete_for_monitor(monitor_id)
+        await self.incident_service.delete_for_monitor(monitor_id)
+        await self.monitor_state_service.delete_for_monitor(monitor_id)
+        status_pages = self.monitor_result_service.collection.database[
+            Collections.STATUS_PAGES
+        ]
+        result = await status_pages.update_many(
+            {"monitor_ids": monitor_id},
+            {
+                "$pull": {"monitor_ids": monitor_id},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+        )
+        if result.modified_count:
+            realtime_broker.notify("status_page", None)
 
     async def process_heartbeat(self, monitor: HeartbeatMonitorModel) -> None:
         checked_at = datetime.now(timezone.utc)
@@ -218,6 +292,7 @@ class MonitorManager:
             None,
             state_result,
         )
+        realtime_broker.notify("monitor", monitor.id)
 
     def _get_monitor_service(self, monitor_type: MonitorType):
         try:

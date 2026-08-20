@@ -1,0 +1,207 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Monitor details</p>
+    <h1 class="page-title">{{ detail()?.name ?? 'Monitor' }}</h1>
+    <p class="page-description">
+      Health statistics and the complete incident history for this monitor.
+    </p>
+  </div>
+  <a class="back-link" [routerLink]="backUrl">← Back to list</a>
+</header>
+
+@if (loading()) {
+  <div class="loading-line"></div>
+}
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}
+
+@if (detail(); as monitor) {
+  <section class="summary-panel panel">
+    <div class="monitor-heading">
+      <span class="status" [class]="'status ' + monitor.status">{{ monitor.status }}</span
+      ><span>{{ monitor.monitor_type }}</span>
+      @if (!monitor.is_active) {
+        <span>Paused</span>
+      }
+    </div>
+    <dl>
+      <div>
+        <dt>Up percentage</dt>
+        <dd>
+          {{
+            uptimePercentage(monitor) === null
+              ? '—'
+              : (uptimePercentage(monitor) | number: '1.0-2') + '%'
+          }}
+        </dd>
+      </div>
+      <div>
+        <dt>Total uptime</dt>
+        <dd>{{ formatDuration(uptimeSeconds(monitor)) }}</dd>
+      </div>
+      <div>
+        <dt>Total downtime</dt>
+        <dd>{{ formatDuration(downtimeSeconds(monitor)) }}</dd>
+      </div>
+      <div>
+        <dt>Created on</dt>
+        <dd>{{ monitor.created_at | date: 'MMM d, y, HH:mm' }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <div class="charts-grid">
+    <section class="chart-panel panel">
+      <div class="chart-heading">
+        <div>
+          <p class="eyebrow">Reliability</p>
+          <h2>Status over time</h2>
+        </div>
+        <div class="range-switch" aria-label="Status chart range">
+          @for (range of ranges; track range.days) {
+            <button
+              type="button"
+              [class.active]="statusDays() === range.days"
+              (click)="setStatusRange(range.days)"
+            >
+              {{ range.label }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (statusHistory().length) {
+        <div class="chart-body status-chart">
+          <div class="y-labels"><span>Up</span><span>Unknown</span><span>Down</span></div>
+          <svg
+            viewBox="0 0 760 140"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Monitor status history"
+          >
+            <line x1="0" y1="20" x2="760" y2="20" />
+            <line x1="0" y1="70" x2="760" y2="70" />
+            <line x1="0" y1="120" x2="760" y2="120" />
+            <polyline [attr.points]="statusPolyline()" />
+            @for (point of statusChartPoints(); track point.data.checked_at + $index) {
+              <g class="chart-point" tabindex="0">
+                <title>
+                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Status:
+                  {{ point.data.status }}
+                </title>
+                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+              </g>
+            }
+          </svg>
+        </div>
+        <div class="chart-dates">
+          <span>{{ firstDate(statusHistory()) | date: 'MMM d, y' }}</span
+          ><span>{{ lastDate(statusHistory()) | date: 'MMM d, y' }}</span>
+        </div>
+      } @else {
+        <div class="empty-state">No status data in this period.</div>
+      }
+    </section>
+
+    <section class="chart-panel panel">
+      <div class="chart-heading">
+        <div>
+          <p class="eyebrow">Performance</p>
+          <h2>Response time</h2>
+        </div>
+        <div class="range-switch" aria-label="Response chart range">
+          @for (range of ranges; track range.days) {
+            <button
+              type="button"
+              [class.active]="responseDays() === range.days"
+              (click)="setResponseRange(range.days)"
+            >
+              {{ range.label }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (responsePolyline()) {
+        <div class="chart-body response-chart">
+          <div class="response-maximum">{{ maximumResponseTime() | number: '1.0-0' }} ms</div>
+          <svg
+            viewBox="0 0 760 140"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Monitor response time history"
+          >
+            <line x1="0" y1="20" x2="760" y2="20" />
+            <line x1="0" y1="70" x2="760" y2="70" />
+            <line x1="0" y1="125" x2="760" y2="125" />
+            <polyline [attr.points]="responsePolyline()" />
+            @for (point of responseChartPoints(); track point.data.checked_at + $index) {
+              <g class="chart-point" tabindex="0">
+                <title>
+                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Response:
+                  {{ point.data.response_time_ms | number: '1.0-0' }} ms
+                </title>
+                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+              </g>
+            }
+          </svg>
+        </div>
+        <div class="chart-dates">
+          <span>{{ firstDate(responseHistory()) | date: 'MMM d, y' }}</span
+          ><span>{{ lastDate(responseHistory()) | date: 'MMM d, y' }}</span>
+        </div>
+      } @else {
+        <div class="empty-state">No response-time data in this period.</div>
+      }
+    </section>
+  </div>
+
+  <section class="incidents panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">History</p>
+        <h2>Incidents</h2>
+      </div>
+      <span>{{ monitor.incidents.length }} total</span>
+    </div>
+    @for (incident of monitor.incidents; track incident.id) {
+      <article>
+        <div class="incident-status" [class.open]="incident.status === 'open'">
+          <i></i>{{ incident.status }}
+        </div>
+        <div class="incident-reason">
+          <strong>{{ incident.reason }}</strong
+          ><span>
+            @if (incident.status_code !== null) {
+              HTTP {{ incident.status_code }} ·
+            }
+            Incident ID {{ incident.id }}
+          </span>
+        </div>
+        <dl>
+          <div>
+            <dt>Created on</dt>
+            <dd>{{ incident.started_at | date: 'MMM d, y, HH:mm:ss' }}</dd>
+          </div>
+          <div>
+            <dt>Resolved on</dt>
+            <dd>
+              {{
+                incident.resolved_at
+                  ? (incident.resolved_at | date: 'MMM d, y, HH:mm:ss')
+                  : 'Still open'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Downtime</dt>
+            <dd>{{ formatDuration(incidentDuration(incident)) }}</dd>
+          </div>
+        </dl>
+      </article>
+    } @empty {
+      <div class="empty-state">No incidents have occurred for this monitor.</div>
+    }
+  </section>
+}

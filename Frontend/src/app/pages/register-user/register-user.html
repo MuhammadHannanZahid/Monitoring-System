@@ -1,0 +1,38 @@
+<header>
+  <p class="eyebrow">Administration</p>
+  <h1 class="page-title">Register user</h1>
+  <p class="page-description">
+    Create a read-only viewer account for access to the monitoring dashboard.
+  </p>
+</header>
+
+<div class="registration-layout">
+  <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-heading"><span>New account</span><span>01 / 01</span></div>
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    <div class="field">
+      <label for="new-username">Username</label
+      ><input
+        id="new-username"
+        formControlName="username"
+        autocomplete="off"
+        placeholder="3–50 characters"
+      />
+    </div>
+    <div class="field">
+      <label for="new-password">Password</label
+      ><input
+        id="new-password"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+        placeholder="minimum 8 characters"
+      />
+    </div>
+    <button class="button" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Registering…' : 'Register account' }}
+    </button>
+  </form>
+</div>
