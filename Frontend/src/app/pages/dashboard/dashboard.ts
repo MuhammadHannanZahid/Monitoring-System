@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
-import { DashboardIncident } from '../../core/models';
-import { RealtimeService } from '../../core/realtime.service';
+import { DashboardIncident } from '../../models/models';
+import { RealtimeService } from '../../services/realtime.service';
 
 @Component({
   selector: 'app-dashboard-page',

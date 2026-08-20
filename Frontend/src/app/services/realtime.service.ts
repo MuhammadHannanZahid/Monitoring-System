@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ReplaySubject, Subscription } from 'rxjs';
-import { DashboardIncident, MonitorOverview, RealtimeSnapshot } from './models';
+import { DashboardIncident, MonitorOverview, RealtimeSnapshot } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {

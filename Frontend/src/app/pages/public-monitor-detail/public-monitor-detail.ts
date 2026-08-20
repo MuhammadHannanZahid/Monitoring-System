@@ -8,7 +8,7 @@ import {
   PublicResponseTimePoint,
   PublicStatusMonitor,
   PublicUptimeStatus,
-} from '../../core/models';
+} from '../../models/models';
 
 interface ChartPoint {
   data: PublicResponseTimePoint;

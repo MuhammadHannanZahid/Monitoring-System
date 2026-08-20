@@ -6,7 +6,7 @@ import {
   PublicStatusMonitor,
   PublicStatusPage,
   PublicUptimeStatus,
-} from '../../core/models';
+} from '../../models/models';
 
 @Component({
   selector: 'app-public-status-page',

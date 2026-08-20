@@ -3,8 +3,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ApiService } from '../../core/api.service';
-import { AuthProfileOption } from '../../core/models';
+import { ApiService } from '../../services/api.service';
+import { AuthProfileOption } from '../../models/models';
 
 type ResourceKind = 'http' | 'api' | 'ping' | 'heartbeat' | 'auth-profile';
 

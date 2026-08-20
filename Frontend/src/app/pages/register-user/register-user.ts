@@ -2,8 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ApiService } from '../../core/api.service';
-import { CreateUserRequest, UserResponse } from '../../core/models';
+import { ApiService } from '../../services/api.service';
+import { CreateUserRequest, UserResponse } from '../../models/models';
 
 @Component({
   selector: 'app-register-user-page',

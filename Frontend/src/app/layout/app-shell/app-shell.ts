@@ -1,8 +1,8 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../core/auth.service';
-import { RealtimeService } from '../../core/realtime.service';
+import { AuthService } from '../../services/auth.service';
+import { RealtimeService } from '../../services/realtime.service';
 
 @Component({
   selector: 'app-shell',
