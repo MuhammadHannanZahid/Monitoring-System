@@ -20,7 +20,6 @@ interface ChartPoint {
   selector: 'app-public-monitor-detail',
   imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './public-monitor-detail.html',
-  styleUrl: './public-monitor-detail.css',
 })
 export class PublicMonitorDetailPage {
   private readonly destroyRef = inject(DestroyRef);

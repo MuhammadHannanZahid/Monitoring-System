@@ -1,78 +1,90 @@
-<header>
-  <div>
-    <p class="eyebrow">Administration</p>
-    <h1 class="page-title">Registered users</h1>
-    <p class="page-description">View, activate, deactivate, or remove viewer accounts.</p>
-  </div>
-  <div class="header-actions">
-    <span>{{ users().length }} registered</span>
-    <a routerLink="/users/new">+ New</a>
-  </div>
-</header>
+<div
+  class="tw:[&_header]:mb-[38px] tw:[&_header]:flex tw:[&_header]:items-end tw:[&_header]:justify-between tw:[&_header]:gap-6 tw:max-[700px]:[&_header]:flex-col tw:max-[700px]:[&_header]:items-start tw:[&_.header-actions]:flex tw:[&_.header-actions]:items-center tw:[&_.header-actions]:gap-[18px] tw:max-[700px]:[&_.header-actions]:w-full tw:max-[700px]:[&_.header-actions]:justify-between tw:[&_.header-actions_span]:font-mono tw:[&_.header-actions_span]:text-[10px] tw:[&_.header-actions_span]:text-[#686868] tw:[&_.header-actions_a]:inline-grid tw:[&_.header-actions_a]:min-h-10 tw:[&_.header-actions_a]:place-items-center tw:[&_.header-actions_a]:border tw:[&_.header-actions_a]:border-[#0a0a0a] tw:[&_.header-actions_a]:bg-[#0a0a0a] tw:[&_.header-actions_a]:px-[17px] tw:[&_.header-actions_a]:text-[11px] tw:[&_.header-actions_a]:font-bold tw:[&_.header-actions_a]:text-white tw:[&_.header-actions_a]:no-underline tw:[&_.header-actions_a:hover]:bg-white tw:[&_.header-actions_a:hover]:text-[#0a0a0a] tw:[&_.loading-line]:mb-4 tw:[&_.form-error]:mb-4 tw:[&_.user-grid]:grid tw:[&_.user-grid]:grid-cols-[repeat(auto-fill,minmax(310px,1fr))] tw:[&_.user-grid]:gap-4 tw:max-[700px]:[&_.user-grid]:grid-cols-1 tw:[&_.user-card]:grid tw:[&_.user-card]:min-w-0 tw:[&_.user-card]:gap-5 tw:[&_.user-card]:p-5 tw:[&_.card-heading]:flex tw:[&_.card-heading]:items-start tw:[&_.card-heading]:justify-between tw:[&_.card-heading]:gap-3.5 tw:[&_.identity]:flex tw:[&_.identity]:min-w-0 tw:[&_.identity]:items-center tw:[&_.identity]:gap-3 tw:[&_.identity>span]:grid tw:[&_.identity>span]:size-9 tw:[&_.identity>span]:flex-none tw:[&_.identity>span]:place-items-center tw:[&_.identity>span]:border tw:[&_.identity>span]:border-[#0a0a0a] tw:[&_.identity>span]:text-[11px] tw:[&_.identity>span]:font-extrabold tw:[&_.identity_div]:grid tw:[&_.identity_div]:min-w-0 tw:[&_.identity_div]:gap-1 tw:[&_.identity_strong]:text-xs tw:[&_.identity_strong]:[overflow-wrap:anywhere] tw:[&_.identity_small]:text-[9px] tw:[&_.identity_small]:text-[#686868] tw:[&_.identity_small]:capitalize tw:[&_.actions]:flex tw:[&_.actions]:flex-none tw:[&_.actions]:gap-2.5 tw:[&_.actions_button]:cursor-pointer tw:[&_.actions_button]:border-0 tw:[&_.actions_button]:border-b tw:[&_.actions_button]:border-[#aaa] tw:[&_.actions_button]:bg-transparent tw:[&_.actions_button]:py-[5px] tw:[&_.actions_button]:text-[9px] tw:[&_.actions_button]:text-[#686868] tw:[&_.actions_button:hover]:border-[#0a0a0a] tw:[&_.actions_button:hover]:text-[#0a0a0a] tw:[&_.actions_button:disabled]:cursor-wait tw:[&_.actions_button:disabled]:opacity-50 tw:[&_.user-card_dl]:m-0 tw:[&_.user-card_dl]:grid tw:[&_.user-card_dl]:border tw:[&_.user-card_dl]:border-[#dedede] tw:[&_.user-card_dl_div]:flex tw:[&_.user-card_dl_div]:justify-between tw:[&_.user-card_dl_div]:gap-3.5 tw:[&_.user-card_dl_div]:border-b tw:[&_.user-card_dl_div]:border-[#dedede] tw:[&_.user-card_dl_div]:px-3 tw:[&_.user-card_dl_div]:py-2.5 tw:[&_.user-card_dl_div:last-child]:border-b-0 tw:[&_.user-card_dt]:text-[9px] tw:[&_.user-card_dt]:text-[#686868] tw:[&_.user-card_dd]:m-0 tw:[&_.user-card_dd]:text-right tw:[&_.user-card_dd]:text-[9px] tw:[&_.user-card_dd]:font-bold tw:[&_.user-card_dd]:[overflow-wrap:anywhere] tw:[&_.empty-state]:col-span-full"
+>
+  <header>
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1 class="page-title">Registered users</h1>
+      <p class="page-description">View, activate, deactivate, or remove viewer accounts.</p>
+    </div>
+    <div class="header-actions">
+      <span>{{ users().length }} registered</span>
+      <a routerLink="/users/new">+ New</a>
+    </div>
+  </header>
 
-@if (loading()) {
-  <div class="loading-line"></div>
-}
-@if (error()) {
-  <p class="form-error">{{ error() }}</p>
-}
-@if (message()) {
-  <p
-    class="form-success notice app-notification"
-    [class.leaving]="noticeLeaving()"
-    role="status"
-    aria-live="polite"
-  >
-    {{ message() }}
-  </p>
-}
-
-<section class="user-grid">
-  @for (user of users(); track user.id) {
-    <article class="panel user-card">
-      <div class="card-heading">
-        <div class="identity">
-          <span>{{ user.username.charAt(0).toUpperCase() }}</span>
-          <div>
-            <strong>{{ user.username }}</strong
-            ><small>{{ user.role }}</small>
-          </div>
-        </div>
-        @if (user.role === 'viewer') {
-          <div class="actions">
-            <button
-              type="button"
-              (click)="toggleActive(user)"
-              [disabled]="updatingId() === user.id"
-            >
-              {{
-                updatingId() === user.id ? 'Updating…' : user.is_active ? 'Deactivate' : 'Activate'
-              }}
-            </button>
-            <button type="button" (click)="deleteUser(user)" [disabled]="deletingId() === user.id">
-              {{ deletingId() === user.id ? 'Deleting…' : 'Delete' }}
-            </button>
-          </div>
-        }
-      </div>
-      <dl>
-        <div>
-          <dt>Status</dt>
-          <dd>{{ user.is_active ? 'Active' : 'Disabled' }}</dd>
-        </div>
-        <div>
-          <dt>Created on</dt>
-          <dd>{{ user.created_at | date: 'MMM d, y, h:mm a' }}</dd>
-        </div>
-        <div>
-          <dt>Last login</dt>
-          <dd>{{ user.last_login ? (user.last_login | date: 'MMM d, y, h:mm a') : 'Never' }}</dd>
-        </div>
-      </dl>
-    </article>
-  } @empty {
-    @if (!loading() && !error()) {
-      <div class="empty-state panel">No registered users were found.</div>
-    }
+  @if (loading()) {
+    <div class="loading-line"></div>
   }
-</section>
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p
+      class="form-success notice app-notification"
+      [class.leaving]="noticeLeaving()"
+      role="status"
+      aria-live="polite"
+    >
+      {{ message() }}
+    </p>
+  }
+
+  <section class="user-grid">
+    @for (user of users(); track user.id) {
+      <article class="panel user-card">
+        <div class="card-heading">
+          <div class="identity">
+            <span>{{ user.username.charAt(0).toUpperCase() }}</span>
+            <div>
+              <strong>{{ user.username }}</strong
+              ><small>{{ user.role }}</small>
+            </div>
+          </div>
+          @if (user.role === 'viewer') {
+            <div class="actions">
+              <button
+                type="button"
+                (click)="toggleActive(user)"
+                [disabled]="updatingId() === user.id"
+              >
+                {{
+                  updatingId() === user.id
+                    ? 'Updating…'
+                    : user.is_active
+                      ? 'Deactivate'
+                      : 'Activate'
+                }}
+              </button>
+              <button
+                type="button"
+                (click)="deleteUser(user)"
+                [disabled]="deletingId() === user.id"
+              >
+                {{ deletingId() === user.id ? 'Deleting…' : 'Delete' }}
+              </button>
+            </div>
+          }
+        </div>
+        <dl>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ user.is_active ? 'Active' : 'Disabled' }}</dd>
+          </div>
+          <div>
+            <dt>Created on</dt>
+            <dd>{{ user.created_at | date: 'MMM d, y, h:mm a' }}</dd>
+          </div>
+          <div>
+            <dt>Last login</dt>
+            <dd>{{ user.last_login ? (user.last_login | date: 'MMM d, y, h:mm a') : 'Never' }}</dd>
+          </div>
+        </dl>
+      </article>
+    } @empty {
+      @if (!loading() && !error()) {
+        <div class="empty-state panel">No registered users were found.</div>
+      }
+    }
+  </section>
+</div>

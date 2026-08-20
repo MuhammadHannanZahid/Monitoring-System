@@ -11,7 +11,6 @@ import { RealtimeService } from '../../core/realtime.service';
   selector: 'app-resource-list-page',
   imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './resource-list.html',
-  styleUrl: './resource-list.css',
 })
 export class ResourceListPage {
   private readonly route = inject(ActivatedRoute);

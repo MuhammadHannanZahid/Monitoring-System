@@ -1,103 +1,115 @@
-<main class="status-page">
-  @if (loading()) {
-    <div class="loading-line"></div>
-  }
+<div class="tw:min-h-dvh tw:bg-[#f3f3f0]">
+  <div
+    class="tw:mx-auto tw:w-[min(1120px,calc(100%_-_40px))] tw:max-[650px]:w-[min(100%_-_20px,1120px)]"
+  >
+    <main
+      class="tw:min-h-screen tw:w-[min(1120px,calc(100%-40px))] tw:bg-[#f3f3f0] tw:py-[44px] tw:max-[650px]:w-[min(100%-20px,1120px)] tw:max-[650px]:pt-2.5 tw:[&_.hero]:relative tw:[&_.hero]:flex tw:[&_.hero]:min-h-[250px] tw:[&_.hero]:items-start tw:[&_.hero]:justify-between tw:[&_.hero]:gap-10 tw:[&_.hero]:rounded-t-[18px] tw:[&_.hero]:bg-[#0a0a0a] tw:[&_.hero]:px-12 tw:[&_.hero]:pt-11 tw:[&_.hero]:pb-[72px] tw:[&_.hero]:text-white tw:max-[650px]:[&_.hero]:min-h-[310px] tw:max-[650px]:[&_.hero]:flex-col tw:max-[650px]:[&_.hero]:gap-[26px] tw:max-[650px]:[&_.hero]:rounded-t-[13px] tw:max-[650px]:[&_.hero]:px-6 tw:max-[650px]:[&_.hero]:pt-7 tw:max-[650px]:[&_.hero]:pb-16 tw:[&_.identity]:flex tw:[&_.identity]:items-start tw:[&_.identity]:gap-[18px] tw:[&_.logo]:grid tw:[&_.logo]:size-12 tw:[&_.logo]:flex-none tw:[&_.logo]:place-items-center tw:[&_.logo]:rounded-[11px] tw:[&_.logo]:border tw:[&_.logo]:border-[#707070] tw:[&_.logo]:bg-white tw:[&_.logo]:text-[#0a0a0a] tw:[&_.identity-label]:text-[9px] tw:[&_.identity-label]:tracking-[0.08em] tw:[&_.identity-label]:text-[#989898] tw:[&_.identity-label]:uppercase tw:[&_.identity_h1]:mt-[7px] tw:[&_.identity_h1]:mb-0 tw:[&_.identity_h1]:text-[clamp(25px,4vw,42px)] tw:[&_.identity_h1]:leading-none tw:[&_.identity_h1]:font-[630] tw:[&_.identity_h1]:tracking-[-0.045em] tw:[&_.service-state]:grid tw:[&_.service-state]:min-w-[230px] tw:[&_.service-state]:justify-items-end tw:[&_.service-state]:text-right tw:max-[650px]:[&_.service-state]:min-w-0 tw:max-[650px]:[&_.service-state]:justify-items-start tw:max-[650px]:[&_.service-state]:text-left tw:[&_.service-label]:text-[9px] tw:[&_.service-label]:tracking-[0.08em] tw:[&_.service-label]:text-[#989898] tw:[&_.service-label]:uppercase tw:[&_.state-value]:mt-[9px] tw:[&_.state-value]:flex tw:[&_.state-value]:items-center tw:[&_.state-value]:gap-2 tw:[&_.state-value]:text-[15px] tw:[&_.state-value_i]:block tw:[&_.state-value_i]:size-[7px] tw:[&_.state-value_i]:rounded-full tw:[&_.state-value_i]:border tw:[&_.state-value_i]:border-current tw:[&_.state-value.operational_i]:bg-white tw:[&_.state-value.degraded_i]:bg-[linear-gradient(90deg,white_50%,transparent_50%)] tw:[&_.update-meta]:mt-[17px] tw:[&_.update-meta]:grid tw:[&_.update-meta]:gap-1.5 tw:[&_.update-meta]:text-[9px] tw:[&_.update-meta]:tracking-normal tw:[&_.update-meta]:text-[#b9b9b9] tw:[&_.overall-banner]:absolute tw:[&_.overall-banner]:right-12 tw:[&_.overall-banner]:bottom-0 tw:[&_.overall-banner]:left-12 tw:[&_.overall-banner]:z-1 tw:[&_.overall-banner]:flex tw:[&_.overall-banner]:min-h-[72px] tw:[&_.overall-banner]:translate-y-1/2 tw:[&_.overall-banner]:items-center tw:[&_.overall-banner]:justify-center tw:[&_.overall-banner]:gap-3 tw:[&_.overall-banner]:rounded-[11px] tw:[&_.overall-banner]:border tw:[&_.overall-banner]:border-[#0a0a0a] tw:[&_.overall-banner]:bg-white tw:[&_.overall-banner]:px-6 tw:[&_.overall-banner]:py-[18px] tw:[&_.overall-banner]:text-[15px] tw:[&_.overall-banner]:text-[#0a0a0a] tw:max-[650px]:[&_.overall-banner]:right-[18px] tw:max-[650px]:[&_.overall-banner]:left-[18px] tw:max-[650px]:[&_.overall-banner]:min-h-16 tw:max-[650px]:[&_.overall-banner]:text-xs tw:[&_.overall-banner>span]:size-2.5 tw:[&_.overall-banner>span]:rounded-full tw:[&_.overall-banner>span]:border tw:[&_.overall-banner>span]:border-[#0a0a0a] tw:[&_.overall-banner.operational>span]:bg-[#0a0a0a] tw:[&_.overall-banner.degraded>span]:bg-[linear-gradient(90deg,#0a0a0a_50%,white_50%)] tw:[&_.overall-banner.outage]:bg-[#0a0a0a] tw:[&_.overall-banner.outage]:text-white tw:[&_.overall-banner.outage]:shadow-[0_0_0_1px_white] tw:[&_.overall-banner.outage>span]:border-white tw:[&_.content-card]:rounded-b-[18px] tw:[&_.content-card]:bg-white tw:[&_.content-card]:px-12 tw:[&_.content-card]:pt-[86px] tw:[&_.content-card]:pb-12 tw:max-[650px]:[&_.content-card]:rounded-b-[13px] tw:max-[650px]:[&_.content-card]:px-[18px] tw:max-[650px]:[&_.content-card]:pt-[70px] tw:max-[650px]:[&_.content-card]:pb-[30px] tw:[&_.section-heading]:flex tw:[&_.section-heading]:items-baseline tw:[&_.section-heading]:justify-between tw:[&_.section-heading]:gap-5 tw:max-[650px]:[&_.section-heading]:flex-col tw:max-[650px]:[&_.section-heading]:items-start tw:max-[650px]:[&_.section-heading]:gap-[5px] tw:[&_.section-heading_h2]:m-0 tw:[&_.section-heading_h2]:text-[17px] tw:[&_.section-heading_h2]:font-bold tw:[&_.section-heading_h2]:tracking-[-0.02em] tw:[&_.section-heading_span]:text-[9px] tw:[&_.section-heading_span]:text-[#686868] tw:[&_.monitor-table]:mt-4 tw:[&_.monitor-table]:overflow-hidden tw:[&_.monitor-table]:rounded-[9px] tw:[&_.monitor-table]:border tw:[&_.monitor-table]:border-[#dedede] tw:max-[900px]:[&_.monitor-table]:overflow-x-auto tw:[&_.monitor-row]:grid tw:[&_.monitor-row]:min-h-[74px] tw:[&_.monitor-row]:grid-cols-[minmax(140px,1.2fr)_72px_minmax(400px,3fr)_78px] tw:[&_.monitor-row]:items-center tw:[&_.monitor-row]:gap-[18px] tw:[&_.monitor-row]:border-b tw:[&_.monitor-row]:border-[#dedede] tw:[&_.monitor-row]:px-[18px] tw:[&_.monitor-row]:py-4 tw:[&_.monitor-row:last-child]:border-0 tw:max-[900px]:[&_.monitor-row]:min-w-[800px] tw:max-[900px]:[&_.monitor-row]:grid-cols-[minmax(130px,1fr)_70px_minmax(340px,2.4fr)_70px] tw:[&_.monitor-name]:grid tw:[&_.monitor-name]:min-w-0 tw:[&_.monitor-name]:gap-[5px] tw:[&_.monitor-name_strong]:overflow-hidden tw:[&_.monitor-name_strong]:text-[11px] tw:[&_.monitor-name_strong]:text-ellipsis tw:[&_.monitor-name_span]:text-[9px] tw:[&_.monitor-name_span]:tracking-[0.08em] tw:[&_.monitor-name_span]:text-[#989898] tw:[&_.monitor-name_span]:uppercase tw:[&_.monitor-uptime]:text-right tw:[&_.heat-map]:grid tw:[&_.heat-map]:h-6 tw:[&_.heat-map]:min-w-[400px] tw:[&_.heat-map]:grid-cols-[repeat(90,minmax(2px,1fr))] tw:[&_.heat-map]:items-stretch tw:[&_.heat-map]:gap-0.5 tw:[&_.day]:min-w-0.5 tw:[&_.day]:cursor-help tw:[&_.day]:rounded-full tw:[&_.day]:bg-[#deded9] tw:[&_.day.up]:bg-[#0a0a0a] tw:[&_.day.partial]:bg-[#777] tw:[&_.day.down]:border tw:[&_.day.down]:border-[#0a0a0a] tw:[&_.day.down]:bg-white tw:[&_.day.no-data]:bg-[#e9e9e5] tw:[&_.monitor-status]:flex tw:[&_.monitor-status]:items-center tw:[&_.monitor-status]:justify-self-end tw:[&_.monitor-status]:gap-2 tw:[&_.monitor-status]:text-[8px] tw:[&_.monitor-status]:font-bold tw:[&_.monitor-status]:uppercase tw:[&_.monitor-status_i]:block tw:[&_.monitor-status_i]:size-[7px] tw:[&_.monitor-status_i]:rounded-full tw:[&_.monitor-status_i]:border tw:[&_.monitor-status_i]:border-current tw:[&_.monitor-status.up_i]:bg-[#0a0a0a] tw:[&_.monitor-status.down]:bg-[#0a0a0a] tw:[&_.monitor-status.down]:px-[7px] tw:[&_.monitor-status.down]:py-1.5 tw:[&_.monitor-status.down]:text-white tw:[&_.monitor-status.unknown]:text-[#686868] tw:[&_.monitor-status.paused]:text-[#686868] tw:[&_.empty-monitors]:px-5 tw:[&_.empty-monitors]:py-[42px] tw:[&_.empty-monitors]:text-center tw:[&_.empty-monitors]:text-[#686868] tw:[&_.uptime-status]:mt-[54px] tw:[&_.uptime-windows]:mt-4 tw:[&_.uptime-windows]:grid tw:[&_.uptime-windows]:grid-cols-4 tw:[&_.uptime-windows]:overflow-hidden tw:[&_.uptime-windows]:rounded-[9px] tw:[&_.uptime-windows]:border tw:[&_.uptime-windows]:border-[#dedede] tw:max-[650px]:[&_.uptime-windows]:grid-cols-2 tw:[&_.uptime-windows_div]:grid tw:[&_.uptime-windows_div]:min-h-25 tw:[&_.uptime-windows_div]:content-center tw:[&_.uptime-windows_div]:gap-[9px] tw:[&_.uptime-windows_div]:border-r tw:[&_.uptime-windows_div]:border-[#dedede] tw:[&_.uptime-windows_div]:p-5 tw:[&_.uptime-windows_div:last-child]:border-r-0 tw:max-[650px]:[&_.uptime-windows_div:nth-child(2)]:border-r-0 tw:max-[650px]:[&_.uptime-windows_div:nth-child(-n+2)]:border-b tw:[&_.uptime-windows_strong]:text-[clamp(20px,3vw,30px)] tw:[&_.uptime-windows_strong]:font-[620] tw:[&_.uptime-windows_strong]:tracking-[-0.04em] tw:[&_footer]:flex tw:[&_footer]:items-center tw:[&_footer]:justify-between tw:[&_footer]:gap-5 tw:[&_footer]:px-1 tw:[&_footer]:pt-6 tw:[&_footer]:text-[9px] tw:[&_footer]:tracking-[0.08em] tw:[&_footer]:text-[#686868] tw:[&_footer]:uppercase tw:max-[650px]:[&_footer]:flex-col tw:max-[650px]:[&_footer]:items-start tw:[&_.connection]:flex tw:[&_.connection]:items-center tw:[&_.connection]:gap-2 tw:[&_.connection_i]:block tw:[&_.connection_i]:size-[7px] tw:[&_.connection_i]:rounded-full tw:[&_.connection_i]:border tw:[&_.connection_i]:border-current tw:[&_.connection.connected_i]:bg-[#0a0a0a]"
+    >
+      @if (loading()) {
+        <div class="loading-line"></div>
+      }
 
-  @if (error() && !page()) {
-    <section class="unavailable">
-      <p class="eyebrow">Public status</p>
-      <h1>{{ error() }}</h1>
-      <p>Please check the link or try again shortly.</p>
-    </section>
-  }
+      @if (error() && !page()) {
+        <section class="unavailable">
+          <p class="eyebrow">Public status</p>
+          <h1>{{ error() }}</h1>
+          <p>Please check the link or try again shortly.</p>
+        </section>
+      }
 
-  @if (page(); as statusPage) {
-    <section class="hero">
-      <div class="identity">
-        <span class="logo" aria-hidden="true">M</span>
-        <div>
-          <span class="identity-label">Status page</span>
-          <h1>{{ statusPage.name }}</h1>
-          @if (statusPage.description) {
-            <p>{{ statusPage.description }}</p>
-          }
-        </div>
-      </div>
-
-      <div class="service-state">
-        <span class="service-label">Service status</span>
-        <strong [class]="'state-value ' + statusPage.overall_status">
-          <i></i>{{ serviceStatusLabel(statusPage.overall_status) }}
-        </strong>
-        <div class="update-meta">
-          <span>Next update in {{ nextUpdateIn(statusPage) }} sec.</span>
-          <span>Last updated {{ statusPage.generated_at | date: 'h:mm:ss a' }}</span>
-        </div>
-      </div>
-
-      <div class="overall-banner" [class]="'overall-banner ' + statusPage.overall_status">
-        <span></span>
-        <strong>{{ overallLabel(statusPage.overall_status) }}</strong>
-      </div>
-    </section>
-
-    <section class="content-card">
-      <div class="section-heading uptime-heading">
-        <h2>Uptime</h2>
-        <span>Last 90 days</span>
-      </div>
-
-      <div class="monitor-table">
-        @for (monitor of statusPage.monitors; track monitor.id) {
-          <article class="monitor-row">
-            <a class="monitor-name" [routerLink]="['/status', statusPage.slug, monitor.id]">
-              <strong>{{ monitor.name }}</strong>
-              <span>{{ monitor.monitor_type }} monitor</span>
-            </a>
-            <strong class="monitor-uptime">
-              {{
-                monitor.uptime_90_days === null
-                  ? '—'
-                  : (monitor.uptime_90_days | number: '1.0-2') + '%'
-              }}
-            </strong>
-            <div class="heat-map" aria-label="Daily uptime for the last 90 days">
-              @for (day of monitor.daily_uptime; track day.date) {
-                <span class="day" [class]="'day ' + dayClass(day)" [title]="dayLabel(day)"></span>
+      @if (page(); as statusPage) {
+        <section class="hero">
+          <div class="identity">
+            <span class="logo" aria-hidden="true">M</span>
+            <div>
+              <span class="identity-label">Status page</span>
+              <h1>{{ statusPage.name }}</h1>
+              @if (statusPage.description) {
+                <p>{{ statusPage.description }}</p>
               }
             </div>
-            <span [class]="'monitor-status ' + monitorStatus(monitor)">
-              <i></i>{{ monitorStatus(monitor) }}
-            </span>
-          </article>
-        } @empty {
-          <div class="empty-monitors">No monitors are published on this page yet.</div>
-        }
-      </div>
+          </div>
 
-      <section class="uptime-status">
-        <div class="section-heading">
-          <h2>Uptime Status</h2>
-          <span>Average across published monitors</span>
-        </div>
-        <div class="uptime-windows">
-          @for (window of uptimeWindows(statusPage); track window.label) {
-            <div>
-              <strong>
-                {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
-              </strong>
-              <span>{{ window.label }}</span>
+          <div class="service-state">
+            <span class="service-label">Service status</span>
+            <strong [class]="'state-value ' + statusPage.overall_status">
+              <i></i>{{ serviceStatusLabel(statusPage.overall_status) }}
+            </strong>
+            <div class="update-meta">
+              <span>Next update in {{ nextUpdateIn(statusPage) }} sec.</span>
+              <span>Last updated {{ statusPage.generated_at | date: 'h:mm:ss a' }}</span>
             </div>
-          }
-        </div>
-      </section>
-    </section>
+          </div>
 
-    <footer>
-      <span>Live status supplied by Mono Monitor</span>
-      <span class="connection" [class.connected]="connected()">
-        <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
-      </span>
-    </footer>
-  }
-</main>
+          <div class="overall-banner" [class]="'overall-banner ' + statusPage.overall_status">
+            <span></span>
+            <strong>{{ overallLabel(statusPage.overall_status) }}</strong>
+          </div>
+        </section>
+
+        <section class="content-card">
+          <div class="section-heading uptime-heading">
+            <h2>Uptime</h2>
+            <span>Last 90 days</span>
+          </div>
+
+          <div class="monitor-table">
+            @for (monitor of statusPage.monitors; track monitor.id) {
+              <article class="monitor-row">
+                <a class="monitor-name" [routerLink]="['/status', statusPage.slug, monitor.id]">
+                  <strong>{{ monitor.name }}</strong>
+                  <span>{{ monitor.monitor_type }} monitor</span>
+                </a>
+                <strong class="monitor-uptime">
+                  {{
+                    monitor.uptime_90_days === null
+                      ? '—'
+                      : (monitor.uptime_90_days | number: '1.0-2') + '%'
+                  }}
+                </strong>
+                <div class="heat-map" aria-label="Daily uptime for the last 90 days">
+                  @for (day of monitor.daily_uptime; track day.date) {
+                    <span
+                      class="day"
+                      [class]="'day ' + dayClass(day)"
+                      [title]="dayLabel(day)"
+                    ></span>
+                  }
+                </div>
+                <span [class]="'monitor-status ' + monitorStatus(monitor)">
+                  <i></i>{{ monitorStatus(monitor) }}
+                </span>
+              </article>
+            } @empty {
+              <div class="empty-monitors">No monitors are published on this page yet.</div>
+            }
+          </div>
+
+          <section class="uptime-status">
+            <div class="section-heading">
+              <h2>Uptime Status</h2>
+              <span>Average across published monitors</span>
+            </div>
+            <div class="uptime-windows">
+              @for (window of uptimeWindows(statusPage); track window.label) {
+                <div>
+                  <strong>
+                    {{ window.value === null ? '—' : (window.value | number: '1.0-2') + '%' }}
+                  </strong>
+                  <span>{{ window.label }}</span>
+                </div>
+              }
+            </div>
+          </section>
+        </section>
+
+        <footer>
+          <span>Live status supplied by Mono Monitor</span>
+          <span class="connection" [class.connected]="connected()">
+            <i></i>{{ connected() ? 'Live' : 'Reconnecting' }}
+          </span>
+        </footer>
+      }
+    </main>
+  </div>
+</div>

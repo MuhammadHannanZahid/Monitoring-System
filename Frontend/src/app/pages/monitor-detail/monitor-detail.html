@@ -1,207 +1,212 @@
-<header class="page-header">
-  <div>
-    <p class="eyebrow">Monitor details</p>
-    <h1 class="page-title">{{ detail()?.name ?? 'Monitor' }}</h1>
-    <p class="page-description">
-      Health statistics and the complete incident history for this monitor.
-    </p>
-  </div>
-  <a class="back-link" [routerLink]="backUrl">← Back to list</a>
-</header>
-
-@if (loading()) {
-  <div class="loading-line"></div>
-}
-@if (error()) {
-  <p class="form-error">{{ error() }}</p>
-}
-
-@if (detail(); as monitor) {
-  <section class="summary-panel panel">
-    <div class="monitor-heading">
-      <span class="status" [class]="'status ' + monitor.status">{{ monitor.status }}</span
-      ><span>{{ monitor.monitor_type }}</span>
-      @if (!monitor.is_active) {
-        <span>Paused</span>
-      }
+<div
+  class="tw:[&_.page-header]:mb-[38px] tw:[&_.page-header]:flex tw:[&_.page-header]:items-end tw:[&_.page-header]:justify-between tw:[&_.page-header]:gap-6 tw:max-[650px]:[&_.page-header]:items-start tw:[&_.back-link]:border-b tw:[&_.back-link]:border-[#0a0a0a] tw:[&_.back-link]:pb-[5px] tw:[&_.back-link]:text-[11px] tw:[&_.back-link]:font-bold tw:[&_.back-link]:whitespace-nowrap tw:[&_.back-link]:no-underline tw:[&_.loading-line]:mb-[18px] tw:[&_.form-error]:mb-[18px] tw:[&_.summary-panel]:mb-6 tw:[&_.monitor-heading]:flex tw:[&_.monitor-heading]:min-h-14 tw:[&_.monitor-heading]:items-center tw:[&_.monitor-heading]:gap-3 tw:[&_.monitor-heading]:border-b tw:[&_.monitor-heading]:border-[#dedede] tw:[&_.monitor-heading]:px-5 tw:[&_.monitor-heading]:text-[9px] tw:[&_.monitor-heading]:text-[#686868] tw:[&_.monitor-heading]:uppercase tw:[&_.status]:flex tw:[&_.status]:items-center tw:[&_.status]:gap-[7px] tw:[&_.status]:text-[#0a0a0a] tw:[&_.status::before]:size-[7px] tw:[&_.status::before]:rounded-full tw:[&_.status::before]:bg-[#aaa] tw:[&_.status::before]:content-[''] tw:[&_.status.up::before]:bg-[#0a0a0a] tw:[&_.status.down::before]:border tw:[&_.status.down::before]:border-[#0a0a0a] tw:[&_.status.down::before]:bg-white tw:[&_.summary-panel>dl]:m-0 tw:[&_.summary-panel>dl]:grid tw:[&_.summary-panel>dl]:grid-cols-4 tw:max-[950px]:[&_.summary-panel>dl]:grid-cols-2 tw:max-[650px]:[&_.summary-panel>dl]:grid-cols-1 tw:[&_.summary-panel>dl_div]:grid tw:[&_.summary-panel>dl_div]:min-h-[105px] tw:[&_.summary-panel>dl_div]:content-between tw:[&_.summary-panel>dl_div]:border-r tw:[&_.summary-panel>dl_div]:border-[#dedede] tw:[&_.summary-panel>dl_div]:px-5 tw:[&_.summary-panel>dl_div]:py-[18px] tw:[&_.summary-panel>dl_div:last-child]:border-0 tw:max-[950px]:[&_.summary-panel>dl_div:nth-child(2)]:border-r-0 tw:max-[950px]:[&_.summary-panel>dl_div:nth-child(-n+2)]:border-b tw:max-[650px]:[&_.summary-panel>dl_div]:min-h-[85px] tw:max-[650px]:[&_.summary-panel>dl_div]:border-r-0 tw:max-[650px]:[&_.summary-panel>dl_div]:border-b tw:max-[650px]:[&_.summary-panel>dl_div:last-child]:border-b-0 tw:[&_dt]:text-[9px] tw:[&_dt]:text-[#686868] tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[15px] tw:[&_dd]:font-bold tw:[&_.charts-grid]:mb-6 tw:[&_.charts-grid]:grid tw:[&_.charts-grid]:grid-cols-2 tw:[&_.charts-grid]:gap-6 tw:max-[950px]:[&_.charts-grid]:grid-cols-1 tw:[&_.chart-heading]:flex tw:[&_.chart-heading]:min-h-[82px] tw:[&_.chart-heading]:items-center tw:[&_.chart-heading]:justify-between tw:[&_.chart-heading]:gap-3.5 tw:[&_.chart-heading]:border-b tw:[&_.chart-heading]:border-[#dedede] tw:[&_.chart-heading]:px-[18px] tw:[&_.chart-heading]:py-4 tw:[&_.chart-heading_.eyebrow]:mb-[5px] tw:[&_.chart-heading_h2]:m-0 tw:[&_.chart-heading_h2]:text-[17px] tw:[&_.range-switch]:flex tw:[&_.range-switch]:border tw:[&_.range-switch]:border-[#dedede] tw:[&_.range-switch_button]:min-h-7 tw:[&_.range-switch_button]:cursor-pointer tw:[&_.range-switch_button]:border-0 tw:[&_.range-switch_button]:border-r tw:[&_.range-switch_button]:border-[#dedede] tw:[&_.range-switch_button]:bg-white tw:[&_.range-switch_button]:px-[9px] tw:[&_.range-switch_button]:text-[8px] tw:[&_.range-switch_button]:text-[#686868] tw:[&_.range-switch_button:last-child]:border-0 tw:[&_.range-switch_button.active]:bg-[#0a0a0a] tw:[&_.range-switch_button.active]:text-white tw:[&_.chart-body]:relative tw:[&_.chart-body]:grid tw:[&_.chart-body]:min-h-[210px] tw:[&_.chart-body]:items-stretch tw:[&_.chart-body]:px-[18px] tw:[&_.chart-body]:pt-[25px] tw:[&_.chart-body]:pb-3 tw:[&_.chart-body_svg]:h-40 tw:[&_.chart-body_svg]:w-full tw:[&_.chart-body_svg]:overflow-visible tw:[&_.chart-body_line]:stroke-[#e7e7e7] tw:[&_.chart-body_line]:stroke-1 tw:[&_.chart-body_line]:[vector-effect:non-scaling-stroke] tw:[&_.chart-body_polyline]:fill-none tw:[&_.chart-body_polyline]:stroke-[#0a0a0a] tw:[&_.chart-body_polyline]:stroke-2 tw:[&_.chart-body_polyline]:[stroke-linecap:round] tw:[&_.chart-body_polyline]:[stroke-linejoin:round] tw:[&_.chart-body_polyline]:[vector-effect:non-scaling-stroke] tw:[&_.chart-point]:outline-none tw:[&_.point-hit]:cursor-crosshair tw:[&_.point-hit]:fill-transparent tw:[&_.point-dot]:fill-[#0a0a0a] tw:[&_.point-dot]:stroke-[#0a0a0a] tw:[&_.point-dot]:stroke-[1.5] tw:[&_.point-dot]:opacity-0 tw:[&_.point-dot]:transition-[r,opacity] tw:[&_.point-dot]:duration-120 tw:[&_.point-dot]:[pointer-events:none] tw:[&_.point-dot]:[vector-effect:non-scaling-stroke] tw:[&_.chart-point:hover_.point-dot]:opacity-100 tw:[&_.chart-point:hover_.point-dot]:[r:5px] tw:[&_.chart-point:focus_.point-dot]:opacity-100 tw:[&_.chart-point:focus_.point-dot]:[r:5px] tw:[&_.status-chart]:grid-cols-[48px_1fr] tw:[&_.status-chart_svg]:col-start-2 tw:[&_.y-labels]:flex tw:[&_.y-labels]:h-40 tw:[&_.y-labels]:flex-col tw:[&_.y-labels]:justify-between tw:[&_.y-labels]:pt-[19px] tw:[&_.y-labels]:pb-[13px] tw:[&_.y-labels]:text-[8px] tw:[&_.y-labels]:text-[#686868] tw:[&_.response-maximum]:absolute tw:[&_.response-maximum]:top-3 tw:[&_.response-maximum]:left-[18px] tw:[&_.response-maximum]:text-[8px] tw:[&_.response-maximum]:text-[#686868] tw:[&_.chart-dates]:flex tw:[&_.chart-dates]:justify-between tw:[&_.chart-dates]:px-[18px] tw:[&_.chart-dates]:pb-4 tw:[&_.chart-dates]:text-[8px] tw:[&_.chart-dates]:text-[#686868] tw:[&_.section-heading]:flex tw:[&_.section-heading]:min-h-[82px] tw:[&_.section-heading]:items-center tw:[&_.section-heading]:justify-between tw:[&_.section-heading]:border-b tw:[&_.section-heading]:border-[#dedede] tw:[&_.section-heading]:px-5 tw:[&_.section-heading]:py-4 tw:[&_.section-heading_.eyebrow]:mb-[5px] tw:[&_.section-heading_h2]:m-0 tw:[&_.section-heading_h2]:text-[19px] tw:[&_.section-heading>span]:text-[10px] tw:[&_.section-heading>span]:text-[#686868] tw:[&_.incidents_article]:grid tw:[&_.incidents_article]:grid-cols-[90px_minmax(220px,1fr)_minmax(420px,1.5fr)] tw:[&_.incidents_article]:items-center tw:[&_.incidents_article]:gap-5 tw:[&_.incidents_article]:border-b tw:[&_.incidents_article]:border-[#dedede] tw:[&_.incidents_article]:p-5 tw:[&_.incidents_article:last-child]:border-b-0 tw:max-[950px]:[&_.incidents_article]:grid-cols-[90px_1fr] tw:max-[650px]:[&_.incidents_article]:grid-cols-1 tw:[&_.incident-status]:flex tw:[&_.incident-status]:items-center tw:[&_.incident-status]:gap-[7px] tw:[&_.incident-status]:text-[10px] tw:[&_.incident-status]:capitalize tw:[&_.incident-status_i]:size-[7px] tw:[&_.incident-status_i]:rounded-full tw:[&_.incident-status_i]:border tw:[&_.incident-status_i]:border-[#0a0a0a] tw:[&_.incident-status.open_i]:bg-[#0a0a0a] tw:[&_.incident-reason]:grid tw:[&_.incident-reason]:gap-1.5 tw:[&_.incident-reason_strong]:text-xs tw:[&_.incident-reason_span]:font-mono tw:[&_.incident-reason_span]:text-[8px] tw:[&_.incident-reason_span]:text-[#686868] tw:[&_.incidents_article_dl]:m-0 tw:[&_.incidents_article_dl]:grid tw:[&_.incidents_article_dl]:grid-cols-3 tw:[&_.incidents_article_dl]:gap-4 tw:max-[950px]:[&_.incidents_article_dl]:col-span-full tw:max-[650px]:[&_.incidents_article_dl]:col-auto tw:max-[650px]:[&_.incidents_article_dl]:grid-cols-1 tw:[&_.incidents_article_dl_div]:grid tw:[&_.incidents_article_dl_div]:gap-1.5 tw:[&_.incidents_article_dd]:text-[10px]"
+>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Monitor details</p>
+      <h1 class="page-title">{{ detail()?.name ?? 'Monitor' }}</h1>
+      <p class="page-description">
+        Health statistics and the complete incident history for this monitor.
+      </p>
     </div>
-    <dl>
-      <div>
-        <dt>Up percentage</dt>
-        <dd>
-          {{
-            uptimePercentage(monitor) === null
-              ? '—'
-              : (uptimePercentage(monitor) | number: '1.0-2') + '%'
-          }}
-        </dd>
-      </div>
-      <div>
-        <dt>Total uptime</dt>
-        <dd>{{ formatDuration(uptimeSeconds(monitor)) }}</dd>
-      </div>
-      <div>
-        <dt>Total downtime</dt>
-        <dd>{{ formatDuration(downtimeSeconds(monitor)) }}</dd>
-      </div>
-      <div>
-        <dt>Created on</dt>
-        <dd>{{ monitor.created_at | date: 'MMM d, y, HH:mm' }}</dd>
-      </div>
-    </dl>
-  </section>
+    <a class="back-link" [routerLink]="backUrl">← Back to list</a>
+  </header>
 
-  <div class="charts-grid">
-    <section class="chart-panel panel">
-      <div class="chart-heading">
-        <div>
-          <p class="eyebrow">Reliability</p>
-          <h2>Status over time</h2>
-        </div>
-        <div class="range-switch" aria-label="Status chart range">
-          @for (range of ranges; track range.days) {
-            <button
-              type="button"
-              [class.active]="statusDays() === range.days"
-              (click)="setStatusRange(range.days)"
-            >
-              {{ range.label }}
-            </button>
-          }
-        </div>
+  @if (loading()) {
+    <div class="loading-line"></div>
+  }
+
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+
+  @if (detail(); as monitor) {
+    <section class="summary-panel panel">
+      <div class="monitor-heading">
+        <span class="status" [class]="'status ' + monitor.status">{{ monitor.status }}</span
+        ><span>{{ monitor.monitor_type }}</span>
+        @if (!monitor.is_active) {
+          <span>Paused</span>
+        }
       </div>
-      @if (statusHistory().length) {
-        <div class="chart-body status-chart">
-          <div class="y-labels"><span>Up</span><span>Unknown</span><span>Down</span></div>
-          <svg
-            viewBox="0 0 760 140"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Monitor status history"
-          >
-            <line x1="0" y1="20" x2="760" y2="20" />
-            <line x1="0" y1="70" x2="760" y2="70" />
-            <line x1="0" y1="120" x2="760" y2="120" />
-            <polyline [attr.points]="statusPolyline()" />
-            @for (point of statusChartPoints(); track point.data.checked_at + $index) {
-              <g class="chart-point" tabindex="0">
-                <title>
-                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Status:
-                  {{ point.data.status }}
-                </title>
-                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
-                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
-              </g>
-            }
-          </svg>
+      <dl>
+        <div>
+          <dt>Up percentage</dt>
+          <dd>
+            {{
+              uptimePercentage(monitor) === null
+                ? '—'
+                : (uptimePercentage(monitor) | number: '1.0-2') + '%'
+            }}
+          </dd>
         </div>
-        <div class="chart-dates">
-          <span>{{ firstDate(statusHistory()) | date: 'MMM d, y' }}</span
-          ><span>{{ lastDate(statusHistory()) | date: 'MMM d, y' }}</span>
+        <div>
+          <dt>Total uptime</dt>
+          <dd>{{ formatDuration(uptimeSeconds(monitor)) }}</dd>
         </div>
-      } @else {
-        <div class="empty-state">No status data in this period.</div>
-      }
+        <div>
+          <dt>Total downtime</dt>
+          <dd>{{ formatDuration(downtimeSeconds(monitor)) }}</dd>
+        </div>
+        <div>
+          <dt>Created on</dt>
+          <dd>{{ monitor.created_at | date: 'MMM d, y, HH:mm' }}</dd>
+        </div>
+      </dl>
     </section>
 
-    <section class="chart-panel panel">
-      <div class="chart-heading">
-        <div>
-          <p class="eyebrow">Performance</p>
-          <h2>Response time</h2>
-        </div>
-        <div class="range-switch" aria-label="Response chart range">
-          @for (range of ranges; track range.days) {
-            <button
-              type="button"
-              [class.active]="responseDays() === range.days"
-              (click)="setResponseRange(range.days)"
-            >
-              {{ range.label }}
-            </button>
-          }
-        </div>
-      </div>
-      @if (responsePolyline()) {
-        <div class="chart-body response-chart">
-          <div class="response-maximum">{{ maximumResponseTime() | number: '1.0-0' }} ms</div>
-          <svg
-            viewBox="0 0 760 140"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Monitor response time history"
-          >
-            <line x1="0" y1="20" x2="760" y2="20" />
-            <line x1="0" y1="70" x2="760" y2="70" />
-            <line x1="0" y1="125" x2="760" y2="125" />
-            <polyline [attr.points]="responsePolyline()" />
-            @for (point of responseChartPoints(); track point.data.checked_at + $index) {
-              <g class="chart-point" tabindex="0">
-                <title>
-                  {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Response:
-                  {{ point.data.response_time_ms | number: '1.0-0' }} ms
-                </title>
-                <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
-                <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
-              </g>
+    <div class="charts-grid">
+      <section class="chart-panel panel">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">Reliability</p>
+            <h2>Status over time</h2>
+          </div>
+          <div class="range-switch" aria-label="Status chart range">
+            @for (range of ranges; track range.days) {
+              <button
+                type="button"
+                [class.active]="statusDays() === range.days"
+                (click)="setStatusRange(range.days)"
+              >
+                {{ range.label }}
+              </button>
             }
-          </svg>
+          </div>
         </div>
-        <div class="chart-dates">
-          <span>{{ firstDate(responseHistory()) | date: 'MMM d, y' }}</span
-          ><span>{{ lastDate(responseHistory()) | date: 'MMM d, y' }}</span>
+        @if (statusHistory().length) {
+          <div class="chart-body status-chart">
+            <div class="y-labels"><span>Up</span><span>Unknown</span><span>Down</span></div>
+            <svg
+              viewBox="0 0 760 140"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label="Monitor status history"
+            >
+              <line x1="0" y1="20" x2="760" y2="20" />
+              <line x1="0" y1="70" x2="760" y2="70" />
+              <line x1="0" y1="120" x2="760" y2="120" />
+              <polyline [attr.points]="statusPolyline()" />
+              @for (point of statusChartPoints(); track point.data.checked_at + $index) {
+                <g class="chart-point" tabindex="0">
+                  <title>
+                    {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Status:
+                    {{ point.data.status }}
+                  </title>
+                  <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                  <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+                </g>
+              }
+            </svg>
+          </div>
+          <div class="chart-dates">
+            <span>{{ firstDate(statusHistory()) | date: 'MMM d, y' }}</span
+            ><span>{{ lastDate(statusHistory()) | date: 'MMM d, y' }}</span>
+          </div>
+        } @else {
+          <div class="empty-state">No status data in this period.</div>
+        }
+      </section>
+
+      <section class="chart-panel panel">
+        <div class="chart-heading">
+          <div>
+            <p class="eyebrow">Performance</p>
+            <h2>Response time</h2>
+          </div>
+          <div class="range-switch" aria-label="Response chart range">
+            @for (range of ranges; track range.days) {
+              <button
+                type="button"
+                [class.active]="responseDays() === range.days"
+                (click)="setResponseRange(range.days)"
+              >
+                {{ range.label }}
+              </button>
+            }
+          </div>
         </div>
-      } @else {
-        <div class="empty-state">No response-time data in this period.</div>
+        @if (responsePolyline()) {
+          <div class="chart-body response-chart">
+            <div class="response-maximum">{{ maximumResponseTime() | number: '1.0-0' }} ms</div>
+            <svg
+              viewBox="0 0 760 140"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label="Monitor response time history"
+            >
+              <line x1="0" y1="20" x2="760" y2="20" />
+              <line x1="0" y1="70" x2="760" y2="70" />
+              <line x1="0" y1="125" x2="760" y2="125" />
+              <polyline [attr.points]="responsePolyline()" />
+              @for (point of responseChartPoints(); track point.data.checked_at + $index) {
+                <g class="chart-point" tabindex="0">
+                  <title>
+                    {{ point.data.checked_at | date: 'MMM d, y, HH:mm:ss' }} — Response:
+                    {{ point.data.response_time_ms | number: '1.0-0' }} ms
+                  </title>
+                  <circle class="point-hit" [attr.cx]="point.x" [attr.cy]="point.y" r="12" />
+                  <circle class="point-dot" [attr.cx]="point.x" [attr.cy]="point.y" r="3" />
+                </g>
+              }
+            </svg>
+          </div>
+          <div class="chart-dates">
+            <span>{{ firstDate(responseHistory()) | date: 'MMM d, y' }}</span
+            ><span>{{ lastDate(responseHistory()) | date: 'MMM d, y' }}</span>
+          </div>
+        } @else {
+          <div class="empty-state">No response-time data in this period.</div>
+        }
+      </section>
+    </div>
+
+    <section class="incidents panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">History</p>
+          <h2>Incidents</h2>
+        </div>
+        <span>{{ monitor.incidents.length }} total</span>
+      </div>
+      @for (incident of monitor.incidents; track incident.id) {
+        <article>
+          <div class="incident-status" [class.open]="incident.status === 'open'">
+            <i></i>{{ incident.status }}
+          </div>
+          <div class="incident-reason">
+            <strong>{{ incident.reason }}</strong
+            ><span>
+              @if (incident.status_code !== null) {
+                HTTP {{ incident.status_code }} ·
+              }
+              Incident ID {{ incident.id }}
+            </span>
+          </div>
+          <dl>
+            <div>
+              <dt>Created on</dt>
+              <dd>{{ incident.started_at | date: 'MMM d, y, HH:mm:ss' }}</dd>
+            </div>
+            <div>
+              <dt>Resolved on</dt>
+              <dd>
+                {{
+                  incident.resolved_at
+                    ? (incident.resolved_at | date: 'MMM d, y, HH:mm:ss')
+                    : 'Still open'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Downtime</dt>
+              <dd>{{ formatDuration(incidentDuration(incident)) }}</dd>
+            </div>
+          </dl>
+        </article>
+      } @empty {
+        <div class="empty-state">No incidents have occurred for this monitor.</div>
       }
     </section>
-  </div>
-
-  <section class="incidents panel">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">History</p>
-        <h2>Incidents</h2>
-      </div>
-      <span>{{ monitor.incidents.length }} total</span>
-    </div>
-    @for (incident of monitor.incidents; track incident.id) {
-      <article>
-        <div class="incident-status" [class.open]="incident.status === 'open'">
-          <i></i>{{ incident.status }}
-        </div>
-        <div class="incident-reason">
-          <strong>{{ incident.reason }}</strong
-          ><span>
-            @if (incident.status_code !== null) {
-              HTTP {{ incident.status_code }} ·
-            }
-            Incident ID {{ incident.id }}
-          </span>
-        </div>
-        <dl>
-          <div>
-            <dt>Created on</dt>
-            <dd>{{ incident.started_at | date: 'MMM d, y, HH:mm:ss' }}</dd>
-          </div>
-          <div>
-            <dt>Resolved on</dt>
-            <dd>
-              {{
-                incident.resolved_at
-                  ? (incident.resolved_at | date: 'MMM d, y, HH:mm:ss')
-                  : 'Still open'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Downtime</dt>
-            <dd>{{ formatDuration(incidentDuration(incident)) }}</dd>
-          </div>
-        </dl>
-      </article>
-    } @empty {
-      <div class="empty-state">No incidents have occurred for this monitor.</div>
-    }
-  </section>
-}
+  }
+</div>

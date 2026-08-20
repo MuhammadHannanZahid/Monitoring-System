@@ -17,7 +17,6 @@ interface CreatedResource {
   selector: 'app-new-resource-page',
   imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet],
   templateUrl: './new-resource.html',
-  styleUrl: './new-resource.css',
 })
 export class NewResourcePage {
   private readonly fb = inject(FormBuilder);

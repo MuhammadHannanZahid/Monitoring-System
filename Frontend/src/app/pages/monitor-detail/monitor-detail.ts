@@ -26,7 +26,6 @@ interface ChartPoint<T> {
   selector: 'app-monitor-detail-page',
   imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './monitor-detail.html',
-  styleUrl: './monitor-detail.css',
 })
 export class MonitorDetailPage {
   private readonly route = inject(ActivatedRoute);

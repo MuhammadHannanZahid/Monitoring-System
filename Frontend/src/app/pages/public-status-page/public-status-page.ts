@@ -12,7 +12,6 @@ import {
   selector: 'app-public-status-page',
   imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './public-status-page.html',
-  styleUrl: './public-status-page.css',
 })
 export class PublicStatusPageView {
   private readonly destroyRef = inject(DestroyRef);

@@ -1,88 +1,92 @@
-<header>
-  <div>
-    <p class="eyebrow">Status pages</p>
-    <h1 class="page-title">{{ editing ? 'Edit status page' : 'New status page' }}</h1>
-    <p class="page-description">
-      Choose exactly which monitor health information is visible on this public page.
-    </p>
-  </div>
-  <a class="back-link" routerLink="/status-pages">← Back to status pages</a>
-</header>
-
-@if (loading()) {
-  <div class="loading-line"></div>
-} @else {
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    @if (error()) {
-      <p class="form-error">{{ error() }}</p>
-    }
-
-    <section class="panel details-panel">
-      <div class="section-heading">
-        <span>01</span>
-        <div>
-          <h2>Public details</h2>
-          <p>The page name and description are visible without signing in.</p>
-        </div>
-      </div>
-      <div class="fields">
-        <div class="field">
-          <label for="status-page-name">Name</label>
-          <input
-            id="status-page-name"
-            type="text"
-            formControlName="name"
-            placeholder="Public service status"
-          />
-        </div>
-        <div class="field">
-          <label for="status-page-description">Description</label>
-          <textarea
-            id="status-page-description"
-            formControlName="description"
-            placeholder="A short description of the services shown on this page"
-          ></textarea>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel monitors-panel">
-      <div class="section-heading">
-        <span>02</span>
-        <div>
-          <h2>Select monitors</h2>
-          <p>{{ selectedIds().size }} of {{ monitors().length }} selected</p>
-        </div>
-      </div>
-
-      <div class="monitor-options">
-        @for (monitor of monitors(); track monitor.id) {
-          <label class="monitor-option" [class.selected]="isSelected(monitor.id)">
-            <input
-              type="checkbox"
-              [checked]="isSelected(monitor.id)"
-              (change)="toggleMonitor(monitor.id)"
-            />
-            <span class="checkmark"></span>
-            <span class="monitor-copy">
-              <strong>{{ monitor.name }}</strong>
-              <small>{{ monitor.monitor_type }} monitor</small>
-            </span>
-            <span class="monitor-status" [class]="'monitor-status ' + monitor.status">
-              {{ monitor.is_active ? monitor.status : 'paused' }}
-            </span>
-          </label>
-        } @empty {
-          <p class="empty-state">Create a monitor before adding one to a status page.</p>
-        }
-      </div>
-    </section>
-
-    <div class="form-actions">
-      <a routerLink="/status-pages">Cancel</a>
-      <button class="button" type="submit" [disabled]="submitting()">
-        {{ submitting() ? 'Saving…' : editing ? 'Save changes' : 'Create status page' }}
-      </button>
+<div
+  class="tw:[&_header]:mb-[38px] tw:[&_header]:flex tw:[&_header]:items-end tw:[&_header]:justify-between tw:[&_header]:gap-[30px] tw:max-[700px]:[&_header]:flex-col tw:max-[700px]:[&_header]:items-start tw:[&_.back-link]:border-b tw:[&_.back-link]:border-[#0a0a0a] tw:[&_.back-link]:pb-1 tw:[&_.back-link]:text-[10px] tw:[&_.back-link]:font-bold tw:[&_.back-link]:whitespace-nowrap tw:[&_.back-link]:no-underline tw:[&_form]:grid tw:[&_form]:max-w-[880px] tw:[&_form]:gap-4 tw:[&_.details-panel]:grid tw:[&_.details-panel]:grid-cols-[220px_1fr] tw:[&_.details-panel]:gap-[30px] tw:[&_.details-panel]:p-6 tw:max-[700px]:[&_.details-panel]:grid-cols-1 tw:[&_.monitors-panel]:grid tw:[&_.monitors-panel]:grid-cols-[220px_1fr] tw:[&_.monitors-panel]:gap-[30px] tw:[&_.monitors-panel]:p-6 tw:max-[700px]:[&_.monitors-panel]:grid-cols-1 tw:[&_.section-heading]:flex tw:[&_.section-heading]:items-start tw:[&_.section-heading]:gap-3 tw:[&_.section-heading>span]:font-mono tw:[&_.section-heading>span]:text-[9px] tw:[&_.section-heading>span]:text-[#686868] tw:[&_.section-heading_h2]:m-0 tw:[&_.section-heading_h2]:text-[13px] tw:[&_.section-heading_p]:mt-[7px] tw:[&_.section-heading_p]:mb-0 tw:[&_.section-heading_p]:text-[10px] tw:[&_.section-heading_p]:leading-normal tw:[&_.section-heading_p]:text-[#686868] tw:[&_.fields]:grid tw:[&_.fields]:gap-[18px] tw:[&_.monitor-options]:grid tw:[&_.monitor-options]:border tw:[&_.monitor-options]:border-[#dedede] tw:[&_.monitor-option]:grid tw:[&_.monitor-option]:min-w-0 tw:[&_.monitor-option]:cursor-pointer tw:[&_.monitor-option]:grid-cols-[auto_minmax(0,1fr)_auto] tw:[&_.monitor-option]:items-center tw:[&_.monitor-option]:gap-3 tw:[&_.monitor-option]:border-b tw:[&_.monitor-option]:border-[#dedede] tw:[&_.monitor-option]:p-3.5 tw:[&_.monitor-option:last-child]:border-b-0 tw:[&_.monitor-option:hover]:bg-[#f5f5f3] tw:[&_.monitor-option.selected]:bg-[#f5f5f3] tw:[&_.monitor-option_input]:pointer-events-none tw:[&_.monitor-option_input]:absolute tw:[&_.monitor-option_input]:opacity-0 tw:[&_.checkmark]:grid tw:[&_.checkmark]:size-[15px] tw:[&_.checkmark]:place-items-center tw:[&_.checkmark]:border tw:[&_.checkmark]:border-[#0a0a0a] tw:[&_.selected_.checkmark]:bg-[#0a0a0a] tw:[&_.selected_.checkmark::after]:text-[9px] tw:[&_.selected_.checkmark::after]:text-white tw:[&_.selected_.checkmark::after]:content-['✓'] tw:[&_.monitor-copy]:grid tw:[&_.monitor-copy]:min-w-0 tw:[&_.monitor-copy]:gap-1 tw:[&_.monitor-copy_strong]:overflow-hidden tw:[&_.monitor-copy_strong]:text-[11px] tw:[&_.monitor-copy_strong]:text-ellipsis tw:[&_.monitor-copy_strong]:whitespace-nowrap tw:[&_.monitor-copy_small]:text-[8px] tw:[&_.monitor-copy_small]:text-[#686868] tw:[&_.monitor-copy_small]:uppercase tw:[&_.monitor-status]:flex tw:[&_.monitor-status]:items-center tw:[&_.monitor-status]:gap-1.5 tw:[&_.monitor-status]:text-[8px] tw:[&_.monitor-status]:text-[#686868] tw:[&_.monitor-status]:uppercase tw:[&_.monitor-status::before]:size-[5px] tw:[&_.monitor-status::before]:rounded-full tw:[&_.monitor-status::before]:bg-[#aaa] tw:[&_.monitor-status::before]:content-[''] tw:[&_.monitor-status.up::before]:bg-[#0a0a0a] tw:[&_.monitor-status.down::before]:border tw:[&_.monitor-status.down::before]:border-[#0a0a0a] tw:[&_.monitor-status.down::before]:bg-white tw:[&_.monitor-options_.empty-state]:m-0 tw:[&_.form-actions]:flex tw:[&_.form-actions]:items-center tw:[&_.form-actions]:justify-end tw:[&_.form-actions]:gap-[18px] tw:[&_.form-actions]:pt-2 tw:[&_.form-actions_a]:text-[11px] tw:[&_.form-actions_a]:text-[#686868]"
+>
+  <header>
+    <div>
+      <p class="eyebrow">Status pages</p>
+      <h1 class="page-title">{{ editing ? 'Edit status page' : 'New status page' }}</h1>
+      <p class="page-description">
+        Choose exactly which monitor health information is visible on this public page.
+      </p>
     </div>
-  </form>
-}
+    <a class="back-link" routerLink="/status-pages">← Back to status pages</a>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-line"></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <section class="panel details-panel">
+        <div class="section-heading">
+          <span>01</span>
+          <div>
+            <h2>Public details</h2>
+            <p>The page name and description are visible without signing in.</p>
+          </div>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="status-page-name">Name</label>
+            <input
+              id="status-page-name"
+              type="text"
+              formControlName="name"
+              placeholder="Public service status"
+            />
+          </div>
+          <div class="field">
+            <label for="status-page-description">Description</label>
+            <textarea
+              id="status-page-description"
+              formControlName="description"
+              placeholder="A short description of the services shown on this page"
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel monitors-panel">
+        <div class="section-heading">
+          <span>02</span>
+          <div>
+            <h2>Select monitors</h2>
+            <p>{{ selectedIds().size }} of {{ monitors().length }} selected</p>
+          </div>
+        </div>
+
+        <div class="monitor-options">
+          @for (monitor of monitors(); track monitor.id) {
+            <label class="monitor-option" [class.selected]="isSelected(monitor.id)">
+              <input
+                type="checkbox"
+                [checked]="isSelected(monitor.id)"
+                (change)="toggleMonitor(monitor.id)"
+              />
+              <span class="checkmark"></span>
+              <span class="monitor-copy">
+                <strong>{{ monitor.name }}</strong>
+                <small>{{ monitor.monitor_type }} monitor</small>
+              </span>
+              <span class="monitor-status" [class]="'monitor-status ' + monitor.status">
+                {{ monitor.is_active ? monitor.status : 'paused' }}
+              </span>
+            </label>
+          } @empty {
+            <p class="empty-state">Create a monitor before adding one to a status page.</p>
+          }
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <a routerLink="/status-pages">Cancel</a>
+        <button class="button" type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : editing ? 'Save changes' : 'Create status page' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
