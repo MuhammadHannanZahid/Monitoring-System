@@ -88,7 +88,9 @@ export class StatusPageEditorPage {
     request.subscribe({
       next: (response) => {
         void this.router.navigate(['/status-pages'], {
-          state: { message: response.message },
+          state: {
+            message: `Status page “${response.data.name}” ${this.editing ? 'updated' : 'created'}.`,
+          },
         });
       },
       error: (error: unknown) => {

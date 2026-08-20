@@ -8,6 +8,11 @@ import { AuthProfileOption } from '../../core/models';
 
 type ResourceKind = 'http' | 'api' | 'ping' | 'heartbeat' | 'auth-profile';
 
+interface CreatedResource {
+  heartbeat_token?: string;
+  login_status_code?: number | null;
+}
+
 @Component({
   selector: 'app-new-resource-page',
   imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet],
@@ -74,7 +79,7 @@ export class NewResourcePage {
 
     this.loading.set(true);
     this.api
-      .post<unknown, Record<string, unknown>>(request.endpoint, request.body)
+      .post<CreatedResource, Record<string, unknown>>(request.endpoint, request.body)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
@@ -85,13 +90,30 @@ export class NewResourcePage {
           }
           void this.router.navigateByUrl(this.backUrl, {
             state: {
-              message: response.message,
+              message: this.creationMessage(String(request.body['name']), data),
               heartbeatToken,
             },
           });
         },
         error: (error: unknown) => this.error.set(ApiService.errorMessage(error)),
       });
+  }
+
+  private creationMessage(name: string, data: CreatedResource): string {
+    switch (this.kind) {
+      case 'http':
+        return `HTTP monitor “${name}” created.`;
+      case 'api':
+        return `API monitor “${name}” created.`;
+      case 'ping':
+        return `Ping monitor “${name}” created.`;
+      case 'heartbeat':
+        return `Heartbeat monitor “${name}” created.`;
+      case 'auth-profile':
+        return data.login_status_code
+          ? `Auth profile “${name}” created · Login HTTP ${data.login_status_code}.`
+          : `Auth profile “${name}” created.`;
+    }
   }
 
   private buildRequest(): { endpoint: string; body: Record<string, unknown> } {

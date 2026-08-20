@@ -33,27 +33,12 @@ header {
   color: var(--ink);
 }
 .loading-line,
-.form-error,
-.notification {
+.form-error {
   margin-bottom: 16px;
 }
 .notification {
   display: grid;
   gap: 9px;
-  padding: 16px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: white;
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease;
-  animation: notice-in 260ms ease both;
-}
-.notification.leaving {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 .notification strong,
 .notification span {
@@ -69,12 +54,6 @@ header {
 .notification small {
   color: #aaa;
   font-size: 10px;
-}
-@keyframes notice-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
 }
 .resource-grid {
   display: grid;
