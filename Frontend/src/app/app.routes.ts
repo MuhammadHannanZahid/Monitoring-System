@@ -6,7 +6,7 @@ import { LoginPage } from './pages/login/login';
 import { NewResourcePage } from './pages/add-monitor/add-monitor';
 import { MonitorDetailPage } from './pages/monitor-detail/monitor-detail';
 import { RegisterUserPage } from './pages/register-user/register-user';
-import { ResourceListPage } from './pages/resource-list/resource-list';
+import { ResourceListPage } from './pages/monitor-list/monitor-list';
 import { UserListPage } from './pages/user-list/user-list';
 import { StatusPageListPage } from './pages/status-page-list/status-page-list';
 import { StatusPageEditorPage } from './pages/status-page-editor/status-page-editor';
