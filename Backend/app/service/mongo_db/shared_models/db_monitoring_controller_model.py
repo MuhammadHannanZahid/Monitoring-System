@@ -13,12 +13,6 @@ class MonitorType(str, Enum):
     PING = "ping"
     HEARTBEAT = "heartbeat"
 
-class PerformanceStatus(str, Enum):
-    UNKNOWN = "unknown"
-    FAST = "fast"
-    SLOW = "slow"
-    NOT_CHECKED = "not_checked"
-
 class BaseMonitorModel(BaseModel):
     id: str | None = None
     name: str
@@ -41,6 +35,5 @@ class HealthCheckResponse(BaseModel):
     response_time_ms: int | None
     success: bool
     is_slow: bool = False
-    performance_status: PerformanceStatus = PerformanceStatus.UNKNOWN
     error: str | None = None
     timed_out: bool = False

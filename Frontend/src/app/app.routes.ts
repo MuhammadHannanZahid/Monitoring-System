@@ -49,7 +49,6 @@ export const routes: Routes = [
         data: {
           title: 'HTTP monitors',
           description: 'Website and HTTP endpoint availability checks.',
-          endpoint: '/HTTP_monitors/list_all',
           resourceType: 'HTTP',
           newUrl: '/monitors/http/new',
           detailBase: '/monitors/http',
@@ -75,7 +74,6 @@ export const routes: Routes = [
         data: {
           title: 'API monitors',
           description: 'Request, response, and protected API checks.',
-          endpoint: '/API_monitors/list_all',
           resourceType: 'API',
           newUrl: '/monitors/api/new',
           detailBase: '/monitors/api',
@@ -101,7 +99,6 @@ export const routes: Routes = [
         data: {
           title: 'Ping monitors',
           description: 'Operating-system ICMP host checks.',
-          endpoint: '/ping-monitors/list_all',
           resourceType: 'ping',
           newUrl: '/monitors/ping/new',
           detailBase: '/monitors/ping',
@@ -131,7 +128,6 @@ export const routes: Routes = [
         data: {
           title: 'Heartbeat monitors',
           description: 'Passive client heartbeat listeners.',
-          endpoint: '/heartbeat-monitors/list_all',
           resourceType: 'heartbeat',
           newUrl: '/monitors/heartbeat/new',
           detailBase: '/monitors/heartbeat',
@@ -171,7 +167,6 @@ export const routes: Routes = [
         data: {
           title: 'Auth profiles',
           description: 'Credentials used by protected API monitors.',
-          endpoint: '/auth-profiles/list_all',
           resourceType: 'auth_profiles',
           newUrl: '/auth-profiles/new',
           deletePath: '/auth-profiles/:id',
