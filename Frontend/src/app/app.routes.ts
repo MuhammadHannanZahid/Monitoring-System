@@ -3,7 +3,7 @@ import { adminGuard, authGuard } from './guards/auth.guard';
 import { AppShell } from './layout/app-shell/app-shell';
 import { DashboardPage } from './pages/dashboard/dashboard';
 import { LoginPage } from './pages/login/login';
-import { NewResourcePage } from './pages/new-resource/new-resource';
+import { NewResourcePage } from './pages/add-monitor/add-monitor';
 import { MonitorDetailPage } from './pages/monitor-detail/monitor-detail';
 import { RegisterUserPage } from './pages/register-user/register-user';
 import { ResourceListPage } from './pages/resource-list/resource-list';
